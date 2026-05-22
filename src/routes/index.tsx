@@ -220,7 +220,7 @@ function Home() {
           {filtered.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
               {filtered.map((r) => <ReplayCard key={r.id} replay={r} onReward={reward} />)}
             </div>
           )}
