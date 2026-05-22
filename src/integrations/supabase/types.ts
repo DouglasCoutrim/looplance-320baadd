@@ -14,7 +14,82 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      arenas: {
+        Row: {
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: []
+      }
+      quadras: {
+        Row: {
+          arena_id: string
+          created_at: string
+          id: string
+          nome: string
+        }
+        Insert: {
+          arena_id: string
+          created_at?: string
+          id?: string
+          nome: string
+        }
+        Update: {
+          arena_id?: string
+          created_at?: string
+          id?: string
+          nome?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quadras_arena_id_fkey"
+            columns: ["arena_id"]
+            isOneToOne: false
+            referencedRelation: "arenas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      replays: {
+        Row: {
+          created_at: string
+          id: string
+          quadra_id: string
+          video_url: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          quadra_id: string
+          video_url: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          quadra_id?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "replays_quadra_id_fkey"
+            columns: ["quadra_id"]
+            isOneToOne: false
+            referencedRelation: "quadras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
