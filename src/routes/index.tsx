@@ -136,19 +136,25 @@ function Home() {
             <Trophy className="h-4 w-4 text-[oklch(0.86_0.18_90)]" />
             <span className="text-sm font-bold brand-text">{points} XP</span>
           </div>
-          <img src={logoUrl} alt="Looplance" className="h-12 w-auto" />
-          <div className="w-[80px]" />
+          <div className="w-[40px]" /> {/* Spacer to keep balance */}
         </div>
       </header>
 
       <main className="mx-auto max-w-2xl space-y-5 px-4 pb-24 pt-5">
         {/* Hero / Check-in */}
-        <section className="glass-card relative overflow-hidden p-5">
+        <section className="glass-card relative flex flex-col items-center overflow-hidden p-8 text-center">
           <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[oklch(0.72_0.21_45)] opacity-20 blur-3xl" />
-          <h1 className="text-2xl font-black leading-tight">
+          
+          <img 
+            src={logoUrl} 
+            alt="Looplance" 
+            className="relative mb-6 h-24 w-auto drop-shadow-[0_0_15px_rgba(255,165,0,0.3)]" 
+          />
+
+          <h1 className="relative text-3xl font-black leading-tight">
             Seus lances <span className="brand-text">em loop.</span>
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="relative mt-2 text-sm text-muted-foreground">
             Selecione a arena, escolha a quadra e reviva cada jogada.
           </p>
           <button
