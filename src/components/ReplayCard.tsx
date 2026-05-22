@@ -1,5 +1,7 @@
-import { Download, Share2, Clock } from "lucide-react";
+import { Download, Share2, Clock, Play, X } from "lucide-react";
 import { toast } from "sonner";
+import { useState } from "react";
+import * as Dialog from "@radix-ui/react-dialog";
 
 interface Replay {
   id: string;
@@ -9,6 +11,8 @@ interface Replay {
 }
 
 export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () => void }) {
+  const [isOpen, setIsOpen] = useState(false);
+
   const time = new Date(replay.created_at).toLocaleTimeString("pt-BR", {
     hour: "2-digit",
     minute: "2-digit",
@@ -55,45 +59,83 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
   };
 
   return (
-    <article className="glass-card mx-auto w-full max-w-sm overflow-hidden">
-      <div className="relative aspect-[9/16] w-full bg-black">
+    <>
+      <button 
+        onClick={() => setIsOpen(true)}
+        className="glass-card group relative aspect-[9/16] w-full overflow-hidden transition hover:scale-[1.02]"
+      >
         <video
           src={replay.video_url}
-          controls
           playsInline
+          muted
           preload="metadata"
           className="h-full w-full object-cover"
-          onPlay={onReward}
         />
-      </div>
-      <div className="flex items-center justify-between gap-3 p-4">
-        <div className="min-w-0">
-          <h3 className="truncate text-base font-bold text-foreground">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-100 transition group-hover:bg-black/40">
+          <div className="brand-gradient grid h-12 w-12 place-items-center rounded-full text-black shadow-lg">
+            <Play className="h-6 w-6 fill-black" />
+          </div>
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 text-left">
+          <p className="truncate text-[10px] font-bold text-white">
             {replay.quadras?.nome ?? "Quadra"}
-          </h3>
-          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <Clock className="h-3 w-3" />
+          </p>
+          <p className="text-[9px] text-white/60">
             {date} · {time}
-            {replay.quadras?.arenas?.nome && <span>· {replay.quadras.arenas.nome}</span>}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2">
-          <button
-            onClick={handleShare}
-            aria-label="Compartilhar"
-            className="grid h-10 w-10 place-items-center rounded-full border border-border bg-white/5 text-foreground transition hover:bg-white/10"
-          >
-            <Share2 className="h-4 w-4" />
-          </button>
-          <button
-            onClick={handleDownload}
-            aria-label="Download"
-            className="brand-gradient brand-glow grid h-10 w-10 place-items-center rounded-full text-black transition hover:scale-105"
-          >
-            <Download className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </article>
+      </button>
+
+      <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/90 backdrop-blur-sm animate-in fade-in duration-200" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-[95vw] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-md animate-in zoom-in-95 duration-200">
+            <div className="relative flex flex-col items-center">
+              <div className="relative aspect-[9/16] w-full max-h-[80vh] overflow-hidden rounded-2xl bg-black shadow-2xl">
+                <video
+                  src={replay.video_url}
+                  autoPlay
+                  controls
+                  playsInline
+                  className="h-full w-full object-contain"
+                  onPlay={onReward}
+                />
+                <Dialog.Close className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md transition hover:bg-black/70">
+                  <X className="h-5 w-5" />
+                </Dialog.Close>
+              </div>
+
+              <div className="mt-6 flex w-full items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-xl">
+                <div className="min-w-0">
+                  <h3 className="truncate text-base font-bold text-white">
+                    {replay.quadras?.nome ?? "Quadra"}
+                  </h3>
+                  <p className="flex items-center gap-1.5 text-xs text-white/60">
+                    <Clock className="h-3 w-3" />
+                    {date} · {time}
+                    {replay.quadras?.arenas?.nome && <span>· {replay.quadras.arenas.nome}</span>}
+                  </p>
+                </div>
+                
+                <div className="flex shrink-0 items-center gap-2">
+                  <button
+                    onClick={handleShare}
+                    className="grid h-12 w-12 place-items-center rounded-full border border-white/10 bg-white/5 text-white transition hover:bg-white/10"
+                  >
+                    <Share2 className="h-5 w-5" />
+                  </button>
+                  <button
+                    onClick={handleDownload}
+                    className="brand-gradient brand-glow grid h-12 w-12 place-items-center rounded-full text-black transition hover:scale-105 active:scale-95"
+                  >
+                    <Download className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+    </>
   );
 }
