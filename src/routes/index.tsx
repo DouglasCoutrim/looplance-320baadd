@@ -148,7 +148,7 @@ function Home() {
           <img 
             src={logoUrl} 
             alt="Looplance" 
-            className="relative mb-6 h-24 w-auto drop-shadow-[0_0_15px_rgba(255,165,0,0.3)]" 
+            className="relative mb-10 w-full max-w-[240px] h-auto drop-shadow-[0_0_20px_rgba(255,165,0,0.4)]" 
           />
 
           <h1 className="relative text-3xl font-black leading-tight">
