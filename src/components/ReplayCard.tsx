@@ -55,8 +55,8 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
   };
 
   return (
-    <article className="glass-card overflow-hidden">
-      <div className="relative aspect-video bg-black">
+    <article className="glass-card mx-auto w-full max-w-sm overflow-hidden">
+      <div className="relative aspect-[9/16] w-full bg-black">
         <video
           src={replay.video_url}
           controls
