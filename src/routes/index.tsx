@@ -43,6 +43,7 @@ function Home() {
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const navigate = useNavigate();
 
   const checkProfileCompleteness = async (userId: string) => {
@@ -59,14 +60,36 @@ function Home() {
 
   // Initial load
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    const fetchUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-      if (user) checkProfileCompleteness(user.id);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (user) {
+        checkProfileCompleteness(user.id);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_super_admin")
+          .eq("id", user.id)
+          .maybeSingle();
+        setIsSuperAdmin(!!profile?.is_super_admin);
+      }
+    };
+
+    fetchUserData();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      if (currentUser) checkProfileCompleteness(currentUser.id);
+      if (currentUser) {
+        checkProfileCompleteness(currentUser.id);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_super_admin")
+          .eq("id", currentUser.id)
+          .maybeSingle();
+        setIsSuperAdmin(!!profile?.is_super_admin);
+      } else {
+        setIsSuperAdmin(false);
+      }
     });
 
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
@@ -202,13 +225,15 @@ function Home() {
                 <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Login</span>
               </Link>
             )}
-            <Link 
-              to="/admin" 
-              className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
-            >
-              <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange transition-transform group-hover:scale-110" />
-              <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
-            </Link>
+            {isSuperAdmin && (
+              <Link 
+                to="/admin" 
+                className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
+              >
+                <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange transition-transform group-hover:scale-110" />
+                <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
+              </Link>
+            )}
           </div>
         </div>
       </header>
