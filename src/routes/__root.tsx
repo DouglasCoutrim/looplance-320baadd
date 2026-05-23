@@ -11,6 +11,8 @@ import {
 
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
+import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+
 
 function NotFoundComponent() {
   return (
@@ -105,6 +107,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "theme-color", content: "#000000" },
       { title: "Looplance — Replays na palma da mão" },
       { name: "description", content: "Veja, baixe e compartilhe seus melhores lances em tempo real direto da quadra." },
+      { name: "mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
+      { name: "apple-mobile-web-app-title", content: "Looplance" },
       { property: "og:title", content: "Looplance — Replays na palma da mão" },
       { property: "og:description", content: "Veja, baixe e compartilhe seus melhores lances em tempo real direto da quadra." },
       { property: "og:type", content: "website" },
@@ -113,11 +119,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "Veja, baixe e compartilhe seus melhores lances em tempo real direto da quadra." },
     ],
     links: [
+      { rel: "manifest", href: "/manifest.webmanifest" },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
       { rel: "stylesheet", href: appCss },
     ],
   }),
+
   shellComponent: RootShell,
   component: RootComponent,
   notFoundComponent: NotFoundComponent,
@@ -129,11 +137,20 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
+        <script dangerouslySetInnerHTML={{ __html: `
+          if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && !window.location.hostname.includes('lovable.app') && !window.location.hostname.includes('lovableproject.com')) {
+            window.addEventListener('load', function() {
+              navigator.serviceWorker.register('/sw.js');
+            });
+          }
+        ` }} />
       </head>
       <body>
         {children}
+        <PWAInstallPrompt />
         <Scripts />
       </body>
+
     </html>
   );
 }
