@@ -159,7 +159,7 @@ function AdminHome() {
 
         {/* Quick Actions - High Impact */}
         <div className="lg:col-span-2 space-y-4">
-          <h3 className="text-xl font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight px-1">
+          <h3 className="text-lg sm:text-xl font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight px-1">
             <Zap className="h-5 w-5 text-brand-orange fill-brand-orange" />
             Ações Rápidas
           </h3>
