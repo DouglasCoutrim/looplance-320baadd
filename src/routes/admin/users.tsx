@@ -184,10 +184,11 @@ function AdminUsers() {
               <form onSubmit={handleCreateAdmin}>
                 <div className="p-8 space-y-6">
                   <div className="grid gap-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail Corporativo</Label>
+                    <Label htmlFor="admin-email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail Corporativo</Label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input 
+                        id="admin-email"
                         type="email" 
                         value={email} 
                         onChange={(e) => setEmail(e.target.value)} 
@@ -198,8 +199,9 @@ function AdminUsers() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha Provisória</Label>
+                    <Label htmlFor="admin-password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha Provisória</Label>
                     <Input 
+                      id="admin-password"
                       type="password" 
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
