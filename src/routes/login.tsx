@@ -42,10 +42,6 @@ function UserLogin() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4">
-      <div className="mb-8">
-        <img src={logoUrl} alt="Looplance" className="h-32 w-auto" />
-      </div>
-      
       <Card className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-none">
         <div className="brand-gradient p-6 text-white text-center">
           <CardHeader className="p-0">
