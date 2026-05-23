@@ -191,7 +191,7 @@ function Home() {
             <img 
               src={logoUrl} 
               alt="Looplance" 
-              className="h-24 sm:h-28 w-auto object-contain transition-transform hover:scale-105 z-50 animate-logo-float" 
+              className="h-24 sm:h-28 w-auto object-contain transition-transform hover:scale-105 z-50 animate-logo-float brightness-0 invert" 
               style={{ marginTop: '0px' }}
             />
           </div>
