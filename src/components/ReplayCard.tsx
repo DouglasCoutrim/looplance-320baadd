@@ -65,22 +65,22 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
         className="glass-card group relative aspect-[9/16] w-full overflow-hidden transition hover:scale-[1.02]"
       >
         <video
-          src={replay.video_url}
+          src={`${replay.video_url}#t=0.1`}
           playsInline
           muted
           preload="metadata"
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-100 transition group-hover:bg-black/40">
-          <div className="brand-gradient grid h-12 w-12 place-items-center rounded-full text-black shadow-lg">
-            <Play className="h-6 w-6 fill-black" />
+          <div className="brand-gradient grid h-10 w-10 place-items-center rounded-full text-black shadow-lg">
+            <Play className="h-5 w-5 fill-black" />
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-3 text-left">
-          <p className="truncate text-[10px] font-bold text-white">
+        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-2 text-left">
+          <p className="truncate text-[9px] font-bold text-white">
             {replay.quadras?.nome ?? "Quadra"}
           </p>
-          <p className="text-[9px] text-white/60">
+          <p className="text-[8px] text-white/60">
             {date} · {time}
           </p>
         </div>
