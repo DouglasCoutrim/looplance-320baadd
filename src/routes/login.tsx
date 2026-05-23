@@ -29,6 +29,7 @@ function UserLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    const loginToast = toast.loading("Verificando credenciais...");
     console.log("Login attempt started for:", email);
     setLoading(true);
 
@@ -40,31 +41,37 @@ function UserLogin() {
 
       if (error) {
         console.error("Supabase auth error:", error);
-        throw error;
+        toast.error(error.message || "Erro ao realizar login", { id: loginToast });
+        setLoading(false);
+        return;
       }
       
       if (!data.user) {
-        throw new Error("Usuário não encontrado após login");
+        toast.error("Usuário não encontrado após login", { id: loginToast });
+        setLoading(false);
+        return;
       }
 
       console.log("Login successful, user:", data.user.id);
-      toast.success("Login realizado com sucesso!");
+      toast.success("Login realizado com sucesso!", { id: loginToast });
       
-      if (redirect) {
-        console.log("Redirecting to:", redirect);
-        // Use navigate for relative paths, window.location for absolute
-        if (redirect.startsWith("/")) {
-          navigate({ to: redirect as any });
+      // Short delay to ensure session is persisted
+      setTimeout(() => {
+        if (redirect) {
+          console.log("Redirecting to:", redirect);
+          if (redirect.startsWith("/")) {
+            navigate({ to: redirect as any });
+          } else {
+            window.location.href = redirect;
+          }
         } else {
-          window.location.href = redirect;
+          console.log("Navigating to home");
+          navigate({ to: "/" });
         }
-      } else {
-        console.log("Navigating to home");
-        navigate({ to: "/" });
-      }
+      }, 500);
     } catch (error: any) {
       console.error("Detailed login error:", error);
-      toast.error(error.message || "Erro ao realizar login");
+      toast.error(error.message || "Ocorreu um erro inesperado", { id: loginToast });
       setLoading(false);
     }
   };
