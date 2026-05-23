@@ -63,6 +63,7 @@ function Cameras() {
   const [devices, setDevices] = useState<any[]>([]);
   const [boards, setBoards] = useState<any[]>([]);
   const [quadras, setQuadras] = useState<any[]>([]);
+  const [arenas, setArenas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -70,6 +71,7 @@ function Cameras() {
   const [formData, setFormData] = useState({
     name: "",
     rtsp_url: "",
+    arena_id: "",
     quadra_id: "",
     edge_device_id: "",
     input_board_id: "",
@@ -105,19 +107,31 @@ function Cameras() {
     }
   }, [formData.brand, formData.username, formData.password, formData.ip, formData.port]);
 
+  useEffect(() => {
+    // Reset quadra_id if arena changes
+    if (formData.arena_id) {
+      const quadraInArena = quadras.find(q => q.id === formData.quadra_id && q.arena_id === formData.arena_id);
+      if (!quadraInArena) {
+        setFormData(prev => ({ ...prev, quadra_id: "" }));
+      }
+    }
+  }, [formData.arena_id]);
+
   const fetchData = async () => {
     setLoading(true);
-    const [camerasRes, devicesRes, boardsRes, quadrasRes] = await Promise.all([
+    const [camerasRes, devicesRes, boardsRes, quadrasRes, arenasRes] = await Promise.all([
       supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
       supabase.from("edge_devices").select("id, name").order("name"),
       supabase.from("input_boards").select("id, name, edge_device_id").order("name"),
-      supabase.from("quadras").select("id, nome, arenas(nome)").order("nome")
+      supabase.from("quadras").select("id, nome, arena_id, arenas(nome)").order("nome"),
+      supabase.from("arenas").select("id, nome").order("nome")
     ]);
 
     setCameras(camerasRes.data || []);
     setDevices(devicesRes.data || []);
     setBoards(boardsRes.data || []);
     setQuadras(quadrasRes.data || []);
+    setArenas(arenasRes.data || []);
     setLoading(false);
   };
 
@@ -152,6 +166,7 @@ function Cameras() {
       setFormData({
         name: "",
         rtsp_url: "",
+        arena_id: "",
         quadra_id: "",
         edge_device_id: "",
         input_board_id: "",
@@ -171,6 +186,10 @@ function Cameras() {
   const filteredBoards = formData.edge_device_id 
     ? boards.filter(b => b.edge_device_id === formData.edge_device_id)
     : boards;
+
+  const filteredQuadras = formData.arena_id
+    ? quadras.filter(q => q.arena_id === formData.arena_id)
+    : quadras;
 
   return (
     <div className="space-y-8 pb-10">
@@ -249,14 +268,28 @@ function Cameras() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Quadra (Court)</Label>
-                    <Select value={formData.quadra_id} onValueChange={(v) => setFormData({...formData, quadra_id: v})}>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Arena</Label>
+                    <Select value={formData.arena_id} onValueChange={(v) => setFormData({...formData, arena_id: v})}>
                       <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
-                        <SelectValue placeholder="Selecione a quadra" />
+                        <SelectValue placeholder="Selecione a arena" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl shadow-xl border-gray-100">
-                        {quadras.map((q) => (
-                          <SelectItem key={q.id} value={q.id}>{q.arenas?.nome} - {q.nome}</SelectItem>
+                        {arenas.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Quadra (Court)</Label>
+                    <Select value={formData.quadra_id} onValueChange={(v) => setFormData({...formData, quadra_id: v})} disabled={!formData.arena_id}>
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                        <SelectValue placeholder={formData.arena_id ? "Selecione a quadra" : "Selecione uma arena primeiro"} />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                        {filteredQuadras.map((q) => (
+                          <SelectItem key={q.id} value={q.id}>{q.nome}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
