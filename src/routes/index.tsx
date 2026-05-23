@@ -60,14 +60,36 @@ function Home() {
 
   // Initial load
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    const fetchUserData = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
       setUser(user);
-      if (user) checkProfileCompleteness(user.id);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (user) {
+        checkProfileCompleteness(user.id);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_super_admin")
+          .eq("id", user.id)
+          .maybeSingle();
+        setIsSuperAdmin(!!profile?.is_super_admin);
+      }
+    };
+
+    fetchUserData();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
       const currentUser = session?.user ?? null;
       setUser(currentUser);
-      if (currentUser) checkProfileCompleteness(currentUser.id);
+      if (currentUser) {
+        checkProfileCompleteness(currentUser.id);
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_super_admin")
+          .eq("id", currentUser.id)
+          .maybeSingle();
+        setIsSuperAdmin(!!profile?.is_super_admin);
+      } else {
+        setIsSuperAdmin(false);
+      }
     });
 
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
