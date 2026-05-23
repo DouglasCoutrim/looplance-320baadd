@@ -132,14 +132,14 @@ function AdminHome() {
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 12, fontWeight: 700, fill: '#64748b' }}
+                  tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
                 />
                 <Tooltip 
                   cursor={{ fill: 'rgba(0,0,0,0.02)' }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-white p-3 border border-gray-100 rounded-xl shadow-xl text-xs font-black uppercase">
+                        <div className="bg-white p-3 border border-gray-100 rounded-xl shadow-xl text-[10px] font-black uppercase">
                           <span style={{ color: payload[0].payload.color }}>{payload[0].name}</span>: {payload[0].value}
                         </div>
                       );
@@ -147,7 +147,7 @@ function AdminHome() {
                     return null;
                   }}
                 />
-                <Bar dataKey="value" radius={[10, 10, 10, 10]} barSize={40}>
+                <Bar dataKey="value" radius={[10, 10, 10, 10]} barSize={30}>
                   {data.map((entry, index) => (
                     <Cell key={`cell-${index}`} fill={entry.color} />
                   ))}
