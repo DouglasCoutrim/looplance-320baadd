@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HardDrive, Camera, Tv, Play, Activity, Users } from "lucide-react";
-import { BarChart, Bar, XValue, YValue, ResponsiveContainer, Tooltip, Cell } from "recharts";
+import { BarChart, Bar, ResponsiveContainer, Tooltip, Cell } from "recharts";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminHome,
