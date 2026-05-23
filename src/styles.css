@@ -37,7 +37,7 @@
 :root {
   --radius: 1rem;
   /* Clean light background */
-  --background: oklch(1 0 0);
+  --background: oklch(0.96 0.01 250);
   --foreground: oklch(0.2 0 0);
 
   /* Clean light card */
