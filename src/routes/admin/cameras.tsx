@@ -114,14 +114,20 @@ function Cameras() {
       if (!quadraInArena) {
         setFormData(prev => ({ ...prev, quadra_id: "" }));
       }
+
+      // Auto-select edge device for this arena
+      const arenaEdge = devices.find(d => d.arena_id === formData.arena_id);
+      if (arenaEdge) {
+        setFormData(prev => ({ ...prev, edge_device_id: arenaEdge.id }));
+      }
     }
-  }, [formData.arena_id]);
+  }, [formData.arena_id, devices]);
 
   const fetchData = async () => {
     setLoading(true);
     const [camerasRes, devicesRes, boardsRes, quadrasRes, arenasRes] = await Promise.all([
       supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
-      supabase.from("edge_devices").select("id, name").order("name"),
+      supabase.from("edge_devices").select("id, name, arena_id").order("name"),
       supabase.from("input_boards").select("id, name, edge_device_id").order("name"),
       supabase.from("quadras").select("id, nome, arena_id, arenas(nome)").order("nome"),
       supabase.from("arenas").select("id, nome").order("nome")

@@ -101,6 +101,7 @@ export type Database = {
       }
       edge_devices: {
         Row: {
+          arena_id: string | null
           created_at: string | null
           edge_token: string | null
           hostname: string | null
@@ -110,6 +111,7 @@ export type Database = {
           status: string | null
         }
         Insert: {
+          arena_id?: string | null
           created_at?: string | null
           edge_token?: string | null
           hostname?: string | null
@@ -119,6 +121,7 @@ export type Database = {
           status?: string | null
         }
         Update: {
+          arena_id?: string | null
           created_at?: string | null
           edge_token?: string | null
           hostname?: string | null
@@ -127,7 +130,15 @@ export type Database = {
           name?: string
           status?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "edge_devices_arena_id_fkey"
+            columns: ["arena_id"]
+            isOneToOne: false
+            referencedRelation: "arenas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       input_boards: {
         Row: {
