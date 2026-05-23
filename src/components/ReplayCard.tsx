@@ -65,7 +65,7 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
         className="glass-card group relative aspect-[9/16] w-full overflow-hidden transition hover:scale-[1.02]"
       >
         <video
-          src={`${replay.video_url}#t=0.1`}
+          src={`${replay.video_url}#t=3.0`}
           playsInline
           muted
           preload="metadata"
