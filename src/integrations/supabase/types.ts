@@ -32,6 +32,141 @@ export type Database = {
         }
         Relationships: []
       }
+      cameras: {
+        Row: {
+          active: boolean | null
+          buffer_seconds: number | null
+          created_at: string | null
+          edge_device_id: string | null
+          id: string
+          input_board_id: string | null
+          name: string
+          overlay_url: string | null
+          quadra_id: string | null
+          replay_seconds: number | null
+          rtsp_url: string | null
+          trigger_button: number | null
+        }
+        Insert: {
+          active?: boolean | null
+          buffer_seconds?: number | null
+          created_at?: string | null
+          edge_device_id?: string | null
+          id?: string
+          input_board_id?: string | null
+          name: string
+          overlay_url?: string | null
+          quadra_id?: string | null
+          replay_seconds?: number | null
+          rtsp_url?: string | null
+          trigger_button?: number | null
+        }
+        Update: {
+          active?: boolean | null
+          buffer_seconds?: number | null
+          created_at?: string | null
+          edge_device_id?: string | null
+          id?: string
+          input_board_id?: string | null
+          name?: string
+          overlay_url?: string | null
+          quadra_id?: string | null
+          replay_seconds?: number | null
+          rtsp_url?: string | null
+          trigger_button?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cameras_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cameras_input_board_id_fkey"
+            columns: ["input_board_id"]
+            isOneToOne: false
+            referencedRelation: "input_boards"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cameras_quadra_id_fkey"
+            columns: ["quadra_id"]
+            isOneToOne: false
+            referencedRelation: "quadras"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      edge_devices: {
+        Row: {
+          created_at: string | null
+          edge_token: string | null
+          hostname: string | null
+          id: string
+          last_seen: string | null
+          name: string
+          status: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          edge_token?: string | null
+          hostname?: string | null
+          id?: string
+          last_seen?: string | null
+          name: string
+          status?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          edge_token?: string | null
+          hostname?: string | null
+          id?: string
+          last_seen?: string | null
+          name?: string
+          status?: string | null
+        }
+        Relationships: []
+      }
+      input_boards: {
+        Row: {
+          created_at: string | null
+          device_name: string | null
+          edge_device_id: string | null
+          id: string
+          name: string
+          product_id: string | null
+          vendor_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          device_name?: string | null
+          edge_device_id?: string | null
+          id?: string
+          name: string
+          product_id?: string | null
+          vendor_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          device_name?: string | null
+          edge_device_id?: string | null
+          id?: string
+          name?: string
+          product_id?: string | null
+          vendor_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "input_boards_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quadras: {
         Row: {
           arena_id: string
