@@ -199,7 +199,7 @@ function AdminHome() {
   );
 }
 
-function StatCard({ title, value, icon, description, link, color }: any) {
+function StatCard({ title, value, icon, description, link, color = "orange" }: any) {
   const colorClasses: any = {
     orange: "text-orange-500 bg-orange-50",
     blue: "text-blue-500 bg-blue-50",
