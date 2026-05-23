@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard, User } from "lucide-react";
@@ -43,12 +43,30 @@ function Home() {
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const navigate = useNavigate();
+
+  const checkProfileCompleteness = async (userId: string) => {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("cpf, birth_date")
+      .eq("id", userId)
+      .single();
+
+    if (profile && (!profile.cpf || !profile.birth_date)) {
+      navigate({ to: "/complete-profile" });
+    }
+  };
 
   // Initial load
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setUser(user);
+      if (user) checkProfileCompleteness(user.id);
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+      const currentUser = session?.user ?? null;
+      setUser(currentUser);
+      if (currentUser) checkProfileCompleteness(currentUser.id);
     });
 
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
