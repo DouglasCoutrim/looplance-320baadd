@@ -140,7 +140,7 @@ function Home() {
 
           {/* Center: Logo */}
           <div className="flex-none">
-            <img src={logoUrl} alt="Looplance" className="h-24 w-auto transition-transform hover:scale-105" />
+            <img src={logoUrl} alt="Looplance" className="h-32 w-auto -my-4 transition-transform hover:scale-105" />
           </div>
 
           {/* Right: Spacer to maintain centering */}
