@@ -56,12 +56,14 @@ function CompleteProfile() {
       return;
     }
 
+    const updateToast = toast.loading("Salvando seus dados...");
     setLoading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não encontrado");
 
+      console.log("Updating profile for user:", user.id);
       const { error } = await supabase.from("profiles").upsert({
         id: user.id,
         email: user.email,
@@ -73,12 +75,19 @@ function CompleteProfile() {
         updated_at: new Date().toISOString(),
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase upsert error:", error);
+        toast.error(error.message || "Erro ao atualizar perfil", { id: updateToast });
+        setLoading(false);
+        return;
+      }
 
-      toast.success("Perfil atualizado com sucesso!");
+      console.log("Profile updated successfully");
+      toast.success("Perfil atualizado com sucesso!", { id: updateToast });
       navigate({ to: "/" });
     } catch (error: any) {
-      toast.error(error.message || "Erro ao atualizar perfil");
+      console.error("Detailed profile update error:", error);
+      toast.error(error.message || "Ocorreu um erro inesperado", { id: updateToast });
       setLoading(false);
     }
   };
