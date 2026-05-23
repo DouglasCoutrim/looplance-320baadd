@@ -200,15 +200,16 @@ function CompleteProfile() {
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter className="mt-6">
-                        <DialogClose asChild>
-                          <Button 
-                            type="button" 
-                            onClick={() => setConsentAccepted(true)}
-                            className="brand-gradient text-white font-bold rounded-xl w-full"
-                          >
-                            Compreendo e Aceito
-                          </Button>
-                        </DialogClose>
+                        <Button 
+                          type="button" 
+                          onClick={() => {
+                            setConsentAccepted(true);
+                            setTermsOpen(false);
+                          }}
+                          className="brand-gradient text-white font-bold rounded-xl w-full"
+                        >
+                          Compreendo e Aceito
+                        </Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
