@@ -232,7 +232,7 @@ function QuickAction({ to, title, description, icon }: any) {
   return (
     <Link 
       to={to} 
-      className="flex items-center gap-4 glass-card bg-white p-4 shadow-sm border border-gray-100 transition-all hover:border-brand-orange/50 hover:shadow-md hover:bg-gray-50 group"
+      className="flex items-center gap-3 sm:gap-4 glass-card bg-white p-3 sm:p-4 shadow-sm border border-gray-100 transition-all hover:border-brand-orange/50 hover:shadow-md hover:bg-gray-50 group"
     >
       <div className="h-12 w-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:brand-gradient group-hover:text-white transition-all">
         {icon}
