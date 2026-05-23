@@ -13,6 +13,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
+import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-boards'
 import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-devices'
 import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
@@ -36,6 +37,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminQuadrasRoute = AdminQuadrasRouteImport.update({
   id: '/quadras',
   path: '/quadras',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLoginRoute = AdminLoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminInputBoardsRoute = AdminInputBoardsRouteImport.update({
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin': typeof AdminIndexRoute
 }
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/login': typeof AdminLoginRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/': typeof AdminIndexRoute
 }
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
+    | '/admin/login'
     | '/admin/quadras'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
@@ -107,6 +117,7 @@ export interface FileRouteTypes {
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
+    | '/admin/login'
     | '/admin/quadras'
     | '/admin'
   id:
@@ -117,6 +128,7 @@ export interface FileRouteTypes {
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
+    | '/admin/login'
     | '/admin/quadras'
     | '/admin/'
   fileRoutesById: FileRoutesById
@@ -156,6 +168,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminQuadrasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/login': {
+      id: '/admin/login'
+      path: '/login'
+      fullPath: '/admin/login'
+      preLoaderRoute: typeof AdminLoginRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/input-boards': {
       id: '/admin/input-boards'
       path: '/input-boards'
@@ -192,6 +211,7 @@ interface AdminRouteChildren {
   AdminCamerasRoute: typeof AdminCamerasRoute
   AdminEdgeDevicesRoute: typeof AdminEdgeDevicesRoute
   AdminInputBoardsRoute: typeof AdminInputBoardsRoute
+  AdminLoginRoute: typeof AdminLoginRoute
   AdminQuadrasRoute: typeof AdminQuadrasRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -201,6 +221,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCamerasRoute: AdminCamerasRoute,
   AdminEdgeDevicesRoute: AdminEdgeDevicesRoute,
   AdminInputBoardsRoute: AdminInputBoardsRoute,
+  AdminLoginRoute: AdminLoginRoute,
   AdminQuadrasRoute: AdminQuadrasRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
@@ -214,3 +235,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
