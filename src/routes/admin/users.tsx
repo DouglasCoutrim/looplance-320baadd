@@ -41,7 +41,7 @@ function AdminUsers() {
     if (error) {
       toast.error("Erro ao buscar usuários");
     } else {
-      setProfiles(data || []);
+      setProfiles((data as Profile[]) || []);
     }
     setLoading(false);
   };
@@ -72,7 +72,7 @@ function AdminUsers() {
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ is_super_admin: true })
-        .eq("id", authData.user?.id);
+        .eq("id", authData.user?.id || "");
 
       if (updateError) throw updateError;
 
