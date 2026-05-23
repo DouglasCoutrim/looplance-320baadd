@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, UserPlus, Shield, Trash2, Mail } from "lucide-react";
+import { Plus, RefreshCw, UserPlus, Shield, Trash2, Mail, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -70,9 +70,12 @@ function AdminUsers() {
     }
 
     try {
+      const updateData: any = {};
+      updateData[field] = !currentValue;
+
       const { error } = await supabase
         .from("profiles")
-        .update({ [field]: !currentValue })
+        .update(updateData)
         .eq("id", profileId);
 
       if (error) throw error;
