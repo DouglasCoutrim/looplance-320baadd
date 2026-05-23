@@ -25,6 +25,8 @@ interface EdgeDevice {
   last_seen: string | null;
   edge_token: string | null;
   created_at: string | null;
+  arena_id: string | null;
+  arenas?: { nome: string } | null;
 }
 
 function EdgeDevices() {
@@ -193,9 +195,9 @@ function EdgeDevices() {
                       </div>
                       <div>
                         <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{device.name}</span>
-                        {(device as any).arenas && (
+                        {device.arenas && (
                           <Badge variant="outline" className="ml-2 text-[8px] border-orange-200 text-brand-orange">
-                            {(device as any).arenas.nome}
+                            {device.arenas.nome}
                           </Badge>
                         )}
                         <p className="text-xs font-medium text-muted-foreground">Token: {device.edge_token?.slice(0, 8)}...</p>
