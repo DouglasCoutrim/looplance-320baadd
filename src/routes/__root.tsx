@@ -73,7 +73,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   beforeLoad: async ({ location }) => {
-    const publicPaths = ["/login", "/signup", "/admin/login"];
+    const publicPaths = ["/login", "/signup", "/admin/login", "/manifest.json", "/sw.js"];
     if (publicPaths.includes(location.pathname)) return;
 
     const { data: { session } } = await supabase.auth.getSession();
