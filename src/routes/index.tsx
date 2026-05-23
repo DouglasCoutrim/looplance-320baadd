@@ -1,11 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard } from "lucide-react";
+import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard, User } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
+import { User as SupabaseUser } from "@supabase/supabase-js";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -41,9 +42,15 @@ function Home() {
   const [checkInAt, setCheckInAt] = useState<Date | null>(null);
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
+  const [user, setUser] = useState<SupabaseUser | null>(null);
 
   // Initial load
   useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
+    supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
     fetchFeatured();
@@ -169,8 +176,25 @@ function Home() {
             />
           </div>
 
-          {/* Right: Admin Link */}
-          <div className="flex-1 flex justify-end">
+          {/* Right: Auth/Admin Links */}
+          <div className="flex-1 flex justify-end items-center gap-3">
+            {user ? (
+              <button 
+                onClick={() => supabase.auth.signOut()}
+                className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-red-500/50"
+              >
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 transition-transform group-hover:scale-110" />
+                <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Sair</span>
+              </button>
+            ) : (
+              <Link 
+                to="/login" 
+                className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
+              >
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange transition-transform group-hover:scale-110" />
+                <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Login</span>
+              </Link>
+            )}
             <Link 
               to="/admin" 
               className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
