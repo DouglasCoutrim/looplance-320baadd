@@ -180,23 +180,47 @@ export type Database = {
       }
       profiles: {
         Row: {
-          created_at: string | null
-          email: string
+          created_at: string
+          email: string | null
           id: string
+          is_super_admin: boolean | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id: string
+          is_super_admin?: boolean | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_super_admin?: boolean | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles_backup: {
+        Row: {
+          created_at: string | null
+          email: string | null
+          id: string | null
           is_super_admin: boolean | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
-          email: string
-          id: string
+          email?: string | null
+          id?: string | null
           is_super_admin?: boolean | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
-          email?: string
-          id?: string
+          email?: string | null
+          id?: string | null
           is_super_admin?: boolean | null
           updated_at?: string | null
         }
