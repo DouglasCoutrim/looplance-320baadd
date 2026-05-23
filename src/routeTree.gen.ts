@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as EdgeDevicesRouteImport } from './routes/edge-devices'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
@@ -18,6 +19,11 @@ import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-device
 import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
 import { Route as AdminArenasRouteImport } from './routes/admin/arenas'
 
+const EdgeDevicesRoute = EdgeDevicesRouteImport.update({
+  id: '/edge-devices',
+  path: '/edge-devices',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -62,6 +68,7 @@ const AdminArenasRoute = AdminArenasRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/edge-devices': typeof EdgeDevicesRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
@@ -71,6 +78,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/edge-devices': typeof EdgeDevicesRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
@@ -82,6 +90,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/edge-devices': typeof EdgeDevicesRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
@@ -94,6 +103,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/edge-devices'
     | '/admin/arenas'
     | '/admin/cameras'
     | '/admin/edge-devices'
@@ -103,6 +113,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/edge-devices'
     | '/admin/arenas'
     | '/admin/cameras'
     | '/admin/edge-devices'
@@ -113,6 +124,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/edge-devices'
     | '/admin/arenas'
     | '/admin/cameras'
     | '/admin/edge-devices'
@@ -124,10 +136,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  EdgeDevicesRoute: typeof EdgeDevicesRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/edge-devices': {
+      id: '/edge-devices'
+      path: '/edge-devices'
+      fullPath: '/edge-devices'
+      preLoaderRoute: typeof EdgeDevicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -210,7 +230,18 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  EdgeDevicesRoute: EdgeDevicesRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
