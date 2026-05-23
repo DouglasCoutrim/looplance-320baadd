@@ -47,13 +47,15 @@ function Home() {
   // Initial load
   useEffect(() => {
     supabase.auth.getUser().then(({ data: { user } }) => setUser(user));
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
     });
 
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
     fetchFeatured();
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const fetchFeatured = async () => {
