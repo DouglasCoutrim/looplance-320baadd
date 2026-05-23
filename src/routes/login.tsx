@@ -99,8 +99,10 @@ function UserLogin() {
         <CardContent className="p-8">
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail</Label>
+              <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail</Label>
               <Input 
+                id="email"
+                name="email"
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
@@ -111,8 +113,10 @@ function UserLogin() {
             </div>
             
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
+              <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
               <Input 
+                id="password"
+                name="password"
                 type="password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
