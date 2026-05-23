@@ -31,6 +31,17 @@ const BUTTON_MAPPING = [
   { label: "K12 - Button 11", value: 11 },
 ];
 
+const CAMERA_BRANDS = [
+  { id: "intelbras", name: "Intelbras / Mibo", template: "rtsp://{user}:{pass}@{ip}:{port}/cam/realmonitor?channel=1&subtype=0" },
+  { id: "hikvision", name: "Hikvision", template: "rtsp://{user}:{pass}@{ip}:{port}/Streaming/Channels/101" },
+  { id: "dahua", name: "Dahua", template: "rtsp://{user}:{pass}@{ip}:{port}/cam/realmonitor?channel=1&subtype=0" },
+  { id: "giga", name: "Giga Security", template: "rtsp://{user}:{pass}@{ip}:{port}/ch0/0" },
+  { id: "tecvoz", name: "Tecvoz", template: "rtsp://{user}:{pass}@{ip}:{port}/live/ch0" },
+  { id: "tplink", name: "TP-Link (Tapo)", template: "rtsp://{user}:{pass}@{ip}:{port}/stream1" },
+  { id: "axis", name: "Axis", template: "rtsp://{user}:{pass}@{ip}:{port}/axis-media/media.amp?" },
+  { id: "custom", name: "Personalizado", template: "" }
+];
+
 interface CameraType {
   id: string;
   name: string;
@@ -64,7 +75,34 @@ function Cameras() {
     trigger_button: "0",
     replay_seconds: "15",
     active: true,
+    // Helper fields
+    brand: "custom",
+    username: "admin",
+    password: "",
+    ip: "",
+    port: "554",
   });
+
+  const generateRtspUrl = () => {
+    if (formData.brand === "custom") return;
+    
+    const brand = CAMERA_BRANDS.find(b => b.id === formData.brand);
+    if (!brand || !brand.template) return;
+
+    let url = brand.template
+      .replace("{user}", formData.username || "admin")
+      .replace("{pass}", formData.password || "senha")
+      .replace("{ip}", formData.ip || "192.168.1.100")
+      .replace("{port}", formData.port || "554");
+    
+    setFormData(prev => ({ ...prev, rtsp_url: url }));
+  };
+
+  useEffect(() => {
+    if (formData.brand !== "custom") {
+      generateRtspUrl();
+    }
+  }, [formData.brand, formData.username, formData.password, formData.ip, formData.port]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -95,11 +133,14 @@ function Cameras() {
     const { error } = await supabase
       .from("cameras")
       .insert([{
-        ...formData,
-        trigger_button: parseInt(formData.trigger_button),
-        replay_seconds: parseInt(formData.replay_seconds),
+        name: formData.name,
+        rtsp_url: formData.rtsp_url,
+        quadra_id: formData.quadra_id,
         edge_device_id: formData.edge_device_id || null,
         input_board_id: formData.input_board_id || null,
+        trigger_button: parseInt(formData.trigger_button),
+        replay_seconds: parseInt(formData.replay_seconds),
+        active: formData.active,
       }]);
 
     if (error) {
@@ -107,6 +148,21 @@ function Cameras() {
     } else {
       toast.success("Câmera criada com sucesso");
       setIsDialogOpen(false);
+      setFormData({
+        name: "",
+        rtsp_url: "",
+        quadra_id: "",
+        edge_device_id: "",
+        input_board_id: "",
+        trigger_button: "0",
+        replay_seconds: "15",
+        active: true,
+        brand: "custom",
+        username: "admin",
+        password: "",
+        ip: "",
+        port: "554",
+      });
       fetchData();
     }
   };
@@ -142,16 +198,55 @@ function Cameras() {
                 <p className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">Integração RTSP & Edge</p>
               </div>
               
-              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[70vh] overflow-y-auto">
                 <div className="space-y-6">
                   <div className="grid gap-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome da Câmera</Label>
                     <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Ex: Câmera Principal Quadra 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
                   </div>
-                  <div className="grid gap-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">RTSP URL</Label>
-                    <Input value={formData.rtsp_url} onChange={(e) => setFormData({...formData, rtsp_url: e.target.value})} placeholder="rtsp://user:pass@ip:554/stream" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono text-xs" />
+                  
+                  <div className="grid gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/30">
+                    <div className="grid gap-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Marca da Câmera</Label>
+                      <Select value={formData.brand} onValueChange={(v) => setFormData({...formData, brand: v})}>
+                        <SelectTrigger className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange">
+                          <SelectValue placeholder="Selecione a marca" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                          {CAMERA_BRANDS.map((b) => (
+                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {formData.brand !== "custom" && (
+                      <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div className="grid gap-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuário</Label>
+                          <Input value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder="admin" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
+                          <Input type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder="senha" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Endereço IP</Label>
+                          <Input value={formData.ip} onChange={(e) => setFormData({...formData, ip: e.target.value})} placeholder="192.168.1.100" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Porta</Label>
+                          <Input value={formData.port} onChange={(e) => setFormData({...formData, port: e.target.value})} placeholder="554" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                        </div>
+                      </div>
+                    )}
                   </div>
+
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">RTSP URL Final</Label>
+                    <Input value={formData.rtsp_url} onChange={(e) => setFormData({...formData, rtsp_url: e.target.value, brand: "custom"})} placeholder="rtsp://user:pass@ip:554/stream" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono text-[10px]" />
+                  </div>
+
                   <div className="grid gap-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Quadra (Court)</Label>
                     <Select value={formData.quadra_id} onValueChange={(v) => setFormData({...formData, quadra_id: v})}>
