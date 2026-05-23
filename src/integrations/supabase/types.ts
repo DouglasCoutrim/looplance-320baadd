@@ -264,30 +264,6 @@ export type Database = {
         }
         Relationships: []
       }
-      profiles_backup: {
-        Row: {
-          created_at: string | null
-          email: string | null
-          id: string | null
-          is_super_admin: boolean | null
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email?: string | null
-          id?: string | null
-          is_super_admin?: boolean | null
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string | null
-          id?: string | null
-          is_super_admin?: boolean | null
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       quadras: {
         Row: {
           arena_id: string
@@ -354,7 +330,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      is_admin: { Args: { _uid: string }; Returns: boolean }
+      is_arena_manager: { Args: { _uid: string }; Returns: boolean }
     }
     Enums: {
       [_ in never]: never
