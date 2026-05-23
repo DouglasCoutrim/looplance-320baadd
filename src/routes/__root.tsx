@@ -76,10 +76,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     const publicPaths = ["/login", "/signup", "/admin/login", "/manifest.json", "/sw.js"];
     if (publicPaths.includes(location.pathname)) return;
 
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    const session = user ? { user } : null;
+    const { data: { user } } = await supabase.auth.getUser();
     
-    if (!session) {
+    if (!user) {
       throw redirect({ 
         to: "/login",
         search: {
