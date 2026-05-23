@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw, MapPin, Edit2, Trash2 } from "lucide-react";
+import { Plus, RefreshCw, MapPin, Edit2, Trash2, Settings, Eraser, Loader2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,6 +17,11 @@ interface Arena {
   id: string;
   nome: string;
   created_at?: string;
+  arena_settings?: {
+    id: string;
+    replay_retention_days: number;
+    auto_cleanup_enabled: boolean;
+  } | null;
 }
 
 function Arenas() {
@@ -27,9 +32,13 @@ function Arenas() {
 
   const fetchArenas = async () => {
     setLoading(true);
-    const { data, error } = await supabase.from("arenas").select("*").order("nome");
+    const { data, error } = await supabase
+      .from("arenas")
+      .select("*, arena_settings(*)")
+      .order("nome");
+      
     if (error) toast.error("Erro ao buscar arenas");
-    else setArenas(data || []);
+    else setArenas((data as unknown as Arena[]) || []);
     setLoading(false);
   };
 
@@ -57,6 +66,43 @@ function Arenas() {
       toast.error("Erro ao excluir arena: " + error.message);
     } else {
       toast.success("Arena excluída com sucesso");
+      fetchArenas();
+    }
+  };
+
+  const handleClearReplays = async (arenaId: string) => {
+    if (!confirm("Tem certeza que deseja apagar TODOS os replays desta arena? Esta ação não pode ser desfeita.")) return;
+    
+    setLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("manage-replays", {
+        body: { arena_id: arenaId, action: "clear_all" }
+      });
+
+      if (error) throw error;
+      
+      toast.success(`${data.deleted_count} replays removidos com sucesso!`);
+    } catch (error: any) {
+      toast.error("Erro ao limpar replays: " + (error.message || "Erro desconhecido"));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateSettings = async (arenaId: string, retentionDays: number, autoCleanup: boolean) => {
+    const { error } = await supabase
+      .from("arena_settings")
+      .upsert({ 
+        arena_id: arenaId, 
+        replay_retention_days: retentionDays, 
+        auto_cleanup_enabled: autoCleanup,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'arena_id' });
+
+    if (error) {
+      toast.error("Erro ao atualizar configurações: " + error.message);
+    } else {
+      toast.success("Configurações atualizadas");
       fetchArenas();
     }
   };
@@ -135,6 +181,53 @@ function Arenas() {
                   </TableCell>
                   <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
                     <div className="flex justify-end gap-1 sm:gap-2">
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
+                            <Settings className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="rounded-2xl">
+                          <DialogHeader>
+                            <DialogTitle className="uppercase font-black">Configurações - {a.nome}</DialogTitle>
+                            <DialogDescription className="font-bold text-xs uppercase opacity-60">Gestão de armazenamento e replays</DialogDescription>
+                          </DialogHeader>
+                          <div className="grid gap-6 py-4">
+                            <div className="flex flex-col gap-2">
+                              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Retenção de Replays (Dias)</Label>
+                              <Input 
+                                type="number" 
+                                defaultValue={a.arena_settings?.replay_retention_days || 7}
+                                onBlur={(e) => handleUpdateSettings(a.id, parseInt(e.target.value), a.arena_settings?.auto_cleanup_enabled ?? true)}
+                                className="rounded-xl h-12"
+                              />
+                            </div>
+                            <div className="flex items-center justify-between gap-2 p-4 rounded-xl bg-gray-50">
+                              <div className="space-y-0.5">
+                                <Label className="text-sm font-black uppercase tracking-tight">Limpeza Automática</Label>
+                                <p className="text-[10px] font-medium text-muted-foreground">Apagar replays antigos automaticamente</p>
+                              </div>
+                              <input 
+                                type="checkbox"
+                                className="h-5 w-5 rounded border-gray-300 text-brand-orange focus:ring-brand-orange"
+                                defaultChecked={a.arena_settings?.auto_cleanup_enabled ?? true}
+                                onChange={(e) => handleUpdateSettings(a.id, a.arena_settings?.replay_retention_days || 7, e.target.checked)}
+                              />
+                            </div>
+                            <div className="pt-4 border-t border-gray-100">
+                              <Button 
+                                variant="destructive" 
+                                onClick={() => handleClearReplays(a.id)}
+                                disabled={loading}
+                                className="w-full h-12 rounded-xl font-black uppercase tracking-widest text-xs gap-2"
+                              >
+                                {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Eraser className="h-4 w-4" />}
+                                Limpar todos os replays
+                              </Button>
+                            </div>
+                          </div>
+                        </DialogContent>
+                      </Dialog>
                       <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
                         <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
