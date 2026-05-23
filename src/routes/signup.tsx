@@ -97,8 +97,8 @@ function SignUp() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4">
-      <Card className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-none">
-        <div className="brand-gradient p-1 text-center relative border-b border-white/10">
+      <Card className="w-full max-w-md bg-white rounded-3xl shadow-2xl border-none relative">
+        <div className="brand-gradient p-1 text-center relative border-b border-white/10 rounded-t-3xl">
           <Link to="/login" className="absolute left-4 top-1/2 -translate-y-1/2 text-white/70 hover:text-white transition-colors z-20">
             <ArrowLeft className="h-5 w-5" />
           </Link>
