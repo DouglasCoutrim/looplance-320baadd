@@ -183,7 +183,7 @@ function AdminHome() {
             icon={<Tv className="h-6 w-6" />}
           />
           
-          <div className="glass-card brand-gradient brand-glow p-6 text-white mt-2 relative overflow-hidden group transition-transform hover:scale-[1.02]">
+          <div className="glass-card brand-gradient brand-glow p-4 sm:p-6 text-white mt-2 relative overflow-hidden group transition-transform hover:scale-[1.02]">
             <div className="relative z-10">
               <h4 className="font-black uppercase tracking-widest text-xs opacity-80 mb-1">Status Global</h4>
               <p className="text-2xl font-black leading-tight">Sua rede Edge está pronta para lances.</p>
