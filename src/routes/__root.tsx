@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       throw redirect({ 
         to: "/login",
         search: {
-          redirect: location.href,
+          redirect: location.pathname + location.search + location.hash,
         },
       });
     }
