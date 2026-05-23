@@ -99,8 +99,8 @@ function CompleteProfile() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4">
-      <Card className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-none">
-        <div className="brand-gradient p-1 text-center border-b border-white/10">
+      <Card className="w-full max-w-md bg-white rounded-3xl shadow-2xl border-none relative">
+        <div className="brand-gradient p-1 text-center border-b border-white/10 rounded-t-3xl">
           <CardHeader className="p-0 space-y-0">
             <div className="flex justify-center -mb-14 -mt-8">
               <img 
