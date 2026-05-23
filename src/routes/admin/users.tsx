@@ -60,7 +60,7 @@ function AdminUsers() {
     fetchCurrentUser();
   }, []);
 
-  const isMainSuperAdmin = currentUserEmail === 'douglas@lovable.app';
+  const isMainSuperAdmin = currentUserEmail === 'douglas@looplance.app';
 
   const handleTogglePermission = async (profileId: string, field: 'is_super_admin' | 'is_arena_owner', currentValue: boolean) => {
     // Permission checks
