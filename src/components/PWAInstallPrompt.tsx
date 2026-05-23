@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Download, Share } from 'lucide-react';
+import { Download, Share, X } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -29,7 +29,12 @@ export function PWAInstallPrompt() {
       e.preventDefault();
       // Stash the event so it can be triggered later.
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setIsVisible(true);
+      
+      // Check if already installed
+      const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+      if (!isStandalone) {
+        setIsVisible(true);
+      }
     };
 
     window.addEventListener('beforeinstallprompt', handler);
@@ -49,8 +54,9 @@ export function PWAInstallPrompt() {
 
   const handleInstallClick = async () => {
     if (isIOS) {
-      toast.info('Para instalar: toque no ícone de compartilhar e depois em "Adicionar à Tela de Início"', {
-        duration: 5000,
+      toast.info('Toque no ícone de compartilhar e depois em "Adicionar à Tela de Início"', {
+        duration: 6000,
+        position: 'top-center',
       });
       return;
     }
@@ -78,32 +84,38 @@ export function PWAInstallPrompt() {
   if (!isIOS && !deferredPrompt) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-[100] animate-in fade-in slide-in-from-bottom-full duration-500 bg-black/95 backdrop-blur-md border-t border-white/10 p-4 pb-safe-offset-4">
-      <div className="max-w-md mx-auto flex items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
-            <Download className="w-6 h-6" />
+    <div className="fixed bottom-0 left-0 right-0 z-[100] animate-in fade-in slide-in-from-bottom-full duration-700 bg-black/95 backdrop-blur-xl border-t border-white/10 p-5 pb-8 sm:pb-5">
+      <div className="max-w-md mx-auto flex items-center justify-between gap-5">
+        <div className="flex items-center gap-4">
+          <div className="relative">
+            <div className="w-14 h-14 bg-brand-orange rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-orange/20 ring-1 ring-white/20">
+              <Download className="w-7 h-7" />
+            </div>
+            <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse border-2 border-black" />
           </div>
           <div className="flex-1 min-w-0">
-            <h3 className="font-bold text-white text-base truncate">Instalar Looplance</h3>
-            <p className="text-sm text-gray-400 truncate">Acesse seus replays instantaneamente!</p>
+            <h3 className="font-black text-white text-lg tracking-tight">Instalar Looplance</h3>
+            <p className="text-sm text-gray-400 font-medium">Seus lances sempre à mão!</p>
           </div>
         </div>
         
-        <Button 
-          size="lg" 
-          onClick={handleInstallClick} 
-          className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6 h-12 rounded-full shadow-lg shadow-primary/30 active:scale-95 transition-transform"
-        >
-          {isIOS ? (
-            <div className="flex items-center gap-2">
-              <Share className="w-4 h-4" />
-              <span>Como instalar</span>
-            </div>
-          ) : 'Instalar'}
-        </Button>
+        <div className="flex flex-col gap-2">
+          <Button 
+            size="lg" 
+            onClick={handleInstallClick} 
+            className="bg-brand-orange hover:bg-brand-orange/90 text-white font-black px-8 h-12 rounded-2xl shadow-lg shadow-brand-orange/30 active:scale-95 transition-all border border-white/10"
+          >
+            {isIOS ? (
+              <div className="flex items-center gap-2">
+                <Share className="w-5 h-5" />
+                <span>Instalar</span>
+              </div>
+            ) : 'Instalar Agora'}
+          </Button>
+        </div>
       </div>
     </div>
   );
 }
+
 
