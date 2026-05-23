@@ -104,31 +104,40 @@ export type Database = {
           arena_id: string | null
           created_at: string | null
           edge_token: string | null
+          edge_version: string | null
           hostname: string | null
           id: string
           last_seen: string | null
+          local_ip: string | null
           name: string
           status: string | null
+          uptime_seconds: number | null
         }
         Insert: {
           arena_id?: string | null
           created_at?: string | null
           edge_token?: string | null
+          edge_version?: string | null
           hostname?: string | null
           id?: string
           last_seen?: string | null
+          local_ip?: string | null
           name: string
           status?: string | null
+          uptime_seconds?: number | null
         }
         Update: {
           arena_id?: string | null
           created_at?: string | null
           edge_token?: string | null
+          edge_version?: string | null
           hostname?: string | null
           id?: string
           last_seen?: string | null
+          local_ip?: string | null
           name?: string
           status?: string | null
+          uptime_seconds?: number | null
         }
         Relationships: [
           {
