@@ -73,7 +73,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   beforeLoad: async ({ location }) => {
-    const publicPaths = ["/login", "/signup", "/admin/login"];
+    const publicPaths = ["/login", "/signup", "/admin/login", "/manifest.json", "/sw.js"];
     if (publicPaths.includes(location.pathname)) return;
 
     const { data: { session } } = await supabase.auth.getSession();
@@ -149,9 +149,12 @@ function RootShell({ children }: { children: React.ReactNode }) {
       <head>
         <HeadContent />
         <script dangerouslySetInnerHTML={{ __html: `
-          if ('serviceWorker' in navigator && window.location.hostname !== 'localhost' && !window.location.hostname.includes('lovable.app') && !window.location.hostname.includes('lovableproject.com')) {
+          if ('serviceWorker' in navigator) {
             window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/sw.js');
+              const swPath = '/sw.js';
+              navigator.serviceWorker.register(swPath).catch(err => {
+                console.error('SW registration failed:', err);
+              });
             });
           }
         ` }} />
