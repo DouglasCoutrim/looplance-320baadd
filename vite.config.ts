@@ -17,6 +17,8 @@ export default defineConfig({
   vite: {
     plugins: [
       VitePWA({
+        filename: 'sw.js',
+        manifestFilename: 'manifest.json',
         registerType: 'autoUpdate',
         includeAssets: ['favicon.png', 'robots.txt', 'apple-touch-icon.png'],
         manifest: {
