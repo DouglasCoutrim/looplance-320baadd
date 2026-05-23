@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw, Usb } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Plus, RefreshCw, Usb, Edit2, Trash2, HardDrive } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -98,38 +99,44 @@ function InputBoards() {
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
+    <div className="space-y-8 pb-10">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Input Boards</h1>
-          <p className="text-muted-foreground">Gerencie suas placas USB Zero Delay conectadas.</p>
+          <h1 className="text-4xl font-black tracking-tight text-gray-900 uppercase">
+            Input <span className="brand-text">Boards</span>
+          </h1>
+          <p className="text-muted-foreground mt-1 font-medium text-lg">
+            Gerencie suas interfaces USB Zero Delay conectadas aos servidores.
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading}>
-            <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+        <div className="flex gap-3">
+          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
+            <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button>
-                <Plus className="mr-2 h-4 w-4" /> Nova Placa
+              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+                <Plus className="mr-2 h-5 w-5" /> Nova Placa
               </Button>
             </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Adicionar Nova Placa USB</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
+            <DialogContent className="rounded-2xl border-none shadow-2xl overflow-hidden p-0">
+               <div className="brand-gradient p-6 text-white">
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight">Adicionar Interface USB</DialogTitle>
+                <p className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">Placas Zero Delay & Gatilhos</p>
+              </div>
+
+              <div className="p-8 space-y-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="name">Nome Amigável</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Placa Quadra 1" />
+                  <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome da Interface</Label>
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Placa Quadra 1 - Principal" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
                 </div>
                 <div className="grid gap-2">
-                  <Label>Edge Device Vinculado</Label>
+                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Servidor Vinculado (Edge Device)</Label>
                   <Select value={edgeDeviceId} onValueChange={setEdgeDeviceId}>
-                    <SelectTrigger>
+                    <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
                       <SelectValue placeholder="Selecione o dispositivo" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="rounded-xl shadow-xl border-gray-100">
                       {devices.map((d) => (
                         <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
                       ))}
@@ -138,64 +145,75 @@ function InputBoards() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="grid gap-2">
-                    <Label htmlFor="vendor_id">Vendor ID (HEX)</Label>
-                    <Input id="vendor_id" value={vendorId} onChange={(e) => setVendorId(e.target.value)} placeholder="Ex: 0079" />
+                    <Label htmlFor="vendor_id" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Vendor ID (HEX)</Label>
+                    <Input id="vendor_id" value={vendorId} onChange={(e) => setVendorId(e.target.value)} placeholder="Ex: 0079" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono" />
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="product_id">Product ID (HEX)</Label>
-                    <Input id="product_id" value={productId} onChange={(e) => setProductId(e.target.value)} placeholder="Ex: 0006" />
+                    <Label htmlFor="product_id" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Product ID (HEX)</Label>
+                    <Input id="product_id" value={productId} onChange={(e) => setProductId(e.target.value)} placeholder="Ex: 0006" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono" />
                   </div>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="device_name">Nome do Dispositivo (OS)</Label>
-                  <Input id="device_name" value={deviceName} onChange={(e) => setDeviceName(e.target.value)} placeholder="Ex: DragonRise Inc. Generic USB Joystick" />
-                </div>
               </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setIsDialogOpen(false)}>Cancelar</Button>
-                <Button onClick={handleCreate}>Criar</Button>
+              <DialogFooter className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
+                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="font-bold rounded-xl">Cancelar</Button>
+                <Button onClick={handleCreate} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">Cadastrar Placa</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      <div className="rounded-md border bg-white dark:bg-gray-800 shadow-sm">
+      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Placa</TableHead>
-              <TableHead>Edge Device</TableHead>
-              <TableHead>IDs (Vendor/Product)</TableHead>
-              <TableHead>Dispositivo OS</TableHead>
-              <TableHead className="text-right">Ações</TableHead>
+          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Interface / ID</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Conexão Edge</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-center">Identificação HW</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {boards.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center">
-                  {loading ? "Carregando..." : "Nenhuma placa encontrada."}
+                <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-medium italic">
+                  Nenhuma placa USB configurada. Verifique as conexões físicas dos Edge Devices.
                 </TableCell>
               </TableRow>
             ) : (
               boards.map((board) => (
-                <TableRow key={board.id}>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="rounded-full bg-blue-500/10 p-2">
-                        <Usb className="h-4 w-4 text-blue-500" />
+                <TableRow key={board.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                  <TableCell className="py-5 px-6">
+                    <div className="flex items-center gap-4">
+                      <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 transition-colors group-hover:brand-gradient group-hover:text-white">
+                        <Usb className="h-6 w-6" />
                       </div>
-                      <span className="font-medium">{board.name}</span>
+                      <div>
+                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{board.name}</span>
+                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">USB Zero Delay</p>
+                      </div>
                     </div>
                   </TableCell>
-                  <TableCell>{board.edge_devices?.name || "Não vinculado"}</TableCell>
-                  <TableCell className="font-mono text-xs">
-                    {board.vendor_id && board.product_id ? `${board.vendor_id}:${board.product_id}` : "-"}
+                  <TableCell className="py-5 px-6">
+                    <div className="flex items-center gap-2">
+                      <HardDrive className="h-4 w-4 text-brand-orange" />
+                      <span className="font-bold text-gray-700">{board.edge_devices?.name || "Desvinculada"}</span>
+                    </div>
                   </TableCell>
-                  <TableCell className="text-sm truncate max-w-[200px]">{board.device_name || "-"}</TableCell>
-                  <TableCell className="text-right">
-                    <Button variant="ghost" size="sm">Editar</Button>
+                  <TableCell className="py-5 px-6 text-center">
+                    <Badge variant="outline" className="rounded-lg font-mono text-[10px] border-gray-200 text-gray-500 px-3 py-1 bg-gray-50">
+                      {board.vendor_id}:{board.product_id}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right py-5 px-6">
+                    <div className="flex justify-end gap-2">
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))
