@@ -39,7 +39,7 @@ function Home() {
   const [date, setDate] = useState<string>("");
   const [startHour, setStartHour] = useState<string>("");
   const [endHour, setEndHour] = useState<string>("");
-  const [checkInAt, setCheckInAt] = useState<Date | null>(null);
+  
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const [user, setUser] = useState<SupabaseUser | null>(null);
@@ -136,10 +136,10 @@ function Home() {
       }
       if (startHour && d.getHours() < parseInt(startHour)) return false;
       if (endHour && d.getHours() >= parseInt(endHour)) return false;
-      if (checkInAt && d < checkInAt) return false;
+      
       return true;
     });
-  }, [replays, arenaId, quadraId, quadras, date, startHour, endHour, checkInAt]);
+  }, [replays, arenaId, quadraId, quadras, date, startHour, endHour]);
 
   const reward = () => {
     setPoints((p) => p + 10);
@@ -148,19 +148,6 @@ function Home() {
     setTimeout(() => setXpPops((arr) => arr.filter((p) => p.id !== id)), 1300);
   };
 
-  const toggleCheckIn = () => {
-    if (!quadraId) {
-      toast.error("Selecione uma quadra primeiro");
-      return;
-    }
-    if (checkInAt) {
-      setCheckInAt(null);
-      toast("Check-out realizado");
-    } else {
-      setCheckInAt(new Date());
-      toast.success("Check-in! Mostrando apenas lances a partir de agora");
-    }
-  };
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
@@ -262,16 +249,12 @@ function Home() {
                 Selecione a arena, escolha a quadra e reviva cada jogada.
               </p>
               
-              <button
-                onClick={toggleCheckIn}
-                className={`mt-8 flex w-full items-center justify-center gap-2 rounded-full px-6 py-5 text-base font-bold transition shadow-2xl ${
-                  checkInAt
-                    ? "bg-white/10 text-white backdrop-blur-md border border-white/20 hover:bg-white/20"
-                    : "brand-gradient brand-glow animate-pulse-glow text-white hover:scale-[1.02]"
-                }`}
+              <Link
+                to="/login"
+                className="mt-8 flex w-full items-center justify-center gap-2 rounded-full px-6 py-5 text-base font-bold transition shadow-2xl brand-gradient brand-glow animate-pulse-glow text-white hover:scale-[1.02]"
               >
-                {checkInAt ? <><LogOut className="h-5 w-5" /> Sair da quadra</> : <><LogIn className="h-5 w-5" /> Entrar em quadra</>}
-              </button>
+                {!user ? <><LogIn className="h-5 w-5" /> Entrar para ver lances</> : <><Play className="h-5 w-5" /> Ver meus lances</>}
+              </Link>
             </div>
 
             {/* Pagination Dots */}
@@ -318,9 +301,9 @@ function Home() {
             <TimeInput label="De" value={startHour} onChange={setStartHour} />
             <TimeInput label="Até" value={endHour} onChange={setEndHour} />
           </div>
-          {(date || startHour || endHour || checkInAt) && (
+          {(date || startHour || endHour) && (
             <button
-              onClick={() => { setDate(""); setStartHour(""); setEndHour(""); setCheckInAt(null); }}
+              onClick={() => { setDate(""); setStartHour(""); setEndHour(""); }}
               className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-brand-orange hover:underline"
             >
               Limpar filtros
