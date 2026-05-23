@@ -224,22 +224,37 @@ export type Database = {
       }
       profiles: {
         Row: {
+          birth_date: string | null
+          consent_accepted: boolean | null
+          consent_timestamp: string | null
+          cpf: string | null
           created_at: string
           email: string | null
+          full_name: string | null
           id: string
           is_super_admin: boolean | null
           updated_at: string
         }
         Insert: {
+          birth_date?: string | null
+          consent_accepted?: boolean | null
+          consent_timestamp?: string | null
+          cpf?: string | null
           created_at?: string
           email?: string | null
+          full_name?: string | null
           id: string
           is_super_admin?: boolean | null
           updated_at?: string
         }
         Update: {
+          birth_date?: string | null
+          consent_accepted?: boolean | null
+          consent_timestamp?: string | null
+          cpf?: string | null
           created_at?: string
           email?: string | null
+          full_name?: string | null
           id?: string
           is_super_admin?: boolean | null
           updated_at?: string
