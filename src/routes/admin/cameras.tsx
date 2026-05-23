@@ -39,6 +39,7 @@ const CAMERA_BRANDS = [
   { id: "tecvoz", name: "Tecvoz", template: "rtsp://{user}:{pass}@{ip}:{port}/live/ch0" },
   { id: "tplink", name: "TP-Link (Tapo)", template: "rtsp://{user}:{pass}@{ip}:{port}/stream1" },
   { id: "axis", name: "Axis", template: "rtsp://{user}:{pass}@{ip}:{port}/axis-media/media.amp?" },
+  { id: "zerodelay", name: "Placa Zero Delay", template: "rtsp://{user}:{pass}@{ip}:{port}/live/ch0" },
   { id: "custom", name: "Personalizado", template: "" }
 ];
 
