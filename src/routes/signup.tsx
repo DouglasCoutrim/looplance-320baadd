@@ -120,8 +120,10 @@ function SignUp() {
         <CardContent className="p-8 max-h-[70vh] overflow-y-auto custom-scrollbar">
           <form onSubmit={handleSignUp} className="space-y-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome Completo</Label>
+              <Label htmlFor="fullName" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome Completo</Label>
               <Input 
+                id="fullName"
+                name="fullName"
                 type="text" 
                 value={fullName} 
                 onChange={(e) => setFullName(e.target.value)} 
@@ -133,8 +135,10 @@ function SignUp() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">CPF</Label>
+                <Label htmlFor="cpf" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">CPF</Label>
                 <Input 
+                  id="cpf"
+                  name="cpf"
                   type="text" 
                   value={cpf} 
                   onChange={handleCpfChange} 
@@ -144,8 +148,10 @@ function SignUp() {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Data de Nasc.</Label>
+                <Label htmlFor="birthDate" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Data de Nasc.</Label>
                 <Input 
+                  id="birthDate"
+                  name="birthDate"
                   type="date" 
                   value={birthDate} 
                   onChange={(e) => setBirthDate(e.target.value)} 
@@ -156,8 +162,10 @@ function SignUp() {
             </div>
 
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail</Label>
+              <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail</Label>
               <Input 
+                id="email"
+                name="email"
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
@@ -168,8 +176,10 @@ function SignUp() {
             </div>
             
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
+              <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
               <Input 
+                id="password"
+                name="password"
                 type="password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
