@@ -79,17 +79,17 @@ function UserLogin() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4">
       <Card className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-none">
-        <div className="brand-gradient p-6 text-white text-center">
-          <CardHeader className="p-0">
-            <div className="flex justify-center mb-4">
+        <div className="bg-white p-4 text-center border-b border-gray-100">
+          <CardHeader className="p-0 space-y-0">
+            <div className="flex justify-center mb-2">
               <img 
                 src={logoUrl} 
                 alt="Looplance" 
-                className="h-20 w-auto object-contain" 
+                className="h-24 w-auto object-contain" 
               />
             </div>
-            <CardTitle className="text-2xl font-black uppercase tracking-tight">Login</CardTitle>
-            <CardDescription className="text-white/70 text-xs font-bold uppercase tracking-widest mt-1">
+            <CardTitle className="text-xl font-black uppercase tracking-tight text-gray-900">Login</CardTitle>
+            <CardDescription className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-0">
               Entre para ver seus lances
             </CardDescription>
           </CardHeader>
