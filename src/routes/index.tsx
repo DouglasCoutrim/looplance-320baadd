@@ -53,7 +53,7 @@ function Home() {
       .eq("id", userId)
       .single();
 
-    if (profile && (!profile.cpf || !profile.birth_date)) {
+    if (!profile || !profile.cpf || !profile.birth_date) {
       navigate({ to: "/complete-profile" });
     }
   };
