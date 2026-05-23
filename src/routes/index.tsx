@@ -279,14 +279,14 @@ function TimeInput({ label, value, onChange }: { label: string; value: string; o
 
 function EmptyState() {
   return (
-    <div className="glass-card flex flex-col items-center gap-4 px-6 py-12 text-center">
-      <div className="brand-gradient grid h-16 w-16 place-items-center rounded-full brand-glow">
-        <Play className="h-7 w-7 fill-black text-black" />
+    <div className="glass-card flex flex-col items-center gap-6 px-6 py-16 text-center">
+      <div className="brand-gradient grid h-20 w-20 place-items-center rounded-full brand-glow shadow-lg transition-transform hover:scale-105">
+        <Play className="h-9 w-9 fill-white text-white" />
       </div>
-      <div>
-        <h3 className="text-base font-bold">Aguardando o próximo grande lance...</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Aperte o botão na quadra e o replay aparece aqui na hora!
+      <div className="max-w-[280px] space-y-2">
+        <h3 className="text-lg font-black text-[#222222]">Aguardando o lance...</h3>
+        <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+          Aperte o botão na quadra e o seu replay aparecerá aqui em poucos segundos!
         </p>
       </div>
     </div>
