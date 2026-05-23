@@ -27,6 +27,8 @@ interface Replay {
 }
 
 function Home() {
+  const [featuredReplays, setFeaturedReplays] = useState<Replay[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
   const [arenas, setArenas] = useState<Arena[]>([]);
   const [quadras, setQuadras] = useState<Quadra[]>([]);
   const [replays, setReplays] = useState<Replay[]>([]);
@@ -43,7 +45,25 @@ function Home() {
   useEffect(() => {
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
+    fetchFeatured();
   }, []);
+
+  const fetchFeatured = async () => {
+    const { data } = await supabase
+      .from("replays")
+      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .order("created_at", { ascending: false })
+      .limit(3);
+    setFeaturedReplays((data ?? []) as Replay[]);
+  };
+
+  useEffect(() => {
+    if (featuredReplays.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % featuredReplays.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [featuredReplays]);
 
   // Filter quadras when arena changes
   useEffect(() => {
@@ -149,32 +169,65 @@ function Home() {
       </header>
 
       <main className="mx-auto max-w-2xl space-y-8 px-6 pb-24 pt-10">
-        {/* Hero / Check-in */}
-        <section className="glass-card relative flex flex-col items-center overflow-hidden bg-white p-10 text-center shadow-md border border-gray-200">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-orange opacity-5 blur-3xl" />
-          
-          <img 
-            src={logoUrl} 
-            alt="Looplance" 
-            className="relative mb-8 w-full max-w-[200px] h-auto" 
-          />
+        {/* Hero / Dynamic Video Carousel */}
+        <section className="relative overflow-hidden rounded-3xl bg-black shadow-2xl ring-1 ring-white/10">
+          <div className="aspect-[9/16] w-full overflow-hidden relative">
+            {featuredReplays.length > 0 ? (
+              featuredReplays.map((replay, idx) => (
+                <div 
+                  key={replay.id} 
+                  className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${idx === currentSlide ? "opacity-100" : "opacity-0"}`}
+                >
+                  <video
+                    src={`${replay.video_url}#t=3.0`}
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              ))
+            ) : (
+              <div className="absolute inset-0 brand-gradient opacity-20" />
+            )}
+            
+            {/* Overlay Gradient */}
+            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
+            
+            {/* Content */}
+            <div className="absolute inset-0 flex flex-col items-center justify-end p-8 text-center pb-12">
+              <h1 className="text-4xl font-black leading-tight tracking-tight text-white drop-shadow-lg">
+                Seus lances <span className="brand-text">em loop.</span>
+              </h1>
+              <p className="mt-3 text-base text-white/80 leading-relaxed font-medium max-w-[280px]">
+                Selecione a arena, escolha a quadra e reviva cada jogada.
+              </p>
+              
+              <button
+                onClick={toggleCheckIn}
+                className={`mt-8 flex w-full items-center justify-center gap-2 rounded-full px-6 py-5 text-base font-bold transition shadow-2xl ${
+                  checkInAt
+                    ? "bg-white/10 text-white backdrop-blur-md border border-white/20 hover:bg-white/20"
+                    : "brand-gradient brand-glow animate-pulse-glow text-white hover:scale-[1.02]"
+                }`}
+              >
+                {checkInAt ? <><LogOut className="h-5 w-5" /> Sair da quadra</> : <><LogIn className="h-5 w-5" /> Entrar em quadra</>}
+              </button>
+            </div>
 
-          <h1 className="relative text-3xl font-black leading-tight tracking-tight text-gray-900">
-            Seus lances <span className="brand-text">em loop.</span>
-          </h1>
-          <p className="relative mt-3 text-base text-muted-foreground leading-relaxed">
-            Selecione a arena, escolha a quadra e reviva cada jogada.
-          </p>
-          <button
-            onClick={toggleCheckIn}
-            className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-sm font-bold transition shadow-sm ${
-              checkInAt
-                ? "border border-border bg-muted text-foreground hover:bg-muted/80"
-                : "brand-gradient brand-glow animate-pulse-glow text-white hover:scale-[1.02]"
-            }`}
-          >
-            {checkInAt ? <><LogOut className="h-4 w-4" /> Sair da quadra</> : <><LogIn className="h-4 w-4" /> Entrar em quadra</>}
-          </button>
+            {/* Pagination Dots */}
+            {featuredReplays.length > 1 && (
+              <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
+                {featuredReplays.map((_, idx) => (
+                  <div 
+                    key={idx} 
+                    className={`h-1.5 transition-all duration-300 rounded-full ${idx === currentSlide ? "w-6 bg-brand-orange" : "w-1.5 bg-white/30"}`}
+                  />
+                ))}
+              </div>
+            )}
+          </div>
         </section>
 
         {/* Location selectors */}
