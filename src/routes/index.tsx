@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, Settings } from "lucide-react";
+import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
@@ -149,29 +149,34 @@ function Home() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black py-0 shadow-xl">
-        <div className="mx-auto flex max-w-2xl items-center px-6">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black shadow-xl h-16 sm:h-20">
+        <div className="mx-auto flex h-full max-w-2xl items-center px-4 sm:px-6">
           {/* Left: XP Badge */}
           <div className="flex-1">
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 backdrop-blur-md">
-              <Trophy className="h-4 w-4 text-brand-orange" />
-              <span className="text-xs font-bold text-white tracking-tight">{points} XP</span>
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 sm:px-3 sm:py-1.5 backdrop-blur-md">
+              <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-orange" />
+              <span className="text-[10px] sm:text-xs font-bold text-white tracking-tight">{points} XP</span>
             </div>
           </div>
 
           {/* Center: Logo */}
-          <div className="flex-none">
-            <img src={logoUrl} alt="Looplance" className="h-40 w-auto -my-8 transition-transform hover:scale-105" />
+          <div className="flex-none relative flex justify-center items-center h-full">
+            <img 
+              src={logoUrl} 
+              alt="Looplance" 
+              className="h-28 sm:h-36 w-auto object-contain transition-transform hover:scale-105 z-50" 
+              style={{ marginTop: '4px' }}
+            />
           </div>
 
           {/* Right: Admin Link */}
           <div className="flex-1 flex justify-end">
             <Link 
               to="/admin" 
-              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 backdrop-blur-md transition hover:bg-white/20"
+              className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
             >
-              <Settings className="h-4 w-4 text-white/70" />
-              <span className="hidden sm:inline text-xs font-bold text-white tracking-tight">Admin</span>
+              <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange transition-transform group-hover:scale-110" />
+              <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
             </Link>
           </div>
         </div>
