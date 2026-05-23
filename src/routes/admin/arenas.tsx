@@ -21,7 +21,7 @@ interface Arena {
     id: string;
     replay_retention_days: number;
     auto_cleanup_enabled: boolean;
-  };
+  } | null;
 }
 
 function Arenas() {
@@ -38,7 +38,7 @@ function Arenas() {
       .order("nome");
       
     if (error) toast.error("Erro ao buscar arenas");
-    else setArenas(data || []);
+    else setArenas((data as unknown as Arena[]) || []);
     setLoading(false);
   };
 
