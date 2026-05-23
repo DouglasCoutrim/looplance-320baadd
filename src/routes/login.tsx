@@ -29,6 +29,7 @@ function UserLogin() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log("Login attempt started for:", email);
     setLoading(true);
 
     try {
@@ -37,18 +38,32 @@ function UserLogin() {
         password,
       });
 
-      if (error) throw error;
-      if (!data.user) throw new Error("Usuário não encontrado após login");
+      if (error) {
+        console.error("Supabase auth error:", error);
+        throw error;
+      }
+      
+      if (!data.user) {
+        throw new Error("Usuário não encontrado após login");
+      }
 
+      console.log("Login successful, user:", data.user.id);
       toast.success("Login realizado com sucesso!");
       
       if (redirect) {
-        window.location.href = redirect;
+        console.log("Redirecting to:", redirect);
+        // Use navigate for relative paths, window.location for absolute
+        if (redirect.startsWith("/")) {
+          navigate({ to: redirect as any });
+        } else {
+          window.location.href = redirect;
+        }
       } else {
+        console.log("Navigating to home");
         navigate({ to: "/" });
       }
     } catch (error: any) {
-      console.error("Login error:", error);
+      console.error("Detailed login error:", error);
       toast.error(error.message || "Erro ao realizar login");
       setLoading(false);
     }
