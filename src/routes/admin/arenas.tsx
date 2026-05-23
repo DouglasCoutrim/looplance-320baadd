@@ -56,7 +56,7 @@ function Arenas() {
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 uppercase">
             Arenas <span className="brand-text">Complexos</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-lg">
+          <p className="text-muted-foreground mt-1 font-medium text-base sm:text-lg">
             Gerencie os locais onde o espetáculo acontece.
           </p>
         </div>
