@@ -48,9 +48,11 @@ function SignUp() {
       return;
     }
 
+    const signupToast = toast.loading("Criando sua conta...");
     setLoading(true);
 
     try {
+      console.log("Starting signup for:", email);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -64,12 +66,19 @@ function SignUp() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase signup error:", error);
+        toast.error(error.message || "Erro ao realizar cadastro", { id: signupToast });
+        setLoading(false);
+        return;
+      }
 
-      toast.success("Cadastro realizado com sucesso! Verifique seu e-mail.");
+      console.log("Signup successful");
+      toast.success("Cadastro realizado com sucesso! Verifique seu e-mail.", { id: signupToast });
       navigate({ to: "/login" });
     } catch (error: any) {
-      toast.error(error.message || "Erro ao realizar cadastro");
+      console.error("Detailed signup error:", error);
+      toast.error(error.message || "Ocorreu um erro inesperado", { id: signupToast });
       setLoading(false);
     }
   };
