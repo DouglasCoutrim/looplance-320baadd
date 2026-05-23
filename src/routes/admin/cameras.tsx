@@ -38,7 +38,7 @@ const CAMERA_BRANDS = [
   { id: "giga", name: "Giga Security", template: "rtsp://{user}:{pass}@{ip}:{port}/ch0/0" },
   { id: "tecvoz", name: "Tecvoz", template: "rtsp://{user}:{pass}@{ip}:{port}/live/ch0" },
   { id: "tplink", name: "TP-Link (Tapo)", template: "rtsp://{user}:{pass}@{ip}:{port}/stream1" },
-  { id: "axis", name: "Axis", template: "rtsp://{user}:{pass}@{ip}:{port}/axis-media/media.amp" },
+  { id: "axis", name: "Axis", template: "rtsp://{user}:{pass}@{ip}:{port}/axis-media/media.amp?" },
   { id: "custom", name: "Personalizado", template: "" }
 ];
 
