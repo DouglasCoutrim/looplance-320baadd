@@ -109,11 +109,12 @@ function Cameras() {
 
   const fetchData = async () => {
     setLoading(true);
-    const [camerasRes, devicesRes, boardsRes, quadrasRes] = await Promise.all([
+    const [camerasRes, devicesRes, boardsRes, quadrasRes, arenasRes] = await Promise.all([
       supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
       supabase.from("edge_devices").select("id, name").order("name"),
       supabase.from("input_boards").select("id, name, edge_device_id").order("name"),
-      supabase.from("quadras").select("id, nome, arenas(nome)").order("nome")
+      supabase.from("quadras").select("id, nome, arena_id, arenas(nome)").order("nome"),
+      supabase.from("arenas").select("id, nome").order("nome")
     ]);
 
     setCameras(camerasRes.data || []);
