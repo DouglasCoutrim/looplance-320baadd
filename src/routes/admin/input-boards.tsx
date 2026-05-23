@@ -122,7 +122,9 @@ function InputBoards() {
             <DialogContent className="rounded-2xl border-none shadow-2xl overflow-hidden p-0">
                <div className="brand-gradient p-6 text-white">
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight">Adicionar Interface USB</DialogTitle>
-                <p className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">Placas Zero Delay & Gatilhos</p>
+                <DialogDescription className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">
+                  Configure uma nova interface USB Zero Delay para gatilhos de gravação.
+                </DialogDescription>
               </div>
 
               <div className="p-8 space-y-6">
@@ -163,7 +165,7 @@ function InputBoards() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
+      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader className="bg-gray-50/50 border-b border-gray-100">
             <TableRow className="hover:bg-transparent">
