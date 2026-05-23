@@ -128,7 +128,7 @@ function Home() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black py-4 shadow-xl">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black py-0 shadow-xl">
         <div className="mx-auto flex max-w-2xl items-center px-6">
           {/* Left: XP Badge */}
           <div className="flex-1">
@@ -140,7 +140,7 @@ function Home() {
 
           {/* Center: Logo */}
           <div className="flex-none">
-            <img src={logoUrl} alt="Looplance" className="h-16 w-auto transition-transform hover:scale-105" />
+            <img src={logoUrl} alt="Looplance" className="h-24 w-auto transition-transform hover:scale-105" />
           </div>
 
           {/* Right: Spacer to maintain centering */}
