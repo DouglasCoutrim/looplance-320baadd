@@ -208,16 +208,16 @@ function StatCard({ title, value, icon, description, link, color }: any) {
   };
 
   const content = (
-    <div className="glass-card bg-white p-6 shadow-md border border-gray-200 transition-all hover:shadow-xl hover:-translate-y-1 group">
+    <div className="glass-card bg-white p-4 sm:p-6 shadow-md border border-gray-200 transition-all hover:shadow-xl hover:-translate-y-1 group">
       <div className="flex items-center justify-between mb-4">
-        <div className={`p-3 rounded-2xl ${colorClasses[color] || colorClasses.orange} transition-colors group-hover:brand-gradient group-hover:text-white`}>
+        <div className={`p-2.5 sm:p-3 rounded-2xl ${colorClasses[color] || colorClasses.orange} transition-colors group-hover:brand-gradient group-hover:text-white`}>
           {icon}
         </div>
-        <div className="text-3xl font-black text-gray-900">{value}</div>
+        <div className="text-2xl sm:text-3xl font-black text-gray-900">{value}</div>
       </div>
       <div>
-        <h4 className="text-xs font-black uppercase tracking-[0.1em] text-muted-foreground">{title}</h4>
-        <p className="text-sm font-medium text-gray-500 mt-1">{description}</p>
+        <h4 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.1em] text-muted-foreground">{title}</h4>
+        <p className="text-xs sm:text-sm font-medium text-gray-500 mt-1">{description}</p>
       </div>
     </div>
   );
