@@ -176,13 +176,13 @@ function Home() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black shadow-xl h-16 sm:h-20">
-        <div className="mx-auto flex h-full max-w-2xl items-center px-4 sm:px-6">
+      <header className="sticky top-0 z-40 border-b border-white/20 bg-black/20 backdrop-blur-lg shadow-xl h-14 sm:h-16">
+        <div className="mx-auto flex h-full max-w-2xl items-center px-4">
           {/* Left: XP Badge */}
           <div className="flex-1">
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 sm:px-3 sm:py-1.5 backdrop-blur-md">
-              <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-orange" />
-              <span className="text-[10px] sm:text-xs font-bold text-white tracking-tight">{points} XP</span>
+            <div className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 sm:px-2.5 sm:py-1 backdrop-blur-md">
+              <Trophy className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-brand-orange" />
+              <span className="text-[9px] sm:text-[10px] font-bold text-white tracking-tight">{points} XP</span>
             </div>
           </div>
 
@@ -191,8 +191,8 @@ function Home() {
             <img 
               src={logoUrl} 
               alt="Looplance" 
-              className="h-28 sm:h-36 w-auto object-contain transition-transform hover:scale-105 z-50" 
-              style={{ marginTop: '4px' }}
+              className="h-24 sm:h-28 w-auto object-contain transition-transform hover:scale-105 z-50" 
+              style={{ marginTop: '0px' }}
             />
           </div>
 
