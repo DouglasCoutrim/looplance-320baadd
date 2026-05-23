@@ -43,6 +43,7 @@ function Home() {
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const [user, setUser] = useState<SupabaseUser | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const navigate = useNavigate();
 
   const checkProfileCompleteness = async (userId: string) => {
