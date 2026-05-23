@@ -37,6 +37,7 @@ function SignUp() {
   const [birthDate, setBirthDate] = useState("");
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -218,15 +219,16 @@ function SignUp() {
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter className="mt-6">
-                        <DialogClose asChild>
-                          <Button 
-                            type="button" 
-                            onClick={() => setConsentAccepted(true)}
-                            className="brand-gradient text-white font-bold rounded-xl w-full"
-                          >
-                            Compreendo e Aceito
-                          </Button>
-                        </DialogClose>
+                        <Button 
+                          type="button" 
+                          onClick={() => {
+                            setConsentAccepted(true);
+                            setTermsOpen(false);
+                          }}
+                          className="brand-gradient text-white font-bold rounded-xl w-full"
+                        >
+                          Compreendo e Aceito
+                        </Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
