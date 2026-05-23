@@ -3,7 +3,167 @@ import { useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, Settings } from "lucide-react";
 import { Link } from "@tanstack/react-router";
-...
+import { supabase } from "@/integrations/supabase/client";
+import logoUrl from "@/assets/looplance-logo.png";
+import { ReplayCard } from "@/components/ReplayCard";
+
+export const Route = createFileRoute("/")({
+  component: Home,
+  head: () => ({
+    meta: [
+      { title: "Looplance — Replays na palma da mão" },
+      { name: "description", content: "Veja, baixe e compartilhe seus melhores lances em tempo real direto da quadra." },
+    ],
+  }),
+});
+
+interface Arena { id: string; nome: string }
+interface Quadra { id: string; nome: string; arena_id: string }
+interface Replay {
+  id: string;
+  video_url: string;
+  created_at: string;
+  quadra_id: string;
+  quadras?: { nome: string; arenas?: { nome: string } | null } | null;
+}
+
+function Home() {
+  const [featuredReplays, setFeaturedReplays] = useState<Replay[]>([]);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [arenas, setArenas] = useState<Arena[]>([]);
+  const [quadras, setQuadras] = useState<Quadra[]>([]);
+  const [replays, setReplays] = useState<Replay[]>([]);
+  const [arenaId, setArenaId] = useState<string>("");
+  const [quadraId, setQuadraId] = useState<string>("");
+  const [date, setDate] = useState<string>("");
+  const [startHour, setStartHour] = useState<string>("");
+  const [endHour, setEndHour] = useState<string>("");
+  const [checkInAt, setCheckInAt] = useState<Date | null>(null);
+  const [points, setPoints] = useState(0);
+  const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
+
+  // Initial load
+  useEffect(() => {
+    supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
+    fetchReplays();
+    fetchFeatured();
+  }, []);
+
+  const fetchFeatured = async () => {
+    const { data } = await supabase
+      .from("replays")
+      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .order("created_at", { ascending: false })
+      .limit(3);
+    setFeaturedReplays((data ?? []) as Replay[]);
+  };
+
+  useEffect(() => {
+    if (featuredReplays.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % featuredReplays.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [featuredReplays]);
+
+  // Filter quadras when arena changes
+  useEffect(() => {
+    if (!arenaId) { setQuadras([]); setQuadraId(""); return; }
+    supabase.from("quadras").select("*").eq("arena_id", arenaId).order("nome")
+      .then(({ data }) => setQuadras(data ?? []));
+    setQuadraId("");
+  }, [arenaId]);
+
+  const fetchReplays = async () => {
+    const { data } = await supabase
+      .from("replays")
+      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    setReplays((data ?? []) as Replay[]);
+  };
+
+  // Realtime
+  useEffect(() => {
+    const ch = supabase
+      .channel("replays-feed")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "replays" }, () => {
+        fetchReplays();
+        toast("🔥 Novo lance na quadra!");
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+
+  const filtered = useMemo(() => {
+    return replays.filter((r) => {
+      if (quadraId && r.quadra_id !== quadraId) return false;
+      if (arenaId && !quadraId) {
+        const ok = quadras.some((q) => q.id === r.quadra_id);
+        if (quadras.length && !ok) return false;
+      }
+      const d = new Date(r.created_at);
+      if (date) {
+        const ymd = d.toISOString().slice(0, 10);
+        if (ymd !== date) return false;
+      }
+      if (startHour && d.getHours() < parseInt(startHour)) return false;
+      if (endHour && d.getHours() >= parseInt(endHour)) return false;
+      if (checkInAt && d < checkInAt) return false;
+      return true;
+    });
+  }, [replays, arenaId, quadraId, quadras, date, startHour, endHour, checkInAt]);
+
+  const reward = () => {
+    setPoints((p) => p + 10);
+    const id = Date.now() + Math.random();
+    setXpPops((arr) => [...arr, { id }]);
+    setTimeout(() => setXpPops((arr) => arr.filter((p) => p.id !== id)), 1300);
+  };
+
+  const toggleCheckIn = () => {
+    if (!quadraId) {
+      toast.error("Selecione uma quadra primeiro");
+      return;
+    }
+    if (checkInAt) {
+      setCheckInAt(null);
+      toast("Check-out realizado");
+    } else {
+      setCheckInAt(new Date());
+      toast.success("Check-in! Mostrando apenas lances a partir de agora");
+    }
+  };
+
+  return (
+    <div className="relative min-h-screen bg-background text-foreground">
+      <Toaster theme="light" position="top-center" />
+
+      {/* XP pop overlay */}
+      <div className="pointer-events-none fixed right-6 top-24 z-50">
+        {xpPops.map((p) => (
+          <div key={p.id} className="animate-xp-pop brand-text text-2xl font-black drop-shadow-sm">
+            +10 XP
+          </div>
+        ))}
+      </div>
+
+      {/* Header */}
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black py-0 shadow-xl">
+        <div className="mx-auto flex max-w-2xl items-center px-6">
+          {/* Left: XP Badge */}
+          <div className="flex-1">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 backdrop-blur-md">
+              <Trophy className="h-4 w-4 text-brand-orange" />
+              <span className="text-xs font-bold text-white tracking-tight">{points} XP</span>
+            </div>
+          </div>
+
+          {/* Center: Logo */}
+          <div className="flex-none">
+            <img src={logoUrl} alt="Looplance" className="h-40 w-auto -my-8 transition-transform hover:scale-105" />
+          </div>
+
           {/* Right: Admin Link */}
           <div className="flex-1 flex justify-end">
             <Link 
