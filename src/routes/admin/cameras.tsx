@@ -121,6 +121,7 @@ function Cameras() {
     setDevices(devicesRes.data || []);
     setBoards(boardsRes.data || []);
     setQuadras(quadrasRes.data || []);
+    setArenas(arenasRes.data || []);
     setLoading(false);
   };
 
