@@ -186,7 +186,7 @@ function AdminHome() {
           <div className="glass-card brand-gradient brand-glow p-4 sm:p-6 text-white mt-2 relative overflow-hidden group transition-transform hover:scale-[1.02]">
             <div className="relative z-10">
               <h4 className="font-black uppercase tracking-widest text-xs opacity-80 mb-1">Status Global</h4>
-              <p className="text-2xl font-black leading-tight">Sua rede Edge está pronta para lances.</p>
+              <p className="text-xl sm:text-2xl font-black leading-tight">Sua rede Edge está pronta para lances.</p>
               <button className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-md px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-white/30 transition">
                 Ver Logs <ArrowRight className="h-3 w-3" />
               </button>
