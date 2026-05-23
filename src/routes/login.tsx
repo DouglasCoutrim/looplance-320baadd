@@ -81,11 +81,11 @@ function UserLogin() {
       <Card className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-none">
         <div className="brand-gradient p-1 text-center border-b border-brand-orange/10">
           <CardHeader className="p-0 space-y-0">
-            <div className="flex justify-center -mb-8 -mt-4">
+            <div className="flex justify-center -mb-14 -mt-8">
               <img 
                 src={logoUrl} 
                 alt="Looplance" 
-                className="h-36 w-auto object-contain drop-shadow-sm brightness-0 invert" 
+                className="h-48 w-auto object-contain drop-shadow-sm brightness-0 invert" 
               />
             </div>
             <CardTitle className="text-lg font-black uppercase tracking-tight text-white relative z-10">Login</CardTitle>
