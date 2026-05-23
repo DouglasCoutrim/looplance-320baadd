@@ -148,6 +148,21 @@ function Cameras() {
     } else {
       toast.success("Câmera criada com sucesso");
       setIsDialogOpen(false);
+      setFormData({
+        name: "",
+        rtsp_url: "",
+        quadra_id: "",
+        edge_device_id: "",
+        input_board_id: "",
+        trigger_button: "0",
+        replay_seconds: "15",
+        active: true,
+        brand: "custom",
+        username: "admin",
+        password: "",
+        ip: "",
+        port: "554",
+      });
       fetchData();
     }
   };
