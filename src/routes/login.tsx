@@ -82,9 +82,11 @@ function UserLogin() {
         <div className="brand-gradient p-6 text-white text-center">
           <CardHeader className="p-0">
             <div className="flex justify-center mb-4">
-              <div className="h-12 w-12 rounded-2xl bg-white/20 flex items-center justify-center backdrop-blur-md">
-                <LogIn className="h-6 w-6 text-white" />
-              </div>
+              <img 
+                src={logoUrl} 
+                alt="Looplance" 
+                className="h-20 w-auto object-contain" 
+              />
             </div>
             <CardTitle className="text-2xl font-black uppercase tracking-tight">Login</CardTitle>
             <CardDescription className="text-white/70 text-xs font-bold uppercase tracking-widest mt-1">
