@@ -60,12 +60,12 @@ function AdminUsers() {
     fetchCurrentUser();
   }, []);
 
-  const isMainSuperAdmin = currentUserEmail === 'douglas@lovable.app';
+  const isMainSuperAdmin = currentUserEmail === 'douglas@looplance.app';
 
   const handleTogglePermission = async (profileId: string, field: 'is_super_admin' | 'is_arena_owner', currentValue: boolean) => {
     // Permission checks
-    if (field === 'is_super_admin' && !isMainSuperAdmin) {
-      toast.error("Apenas o Super Admin mestre pode gerenciar outros Super Admins.");
+    if (!isMainSuperAdmin) {
+      toast.error("Apenas o Super Admin mestre pode gerenciar permissões de Super Admin e Dono de Arena.");
       return;
     }
 
@@ -269,7 +269,7 @@ function AdminUsers() {
                       </div>
                       
                       <div 
-                        className="flex items-center gap-2 cursor-pointer"
+                        className={`flex items-center gap-2 cursor-pointer ${!isMainSuperAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
                         onClick={() => handleTogglePermission(profile.id, 'is_arena_owner', !!profile.is_arena_owner)}
                       >
                         {profile.is_arena_owner ? (
