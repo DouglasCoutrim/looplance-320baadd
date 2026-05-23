@@ -176,7 +176,7 @@ function Home() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/20 bg-black/20 backdrop-blur-lg shadow-xl h-14 sm:h-16">
+      <header className="sticky top-0 z-40 border-b border-brand-orange/20 bg-brand-orange shadow-xl h-14 sm:h-16">
         <div className="mx-auto flex h-full max-w-2xl items-center px-4">
           {/* Left: XP Badge */}
           <div className="flex-1">

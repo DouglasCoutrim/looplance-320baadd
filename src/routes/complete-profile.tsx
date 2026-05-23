@@ -106,17 +106,17 @@ function CompleteProfile() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4">
       <Card className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-none">
-        <div className="bg-white/80 backdrop-blur-sm p-1 text-center border-b border-gray-100">
+        <div className="brand-gradient p-1 text-center border-b border-brand-orange/10">
           <CardHeader className="p-0 space-y-0">
-            <div className="flex justify-center -mb-2">
+            <div className="flex justify-center -mb-4">
               <img 
                 src={logoUrl} 
                 alt="Looplance" 
-                className="h-28 w-auto object-contain" 
+                className="h-24 w-auto object-contain drop-shadow-sm" 
               />
             </div>
-            <CardTitle className="text-lg font-black uppercase tracking-tight text-gray-900 relative z-10">Completar Perfil</CardTitle>
-            <CardDescription className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-0">
+            <CardTitle className="text-lg font-black uppercase tracking-tight text-white relative z-10">Completar Perfil</CardTitle>
+            <CardDescription className="text-white/80 text-[10px] font-bold uppercase tracking-widest mt-0">
               Precisamos de mais alguns dados
             </CardDescription>
           </CardHeader>
