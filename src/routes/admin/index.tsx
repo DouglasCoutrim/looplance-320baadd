@@ -238,7 +238,7 @@ function QuickAction({ to, title, description, icon }: any) {
         {icon}
       </div>
       <div className="flex-1">
-        <div className="font-black uppercase tracking-tight text-sm text-gray-900">{title}</div>
+        <div className="font-black uppercase tracking-tight text-xs sm:text-sm text-gray-900">{title}</div>
         <div className="text-xs font-medium text-muted-foreground mt-0.5">{description}</div>
       </div>
       <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-brand-orange group-hover:translate-x-1 transition-all" />
