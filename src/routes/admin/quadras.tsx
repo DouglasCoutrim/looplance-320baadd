@@ -64,10 +64,10 @@ function Quadras() {
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 uppercase">
             Quadras <span className="brand-text">Pistas</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-lg">
+          <p className="text-muted-foreground mt-1 font-medium text-base sm:text-lg">
             Vincule quadras específicas aos seus complexos.
           </p>
         </div>
