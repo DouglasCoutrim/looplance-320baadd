@@ -177,6 +177,10 @@ function Cameras() {
     ? boards.filter(b => b.edge_device_id === formData.edge_device_id)
     : boards;
 
+  const filteredQuadras = formData.arena_id
+    ? quadras.filter(q => q.arena_id === formData.arena_id)
+    : quadras;
+
   return (
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
