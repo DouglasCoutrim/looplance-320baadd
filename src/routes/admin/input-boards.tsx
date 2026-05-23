@@ -133,9 +133,9 @@ function InputBoards() {
                   <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Placa Quadra 1 - Principal" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
                 </div>
                 <div className="grid gap-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Servidor Vinculado (Edge Device)</Label>
+                  <Label htmlFor="edge-device" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Servidor Vinculado (Edge Device)</Label>
                   <Select value={edgeDeviceId} onValueChange={setEdgeDeviceId}>
-                    <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                    <SelectTrigger id="edge-device" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
                       <SelectValue placeholder="Selecione o dispositivo" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl shadow-xl border-gray-100">
