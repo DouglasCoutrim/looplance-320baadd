@@ -115,54 +115,62 @@ function Home() {
   };
 
   return (
-    <div className="relative min-h-screen text-foreground">
-      <Toaster theme="dark" position="top-center" toastOptions={{
-        style: { background: "oklch(0.14 0.02 30)", border: "1px solid oklch(1 0 0 / 10%)", color: "white" }
-      }} />
+    <div className="relative min-h-screen bg-background text-foreground">
+      <Toaster theme="light" position="top-center" />
 
       {/* XP pop overlay */}
       <div className="pointer-events-none fixed right-6 top-24 z-50">
         {xpPops.map((p) => (
-          <div key={p.id} className="animate-xp-pop brand-text text-2xl font-black drop-shadow">
+          <div key={p.id} className="animate-xp-pop brand-text text-2xl font-black drop-shadow-sm">
             +10 XP
           </div>
         ))}
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-black/70 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1.5">
-            <Trophy className="h-4 w-4 text-[oklch(0.86_0.18_90)]" />
-            <span className="text-sm font-bold brand-text">{points} XP</span>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-2xl items-center px-4 py-2">
+          {/* Left: XP Badge */}
+          <div className="flex-1">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-1">
+              <Trophy className="h-3.5 w-3.5 text-brand-orange" />
+              <span className="text-xs font-bold text-[#222222]">{points} XP</span>
+            </div>
           </div>
-          <div className="w-[40px]" /> {/* Spacer to keep balance */}
+
+          {/* Center: Logo */}
+          <div className="flex-none">
+            <img src={logoUrl} alt="Looplance" className="h-7 w-auto" />
+          </div>
+
+          {/* Right: Spacer to maintain centering */}
+          <div className="flex-1" />
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl space-y-5 px-4 pb-24 pt-5">
+      <main className="mx-auto max-w-2xl space-y-6 px-4 pb-24 pt-8">
         {/* Hero / Check-in */}
-        <section className="glass-card relative flex flex-col items-center overflow-hidden p-8 text-center">
-          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-[oklch(0.72_0.21_45)] opacity-20 blur-3xl" />
+        <section className="glass-card relative flex flex-col items-center overflow-hidden p-10 text-center">
+          <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full bg-brand-orange opacity-5 blur-3xl" />
           
           <img 
             src={logoUrl} 
             alt="Looplance" 
-            className="relative mb-10 w-full max-w-[240px] h-auto drop-shadow-[0_0_20px_rgba(255,165,0,0.4)]" 
+            className="relative mb-8 w-full max-w-[200px] h-auto" 
           />
 
-          <h1 className="relative text-3xl font-black leading-tight">
+          <h1 className="relative text-3xl font-black leading-tight tracking-tight text-[#222222]">
             Seus lances <span className="brand-text">em loop.</span>
           </h1>
-          <p className="relative mt-2 text-sm text-muted-foreground">
+          <p className="relative mt-3 text-base text-muted-foreground leading-relaxed">
             Selecione a arena, escolha a quadra e reviva cada jogada.
           </p>
           <button
             onClick={toggleCheckIn}
-            className={`mt-4 flex w-full items-center justify-center gap-2 rounded-full px-4 py-3 text-sm font-bold transition ${
+            className={`mt-6 flex w-full items-center justify-center gap-2 rounded-full px-6 py-4 text-sm font-bold transition shadow-sm ${
               checkInAt
-                ? "border border-white/10 bg-white/5 text-foreground"
-                : "brand-gradient brand-glow animate-pulse-glow text-black"
+                ? "border border-border bg-muted text-foreground hover:bg-muted/80"
+                : "brand-gradient brand-glow animate-pulse-glow text-white hover:scale-[1.02]"
             }`}
           >
             {checkInAt ? <><LogOut className="h-4 w-4" /> Sair da quadra</> : <><LogIn className="h-4 w-4" /> Entrar em quadra</>}
@@ -170,37 +178,39 @@ function Home() {
         </section>
 
         {/* Location selectors */}
-        <section className="glass-card space-y-3 p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <section className="glass-card space-y-4 p-6">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/80">
             <MapPin className="h-3.5 w-3.5" /> Localização
           </div>
-          <Select value={arenaId} onChange={setArenaId} placeholder="Selecione a Arena">
-            {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
-          </Select>
-          <Select value={quadraId} onChange={setQuadraId} placeholder={arenaId ? "Selecione a Quadra" : "Escolha uma arena antes"} disabled={!arenaId}>
-            {quadras.map((q) => <option key={q.id} value={q.id}>{q.nome}</option>)}
-          </Select>
+          <div className="space-y-3">
+            <Select value={arenaId} onChange={setArenaId} placeholder="Selecione a Arena">
+              {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+            </Select>
+            <Select value={quadraId} onChange={setQuadraId} placeholder={arenaId ? "Selecione a Quadra" : "Escolha uma arena antes"} disabled={!arenaId}>
+              {quadras.map((q) => <option key={q.id} value={q.id}>{q.nome}</option>)}
+            </Select>
+          </div>
         </section>
 
         {/* Filters */}
-        <section className="glass-card space-y-3 p-4">
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+        <section className="glass-card space-y-4 p-6">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/80">
             <CalIcon className="h-3.5 w-3.5" /> Filtros
           </div>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-foreground outline-none transition focus:border-[oklch(0.72_0.21_45)]"
+            className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
           />
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-2 gap-4">
             <TimeInput label="De" value={startHour} onChange={setStartHour} />
             <TimeInput label="Até" value={endHour} onChange={setEndHour} />
           </div>
           {(date || startHour || endHour || checkInAt) && (
             <button
               onClick={() => { setDate(""); setStartHour(""); setEndHour(""); setCheckInAt(null); }}
-              className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
+              className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-brand-orange hover:underline"
             >
               Limpar filtros
             </button>
@@ -208,13 +218,13 @@ function Home() {
         </section>
 
         {/* Feed */}
-        <section className="space-y-4">
+        <section className="space-y-5">
           <div className="flex items-center justify-between px-1">
-            <h2 className="flex items-center gap-2 text-lg font-bold">
-              <Sparkles className="h-4 w-4 text-[oklch(0.86_0.18_90)]" />
+            <h2 className="flex items-center gap-2 text-xl font-black text-[#222222]">
+              <Sparkles className="h-5 w-5 text-brand-orange" />
               Feed de Lances
             </h2>
-            <span className="text-xs text-muted-foreground">{filtered.length} lances</span>
+            <span className="text-sm font-medium text-muted-foreground">{filtered.length} lances</span>
           </div>
 
           {filtered.length === 0 ? (
@@ -239,24 +249,24 @@ function Select({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="w-full appearance-none rounded-xl border border-white/10 bg-white/5 px-4 py-3 pr-10 text-sm text-foreground outline-none transition focus:border-[oklch(0.72_0.21_45)] disabled:opacity-40"
+        className="w-full appearance-none rounded-xl border border-border bg-muted px-4 py-3.5 pr-10 text-sm font-medium text-foreground outline-none transition focus:border-brand-orange focus:ring-1 focus:ring-brand-orange disabled:opacity-40"
       >
         <option value="">{placeholder}</option>
         {children}
       </select>
-      <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground">▾</div>
+      <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60">▾</div>
     </div>
   );
 }
 
 function TimeInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="rounded-xl border border-white/10 bg-white/5 px-3 py-2">
-      <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{label}</div>
+    <div className="rounded-xl border border-border bg-muted px-4 py-2.5 transition-colors focus-within:border-brand-orange">
+      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">{label}</div>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
-        className="w-full appearance-none bg-transparent text-sm font-semibold text-foreground outline-none"
+        className="w-full appearance-none bg-transparent text-sm font-bold text-foreground outline-none"
       >
         <option value="">--:00</option>
         {Array.from({ length: 24 }).map((_, h) => (
@@ -269,14 +279,14 @@ function TimeInput({ label, value, onChange }: { label: string; value: string; o
 
 function EmptyState() {
   return (
-    <div className="glass-card flex flex-col items-center gap-4 px-6 py-12 text-center">
-      <div className="brand-gradient grid h-16 w-16 place-items-center rounded-full brand-glow">
-        <Play className="h-7 w-7 fill-black text-black" />
+    <div className="glass-card flex flex-col items-center gap-6 px-6 py-16 text-center">
+      <div className="brand-gradient grid h-20 w-20 place-items-center rounded-full brand-glow shadow-lg transition-transform hover:scale-105">
+        <Play className="h-9 w-9 fill-white text-white" />
       </div>
-      <div>
-        <h3 className="text-base font-bold">Aguardando o próximo grande lance...</h3>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Aperte o botão na quadra e o replay aparece aqui na hora!
+      <div className="max-w-[280px] space-y-2">
+        <h3 className="text-lg font-black text-[#222222]">Aguardando o lance...</h3>
+        <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+          Aperte o botão na quadra e o seu replay aparecerá aqui em poucos segundos!
         </p>
       </div>
     </div>
