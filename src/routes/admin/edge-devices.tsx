@@ -28,28 +28,35 @@ interface EdgeDevice {
 
 function EdgeDevices() {
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
+  const [arenas, setArenas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newName, setNewName] = useState("");
   const [newHostname, setNewHostname] = useState("");
+  const [selectedArenaId, setSelectedArenaId] = useState("");
 
-  const fetchDevices = async () => {
+  const fetchData = async () => {
     setLoading(true);
-    const { data, error } = await supabase
-      .from("edge_devices")
-      .select("*")
-      .order("created_at", { ascending: false });
+    const [devicesRes, arenasRes] = await Promise.all([
+      supabase.from("edge_devices").select("*, arenas(nome)").order("created_at", { ascending: false }),
+      supabase.from("arenas").select("id, nome").order("nome")
+    ]);
 
-    if (error) {
+    if (devicesRes.error) {
       toast.error("Erro ao buscar dispositivos");
     } else {
-      setDevices(data || []);
+      setDevices(devicesRes.data || []);
     }
+    
+    if (!arenasRes.error) {
+      setArenas(arenasRes.data || []);
+    }
+    
     setLoading(false);
   };
 
   useEffect(() => {
-    fetchDevices();
+    fetchData();
   }, []);
 
   const handleCreate = async () => {
@@ -60,7 +67,12 @@ function EdgeDevices() {
 
     const { error } = await supabase
       .from("edge_devices")
-      .insert([{ name: newName, hostname: newHostname, status: "offline" }]);
+      .insert([{ 
+        name: newName, 
+        hostname: newHostname, 
+        status: "offline",
+        arena_id: selectedArenaId || null
+      }]);
 
     if (error) {
       toast.error("Erro ao criar dispositivo");
@@ -69,7 +81,8 @@ function EdgeDevices() {
       setIsDialogOpen(false);
       setNewName("");
       setNewHostname("");
-      fetchDevices();
+      setSelectedArenaId("");
+      fetchData();
     }
   };
 
@@ -107,7 +120,7 @@ function EdgeDevices() {
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="icon" onClick={fetchDevices} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
+          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -128,6 +141,19 @@ function EdgeDevices() {
                 <div className="grid gap-2">
                   <Label htmlFor="hostname" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Hostname (Opcional)</Label>
                   <Input id="hostname" value={newHostname} onChange={(e) => setNewHostname(e.target.value)} placeholder="Ex: edge-01.local" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="arena" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Arena</Label>
+                  <Select value={selectedArenaId} onValueChange={setSelectedArenaId}>
+                    <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange">
+                      <SelectValue placeholder="Selecione a arena deste servidor" />
+                    </SelectTrigger>
+                    <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                      {arenas.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <DialogFooter>
@@ -166,6 +192,11 @@ function EdgeDevices() {
                       </div>
                       <div>
                         <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{device.name}</span>
+                        {(device as any).arenas && (
+                          <Badge variant="outline" className="ml-2 text-[8px] border-orange-200 text-brand-orange">
+                            {(device as any).arenas.nome}
+                          </Badge>
+                        )}
                         <p className="text-xs font-medium text-muted-foreground">Token: {device.edge_token?.slice(0, 8)}...</p>
                       </div>
                     </div>
