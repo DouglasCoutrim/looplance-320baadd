@@ -16,6 +16,7 @@ import {
   DialogTitle,
   DialogTrigger,
   DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/complete-profile")({
@@ -198,13 +199,15 @@ function CompleteProfile() {
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter className="mt-6">
-                        <Button 
-                          type="button" 
-                          onClick={() => setConsentAccepted(true)}
-                          className="brand-gradient text-white font-bold rounded-xl"
-                        >
-                          Compreendo e Aceito
-                        </Button>
+                        <DialogClose asChild>
+                          <Button 
+                            type="button" 
+                            onClick={() => setConsentAccepted(true)}
+                            className="brand-gradient text-white font-bold rounded-xl w-full"
+                          >
+                            Compreendo e Aceito
+                          </Button>
+                        </DialogClose>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
