@@ -20,6 +20,9 @@ export default defineConfig({
         filename: 'sw.js',
         manifestFilename: 'manifest.json',
         registerType: 'autoUpdate',
+        devOptions: {
+          enabled: true
+        },
         includeAssets: ['favicon.png', 'robots.txt', 'apple-touch-icon.png'],
         manifest: {
           name: 'Looplance',
