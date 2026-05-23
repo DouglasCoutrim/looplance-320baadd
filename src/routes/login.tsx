@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -11,6 +11,12 @@ import { LogIn } from "lucide-react";
 import logoUrl from "@/assets/looplance-logo.png";
 
 export const Route = createFileRoute("/login")({
+  beforeLoad: async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+      throw redirect({ to: "/" });
+    }
+  },
   component: UserLogin,
 });
 

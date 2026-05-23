@@ -6,9 +6,11 @@ import {
   useRouter,
   HeadContent,
   Scripts,
+  redirect,
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
+import { supabase } from "@/integrations/supabase/client";
 
 function NotFoundComponent() {
   return (
@@ -68,6 +70,34 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  beforeLoad: async ({ location }) => {
+    const publicPaths = ["/login", "/signup", "/admin/login"];
+    if (publicPaths.includes(location.pathname)) return;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw redirect({ 
+        to: "/login",
+        search: {
+          redirect: location.href,
+        },
+      });
+    }
+
+    // Check profile completeness for logged in users
+    if (location.pathname !== "/complete-profile") {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("cpf, birth_date")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profile && (!profile.cpf || !profile.birth_date)) {
+        throw redirect({ to: "/complete-profile" });
+      }
+    }
+  },
   head: () => ({
     meta: [
       { charSet: "utf-8" },
