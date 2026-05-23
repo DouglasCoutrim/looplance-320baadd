@@ -112,7 +112,7 @@ function CompleteProfile() {
               <img 
                 src={logoUrl} 
                 alt="Looplance" 
-                className="h-24 w-auto object-contain drop-shadow-sm" 
+                className="h-24 w-auto object-contain drop-shadow-sm brightness-0 invert" 
               />
             </div>
             <CardTitle className="text-lg font-black uppercase tracking-tight text-white relative z-10">Completar Perfil</CardTitle>
