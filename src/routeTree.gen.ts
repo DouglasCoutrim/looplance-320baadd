@@ -10,33 +10,128 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
+import { Route as AdminLayoutRouteImport } from './routes/admin/layout'
+import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-boards'
+import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-devices'
+import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
+import { Route as AdminArenasRouteImport } from './routes/admin/arenas'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminIndexRoute = AdminIndexRouteImport.update({
+  id: '/admin/',
+  path: '/admin/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminQuadrasRoute = AdminQuadrasRouteImport.update({
+  id: '/admin/quadras',
+  path: '/admin/quadras',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminLayoutRoute = AdminLayoutRouteImport.update({
+  id: '/admin/layout',
+  path: '/admin/layout',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminInputBoardsRoute = AdminInputBoardsRouteImport.update({
+  id: '/admin/input-boards',
+  path: '/admin/input-boards',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminEdgeDevicesRoute = AdminEdgeDevicesRouteImport.update({
+  id: '/admin/edge-devices',
+  path: '/admin/edge-devices',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminCamerasRoute = AdminCamerasRouteImport.update({
+  id: '/admin/cameras',
+  path: '/admin/cameras',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminArenasRoute = AdminArenasRouteImport.update({
+  id: '/admin/arenas',
+  path: '/admin/arenas',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/admin/arenas': typeof AdminArenasRoute
+  '/admin/cameras': typeof AdminCamerasRoute
+  '/admin/edge-devices': typeof AdminEdgeDevicesRoute
+  '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/layout': typeof AdminLayoutRoute
+  '/admin/quadras': typeof AdminQuadrasRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/admin/arenas': typeof AdminArenasRoute
+  '/admin/cameras': typeof AdminCamerasRoute
+  '/admin/edge-devices': typeof AdminEdgeDevicesRoute
+  '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/layout': typeof AdminLayoutRoute
+  '/admin/quadras': typeof AdminQuadrasRoute
+  '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/admin/arenas': typeof AdminArenasRoute
+  '/admin/cameras': typeof AdminCamerasRoute
+  '/admin/edge-devices': typeof AdminEdgeDevicesRoute
+  '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/layout': typeof AdminLayoutRoute
+  '/admin/quadras': typeof AdminQuadrasRoute
+  '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/admin/arenas'
+    | '/admin/cameras'
+    | '/admin/edge-devices'
+    | '/admin/input-boards'
+    | '/admin/layout'
+    | '/admin/quadras'
+    | '/admin/'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/admin/arenas'
+    | '/admin/cameras'
+    | '/admin/edge-devices'
+    | '/admin/input-boards'
+    | '/admin/layout'
+    | '/admin/quadras'
+    | '/admin'
+  id:
+    | '__root__'
+    | '/'
+    | '/admin/arenas'
+    | '/admin/cameras'
+    | '/admin/edge-devices'
+    | '/admin/input-boards'
+    | '/admin/layout'
+    | '/admin/quadras'
+    | '/admin/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  AdminArenasRoute: typeof AdminArenasRoute
+  AdminCamerasRoute: typeof AdminCamerasRoute
+  AdminEdgeDevicesRoute: typeof AdminEdgeDevicesRoute
+  AdminInputBoardsRoute: typeof AdminInputBoardsRoute
+  AdminLayoutRoute: typeof AdminLayoutRoute
+  AdminQuadrasRoute: typeof AdminQuadrasRoute
+  AdminIndexRoute: typeof AdminIndexRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,12 +143,78 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/': {
+      id: '/admin/'
+      path: '/admin'
+      fullPath: '/admin/'
+      preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/quadras': {
+      id: '/admin/quadras'
+      path: '/admin/quadras'
+      fullPath: '/admin/quadras'
+      preLoaderRoute: typeof AdminQuadrasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/layout': {
+      id: '/admin/layout'
+      path: '/admin/layout'
+      fullPath: '/admin/layout'
+      preLoaderRoute: typeof AdminLayoutRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/input-boards': {
+      id: '/admin/input-boards'
+      path: '/admin/input-boards'
+      fullPath: '/admin/input-boards'
+      preLoaderRoute: typeof AdminInputBoardsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/edge-devices': {
+      id: '/admin/edge-devices'
+      path: '/admin/edge-devices'
+      fullPath: '/admin/edge-devices'
+      preLoaderRoute: typeof AdminEdgeDevicesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/cameras': {
+      id: '/admin/cameras'
+      path: '/admin/cameras'
+      fullPath: '/admin/cameras'
+      preLoaderRoute: typeof AdminCamerasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/arenas': {
+      id: '/admin/arenas'
+      path: '/admin/arenas'
+      fullPath: '/admin/arenas'
+      preLoaderRoute: typeof AdminArenasRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  AdminArenasRoute: AdminArenasRoute,
+  AdminCamerasRoute: AdminCamerasRoute,
+  AdminEdgeDevicesRoute: AdminEdgeDevicesRoute,
+  AdminInputBoardsRoute: AdminInputBoardsRoute,
+  AdminLayoutRoute: AdminLayoutRoute,
+  AdminQuadrasRoute: AdminQuadrasRoute,
+  AdminIndexRoute: AdminIndexRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
