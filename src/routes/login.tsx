@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
@@ -140,6 +140,14 @@ function UserLogin() {
                 <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.74 1.18 0 2.15-1.04 3.74-1.04 1.38 0 2.67.79 3.5 2.04-3.14 1.88-2.48 5.98.22 7.13-.57 1.5-1.31 2.99-2.54 4.09l.01-.01zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/>
               </svg>
             </Button>
+          </div>
+          <div className="mt-6 text-center">
+            <p className="text-xs text-muted-foreground font-medium">
+              Não tem uma conta?{" "}
+              <Link to="/signup" className="text-brand-orange font-bold hover:underline">
+                Cadastre-se
+              </Link>
+            </p>
           </div>
         </CardContent>
       </Card>
