@@ -25,22 +25,30 @@ function UserLogin() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { redirect } = Route.useSearch() as { redirect?: string };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) throw error;
+      if (!data.user) throw new Error("Usuário não encontrado após login");
 
       toast.success("Login realizado com sucesso!");
-      navigate({ to: "/" });
+      
+      if (redirect) {
+        window.location.href = redirect;
+      } else {
+        navigate({ to: "/" });
+      }
     } catch (error: any) {
+      console.error("Login error:", error);
       toast.error(error.message || "Erro ao realizar login");
       setLoading(false);
     }

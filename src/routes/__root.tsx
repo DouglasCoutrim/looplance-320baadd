@@ -89,14 +89,25 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
     // Check profile completeness for logged in users
     if (location.pathname !== "/complete-profile") {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("cpf, birth_date")
-        .eq("id", session.user.id)
-        .single();
+      try {
+        const { data: profile, error } = await supabase
+          .from("profiles")
+          .select("cpf, birth_date")
+          .eq("id", session.user.id)
+          .maybeSingle();
 
-      if (profile && (!profile.cpf || !profile.birth_date)) {
-        throw redirect({ to: "/complete-profile" });
+        if (error) {
+          console.error("Error fetching profile:", error);
+          return;
+        }
+
+        // If no profile found or missing required fields, redirect to complete-profile
+        if (!profile || !profile.cpf || !profile.birth_date) {
+          throw redirect({ to: "/complete-profile" });
+        }
+      } catch (err) {
+        if (err instanceof Error && 'to' in err) throw err;
+        console.error("Profile check failed:", err);
       }
     }
   },

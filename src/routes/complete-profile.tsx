@@ -60,13 +60,16 @@ function CompleteProfile() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não encontrado");
 
-      const { error } = await supabase.from("profiles").update({
+      const { error } = await supabase.from("profiles").upsert({
+        id: user.id,
+        email: user.email,
         full_name: fullName,
         cpf: cpf,
         birth_date: birthDate,
         consent_accepted: true,
         consent_timestamp: new Date().toISOString(),
-      }).eq("id", user.id);
+        updated_at: new Date().toISOString(),
+      });
 
       if (error) throw error;
 
