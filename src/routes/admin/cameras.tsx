@@ -107,6 +107,16 @@ function Cameras() {
     }
   }, [formData.brand, formData.username, formData.password, formData.ip, formData.port]);
 
+  useEffect(() => {
+    // Reset quadra_id if arena changes
+    if (formData.arena_id) {
+      const quadraInArena = quadras.find(q => q.id === formData.quadra_id && q.arena_id === formData.arena_id);
+      if (!quadraInArena) {
+        setFormData(prev => ({ ...prev, quadra_id: "" }));
+      }
+    }
+  }, [formData.arena_id]);
+
   const fetchData = async () => {
     setLoading(true);
     const [camerasRes, devicesRes, boardsRes, quadrasRes, arenasRes] = await Promise.all([
