@@ -98,20 +98,20 @@ function SignUp() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4">
       <Card className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-none">
-        <div className="brand-gradient p-6 text-white text-center relative">
-          <Link to="/login" className="absolute left-6 top-6 text-white/80 hover:text-white">
+        <div className="bg-white p-4 text-center relative border-b border-gray-100">
+          <Link to="/login" className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-brand-orange transition-colors">
             <ArrowLeft className="h-5 w-5" />
           </Link>
-          <CardHeader className="p-0">
-            <div className="flex justify-center mb-4">
+          <CardHeader className="p-0 space-y-0">
+            <div className="flex justify-center mb-2">
               <img 
                 src={logoUrl} 
                 alt="Looplance" 
-                className="h-20 w-auto object-contain" 
+                className="h-24 w-auto object-contain" 
               />
             </div>
-            <CardTitle className="text-2xl font-black uppercase tracking-tight">Criar Conta</CardTitle>
-            <CardDescription className="text-white/70 text-xs font-bold uppercase tracking-widest mt-1">
+            <CardTitle className="text-xl font-black uppercase tracking-tight text-gray-900">Criar Conta</CardTitle>
+            <CardDescription className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-0">
               Junte-se à Looplance
             </CardDescription>
           </CardHeader>

@@ -106,17 +106,17 @@ function CompleteProfile() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4">
       <Card className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-none">
-        <div className="brand-gradient p-6 text-white text-center">
-          <CardHeader className="p-0">
-            <div className="flex justify-center mb-4">
+        <div className="bg-white p-4 text-center border-b border-gray-100">
+          <CardHeader className="p-0 space-y-0">
+            <div className="flex justify-center mb-2">
               <img 
                 src={logoUrl} 
                 alt="Looplance" 
-                className="h-20 w-auto object-contain" 
+                className="h-24 w-auto object-contain" 
               />
             </div>
-            <CardTitle className="text-2xl font-black uppercase tracking-tight">Completar Perfil</CardTitle>
-            <CardDescription className="text-white/70 text-xs font-bold uppercase tracking-widest mt-1">
+            <CardTitle className="text-xl font-black uppercase tracking-tight text-gray-900">Completar Perfil</CardTitle>
+            <CardDescription className="text-gray-500 text-[10px] font-bold uppercase tracking-widest mt-0">
               Precisamos de mais alguns dados
             </CardDescription>
           </CardHeader>
@@ -201,7 +201,7 @@ function CompleteProfile() {
                             <strong>2. DA DISPONIBILIZAÇÃO:</strong> O USUÁRIO autoriza que os vídeos gerados sejam disponibilizados na plataforma Looplance, podendo ser acessados, baixados e compartilhados por outros usuários da mesma partida.
                           </p>
                           <p>
-                            <strong>3. DA ISENÇÃO DE RESPONSABILIDADE:</strong> A ARENA e a plataforma LOOPLANCE ficam integralmente isentas de qualquer responsabilidade civil ou criminal decorrente do mau uso, edição, montagem ou compartilhamento indevido dos vídeos por parte de terceiros após o download.
+                            <strong>3. DA ISENÇÃO DE RESPONSABILIDADE:</strong> A ARENA e a plataforma LOOPLANCE ficam integralmente isentas de qualquer responsabilidade civil or criminal decorrente do mau uso, edição, montagem ou compartilhamento indevido dos vídeos por parte de terceiros após o download.
                           </p>
                           <p>
                             <strong>4. DA PRIVACIDADE:</strong> O tratamento de dados (nome, e-mail, telefone e imagem) ocorre estritamente para a prestação do serviço de replays, não sendo comercializados para terceiros.
