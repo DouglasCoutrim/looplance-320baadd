@@ -137,27 +137,28 @@ export function PWAInstallPrompt() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-6 py-4">
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full bg-brand-orange flex items-center justify-center text-white font-bold shrink-0">1</div>
+            <div className="flex items-start gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+              <div className="w-8 h-8 rounded-full bg-brand-orange flex items-center justify-center text-white font-bold shrink-0 shadow-lg shadow-brand-orange/20">1</div>
               <div className="flex-1">
-                <p className="text-white font-bold mb-1">Toque no ícone de Compartilhar</p>
-                <p className="text-gray-400 text-sm">Toque no ícone <Share className="inline-block w-4 h-4 mx-1" /> na parte inferior do Safari.</p>
+                <p className="text-white font-bold mb-1">Toque em Compartilhar</p>
+                <p className="text-gray-400 text-sm">Toque no ícone <Share className="inline-block w-4 h-4 mx-1 text-brand-orange" /> na barra inferior do Safari.</p>
               </div>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full bg-brand-orange flex items-center justify-center text-white font-bold shrink-0">2</div>
+            <div className="flex items-start gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+              <div className="w-8 h-8 rounded-full bg-brand-orange flex items-center justify-center text-white font-bold shrink-0 shadow-lg shadow-brand-orange/20">2</div>
               <div className="flex-1">
-                <p className="text-white font-bold mb-1">Role para baixo</p>
-                <p className="text-gray-400 text-sm">Procure e toque na opção "Adicionar à Tela de Início".</p>
+                <p className="text-white font-bold mb-1">Adicionar à Tela de Início</p>
+                <p className="text-gray-400 text-sm">Role para baixo e selecione <span className="text-white font-medium">"Adicionar à Tela de Início"</span>.</p>
               </div>
             </div>
-            <div className="flex items-start gap-4">
-              <div className="w-8 h-8 rounded-full bg-brand-orange flex items-center justify-center text-white font-bold shrink-0">3</div>
+            <div className="flex items-start gap-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+              <div className="w-8 h-8 rounded-full bg-brand-orange flex items-center justify-center text-white font-bold shrink-0 shadow-lg shadow-brand-orange/20">3</div>
               <div className="flex-1">
-                <p className="text-white font-bold mb-1">Confirme</p>
-                <p className="text-gray-400 text-sm">Toque em "Adicionar" no canto superior direito.</p>
+                <p className="text-white font-bold mb-1">Finalizar</p>
+                <p className="text-gray-400 text-sm">Toque em <span className="text-brand-orange font-bold text-base uppercase">Adicionar</span> no canto superior.</p>
               </div>
             </div>
+
           </div>
           <Button 
             className="w-full bg-brand-orange hover:bg-brand-orange/90 text-white font-black h-12 rounded-xl"
