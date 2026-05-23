@@ -117,7 +117,7 @@ function Cameras() {
 
       // Auto-select edge device for this arena
       const arenaEdge = devices.find(d => d.arena_id === formData.arena_id);
-      if (arenaEdge) {
+      if (arenaEdge && formData.edge_device_id !== arenaEdge.id) {
         setFormData(prev => ({ ...prev, edge_device_id: arenaEdge.id }));
       }
     }
