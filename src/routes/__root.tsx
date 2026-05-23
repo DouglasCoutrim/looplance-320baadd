@@ -84,6 +84,19 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         },
       });
     }
+
+    // Check profile completeness for logged in users
+    if (location.pathname !== "/complete-profile") {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("cpf, birth_date")
+        .eq("id", session.user.id)
+        .single();
+
+      if (profile && (!profile.cpf || !profile.birth_date)) {
+        throw redirect({ to: "/complete-profile" });
+      }
+    }
   },
   head: () => ({
     meta: [
