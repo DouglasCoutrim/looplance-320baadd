@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { X, Download } from 'lucide-react';
+import { Download, Share } from 'lucide-react';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface BeforeInstallPromptEvent extends Event {
   readonly platforms: string[];
@@ -15,32 +16,45 @@ interface BeforeInstallPromptEvent extends Event {
 export function PWAInstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
   const [isVisible, setIsVisible] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const isMobile = useIsMobile();
 
   useEffect(() => {
+    // Check if it's iOS
+    const ios = /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+    setIsIOS(ios);
+
     const handler = (e: Event) => {
       // Prevent the mini-infobar from appearing on mobile
       e.preventDefault();
       // Stash the event so it can be triggered later.
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      
-      // Check if user has already dismissed it in this session
-      const dismissed = sessionStorage.getItem('pwa-prompt-dismissed');
-      if (!dismissed) {
-        setIsVisible(true);
-      }
+      setIsVisible(true);
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
     // Check if already installed
-    if (window.matchMedia('(display-mode: standalone)').matches) {
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (navigator as any).standalone;
+    
+    if (isStandalone) {
       setIsVisible(false);
+    } else if (ios && isMobile) {
+      // For iOS, beforeinstallprompt doesn't fire, so we show it manually if on mobile and not standalone
+      setIsVisible(true);
     }
 
     return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
+  }, [isMobile]);
 
   const handleInstallClick = async () => {
+    if (isIOS) {
+      toast.info('Para instalar: toque no ícone de compartilhar e depois em "Adicionar à Tela de Início"', {
+        duration: 5000,
+      });
+      return;
+    }
+
     if (!deferredPrompt) return;
 
     // Show the install prompt
@@ -50,46 +64,46 @@ export function PWAInstallPrompt() {
     const { outcome } = await deferredPrompt.userChoice;
     
     if (outcome === 'accepted') {
-      console.log('User accepted the install prompt');
       toast.success('Looplance está sendo instalado!');
-    } else {
-      console.log('User dismissed the install prompt');
+      setIsVisible(false);
     }
 
     // We've used the prompt, and can't use it again, throw it away
     setDeferredPrompt(null);
-    setIsVisible(false);
   };
 
-  const handleDismiss = () => {
-    setIsVisible(false);
-    sessionStorage.setItem('pwa-prompt-dismissed', 'true');
-  };
-
-  if (!isVisible || !deferredPrompt) return null;
+  // Only show on mobile as requested
+  if (!isMobile || !isVisible) return null;
+  // For non-iOS, we only show if we have the deferredPrompt
+  if (!isIOS && !deferredPrompt) return null;
 
   return (
-    <div className="fixed bottom-4 left-4 right-4 z-[100] animate-in fade-in slide-in-from-bottom-4 duration-500">
-      <div className="bg-card border shadow-lg rounded-xl p-4 flex items-center justify-between gap-4">
+    <div className="fixed bottom-0 left-0 right-0 z-[100] animate-in fade-in slide-in-from-bottom-full duration-500 bg-black/95 backdrop-blur-md border-t border-white/10 p-4 pb-safe-offset-4">
+      <div className="max-w-md mx-auto flex items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center text-primary-foreground">
+          <div className="w-12 h-12 bg-primary rounded-xl flex items-center justify-center text-primary-foreground shadow-lg shadow-primary/20">
             <Download className="w-6 h-6" />
           </div>
-          <div>
-            <h3 className="font-semibold text-sm">Instalar Looplance</h3>
-            <p className="text-xs text-muted-foreground">Acesse seus replays mais rápido!</p>
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-white text-base truncate">Instalar Looplance</h3>
+            <p className="text-sm text-gray-400 truncate">Acesse seus replays instantaneamente!</p>
           </div>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Button size="sm" onClick={handleInstallClick} className="whitespace-nowrap">
-            Instalar
-          </Button>
-          <Button size="icon" variant="ghost" onClick={handleDismiss} className="h-8 w-8">
-            <X className="h-4 w-4" />
-          </Button>
-        </div>
+        <Button 
+          size="lg" 
+          onClick={handleInstallClick} 
+          className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold px-6 h-12 rounded-full shadow-lg shadow-primary/30 active:scale-95 transition-transform"
+        >
+          {isIOS ? (
+            <div className="flex items-center gap-2">
+              <Share className="w-4 h-4" />
+              <span>Como instalar</span>
+            </div>
+          ) : 'Instalar'}
+        </Button>
       </div>
     </div>
   );
 }
+
