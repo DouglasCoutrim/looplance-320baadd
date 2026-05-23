@@ -12,7 +12,7 @@ function AdminLayout() {
   return (
     <SidebarProvider defaultOpen={true}>
       <div className="flex min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100 w-full">
-        <Sidebar collapsible="icon" className="dark border-r border-white/10">
+        <Sidebar collapsible="icon" className="dark border-r border-white/10 overflow-hidden">
           <SidebarHeader className="border-b border-white/10 p-4">
             <Link to="/admin" className="flex items-center gap-2">
               <img src={logoUrl} alt="Looplance Admin" className="h-8 w-auto" />
@@ -75,13 +75,14 @@ function AdminLayout() {
               </SidebarMenu>
             </SidebarGroup>
           </SidebarContent>
-          <SidebarFooter className="border-t border-white/10 p-4">
-            <Button asChild variant="outline" className="w-full border-white/20 bg-transparent text-white hover:bg-white/10">
-              <Link to="/">
-                <ChevronLeft className="mr-2 h-4 w-4" />
-                Voltar ao Site
-              </Link>
-            </Button>
+          <SidebarFooter className="border-t border-white/10 p-4 bg-black">
+            <Link 
+              to="/" 
+              className="flex items-center justify-center gap-2 w-full rounded-md border border-white/20 bg-white/5 py-2 text-xs font-bold text-white transition hover:bg-white/10 group-data-[collapsible=icon]:p-2 group-data-[collapsible=icon]:justify-center"
+            >
+              <ChevronLeft className="h-4 w-4 shrink-0" />
+              <span className="group-data-[collapsible=icon]:hidden">Voltar ao Site</span>
+            </Link>
             <div className="mt-2 flex justify-center">
               <SidebarTrigger className="rounded-full text-white/50 hover:text-white" />
             </div>
