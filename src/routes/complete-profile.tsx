@@ -29,6 +29,7 @@ function CompleteProfile() {
   const [birthDate, setBirthDate] = useState("");
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -160,7 +161,7 @@ function CompleteProfile() {
                   className="text-xs font-medium text-gray-600 leading-normal"
                 >
                   Li e concordo com o{" "}
-                  <Dialog>
+                  <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
                     <DialogTrigger asChild>
                       <button type="button" className="text-brand-orange hover:underline font-bold">
                         Termo de Consentimento e Uso de Imagem
