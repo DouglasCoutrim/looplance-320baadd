@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Download, Share, X } from 'lucide-react';
+import logoUrl from '@/assets/looplance-logo.png';
 import { Button } from './ui/button';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
