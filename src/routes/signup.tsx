@@ -179,7 +179,7 @@ function SignUp() {
                   className="text-xs font-medium text-gray-600 leading-normal"
                 >
                   Li e concordo com o{" "}
-                  <Dialog>
+                  <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
                     <DialogTrigger asChild>
                       <button type="button" className="text-brand-orange hover:underline font-bold">
                         Termo de Consentimento e Uso de Imagem
