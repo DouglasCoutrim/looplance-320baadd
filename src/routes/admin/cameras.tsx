@@ -63,6 +63,7 @@ function Cameras() {
   const [devices, setDevices] = useState<any[]>([]);
   const [boards, setBoards] = useState<any[]>([]);
   const [quadras, setQuadras] = useState<any[]>([]);
+  const [arenas, setArenas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
