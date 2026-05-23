@@ -95,8 +95,8 @@ export function PWAInstallPrompt() {
         <div className="max-w-md mx-auto flex items-center justify-between gap-5">
           <div className="flex items-center gap-4">
             <div className="relative">
-              <div className="w-14 h-14 bg-brand-orange rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-orange/20 ring-1 ring-white/20">
-                <Download className="w-7 h-7" />
+              <div className="w-14 h-14 bg-white/10 backdrop-blur-md rounded-2xl flex items-center justify-center text-white shadow-lg ring-1 ring-white/20 overflow-hidden">
+                <img src={logoUrl} alt="Looplance" className="w-10 h-10 object-contain" />
               </div>
               <div className="absolute -top-1 -right-1 w-4 h-4 bg-red-500 rounded-full animate-pulse border-2 border-black" />
             </div>
@@ -172,5 +172,3 @@ export function PWAInstallPrompt() {
     </>
   );
 }
-
-
