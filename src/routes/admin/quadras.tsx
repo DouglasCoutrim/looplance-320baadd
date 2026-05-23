@@ -64,20 +64,20 @@ function Quadras() {
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 uppercase">
             Quadras <span className="brand-text">Pistas</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-lg">
+          <p className="text-muted-foreground mt-1 font-medium text-base sm:text-lg">
             Vincule quadras específicas aos seus complexos.
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
+          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-10 sm:h-12 w-10 sm:w-12 shadow-sm bg-white hover:bg-gray-50 shrink-0">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
-              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
                 <Plus className="mr-2 h-5 w-5" /> Nova Quadra
               </Button>
             </DialogTrigger>
@@ -130,30 +130,30 @@ function Quadras() {
             ) : (
               quadras.map((q) => (
                 <TableRow key={q.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
-                  <TableCell className="py-5 px-6">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white">
-                        <Layout className="h-6 w-6" />
+                  <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white shrink-0">
+                        <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
-                      <div>
-                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{q.nome}</span>
-                        <p className="text-xs font-medium text-muted-foreground">ID: {q.id.slice(0, 8)}...</p>
+                      <div className="min-w-0">
+                        <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{q.nome}</span>
+                        <p className="text-[10px] font-medium text-muted-foreground truncate">ID: {q.id.slice(0, 8)}...</p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="py-5 px-6">
+                  <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
                     <div className="flex items-center gap-2">
-                      <Tv className="h-4 w-4 text-brand-orange" />
-                      <span className="font-bold text-gray-700">{q.arenas?.nome}</span>
+                      <Tv className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-orange shrink-0" />
+                      <span className="font-bold text-gray-700 text-xs sm:text-sm truncate">{q.arenas?.nome}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right py-5 px-6">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
-                        <Edit2 className="h-4 w-4" />
+                  <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
+                    <div className="flex justify-end gap-1 sm:gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
+                        <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                        <Trash2 className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                        <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
                   </TableCell>
