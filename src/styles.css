@@ -151,3 +151,12 @@ iframe[src*="lovable"] {
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: oklch(0.8 0 0);
 }
+
+@keyframes logo-float {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-5px) scale(1.02); }
+}
+
+.animate-logo-float {
+  animation: logo-float 3s ease-in-out infinite;
+}
