@@ -48,6 +48,18 @@ function Arenas() {
       fetchArenas();
     }
   };
+  
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta arena?")) return;
+    
+    const { error } = await supabase.from("arenas").delete().eq("id", id);
+    if (error) {
+      toast.error("Erro ao excluir arena: " + error.message);
+    } else {
+      toast.success("Arena excluída com sucesso");
+      fetchArenas();
+    }
+  };
 
   return (
     <div className="space-y-8 pb-10">
@@ -126,7 +138,12 @@ function Arenas() {
                       <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
                         <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDelete(a.id)}
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      >
                         <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                     </div>

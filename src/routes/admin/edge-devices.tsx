@@ -89,6 +89,18 @@ function EdgeDevices() {
     }
   };
 
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir este dispositivo?")) return;
+    
+    const { error } = await supabase.from("edge_devices").delete().eq("id", id);
+    if (error) {
+      toast.error("Erro ao excluir dispositivo: " + error.message);
+    } else {
+      toast.success("Dispositivo excluído com sucesso");
+      fetchData();
+    }
+  };
+
   const copyToken = (token: string | null) => {
     if (!token) return;
     navigator.clipboard.writeText(token);
@@ -230,6 +242,14 @@ function EdgeDevices() {
                       </Button>
                       <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
                         <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDelete(device.id)}
+                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
