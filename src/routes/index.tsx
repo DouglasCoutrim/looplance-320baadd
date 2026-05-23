@@ -1,7 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy } from "lucide-react";
+import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, Settings } from "lucide-react";
+import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
@@ -163,8 +164,16 @@ function Home() {
             <img src={logoUrl} alt="Looplance" className="h-40 w-auto -my-8 transition-transform hover:scale-105" />
           </div>
 
-          {/* Right: Spacer to maintain centering */}
-          <div className="flex-1" />
+          {/* Right: Admin Link */}
+          <div className="flex-1 flex justify-end">
+            <Link 
+              to="/admin" 
+              className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 backdrop-blur-md transition hover:bg-white/20"
+            >
+              <Settings className="h-4 w-4 text-white/70" />
+              <span className="hidden sm:inline text-xs font-bold text-white tracking-tight">Admin</span>
+            </Link>
+          </div>
         </div>
       </header>
 
