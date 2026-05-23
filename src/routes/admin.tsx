@@ -3,7 +3,7 @@ import { SidebarProvider, Sidebar, SidebarTrigger, SidebarHeader, SidebarContent
 import { Home, Settings, Tv, HardDrive, Usb, Camera } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
-export const Route = createFileRoute("/admin/layout")({
+export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
