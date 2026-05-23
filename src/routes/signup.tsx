@@ -37,6 +37,7 @@ function SignUp() {
   const [birthDate, setBirthDate] = useState("");
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const navigate = useNavigate();
 
   const handleSignUp = async (e: React.FormEvent) => {
@@ -47,9 +48,11 @@ function SignUp() {
       return;
     }
 
+    const signupToast = toast.loading("Criando sua conta...");
     setLoading(true);
 
     try {
+      console.log("Starting signup for:", email);
       const { error } = await supabase.auth.signUp({
         email,
         password,
@@ -63,12 +66,19 @@ function SignUp() {
         },
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase signup error:", error);
+        toast.error(error.message || "Erro ao realizar cadastro", { id: signupToast });
+        setLoading(false);
+        return;
+      }
 
-      toast.success("Cadastro realizado com sucesso! Verifique seu e-mail.");
+      console.log("Signup successful");
+      toast.success("Cadastro realizado com sucesso! Verifique seu e-mail.", { id: signupToast });
       navigate({ to: "/login" });
     } catch (error: any) {
-      toast.error(error.message || "Erro ao realizar cadastro");
+      console.error("Detailed signup error:", error);
+      toast.error(error.message || "Ocorreu um erro inesperado", { id: signupToast });
       setLoading(false);
     }
   };
@@ -179,7 +189,7 @@ function SignUp() {
                   className="text-xs font-medium text-gray-600 leading-normal"
                 >
                   Li e concordo com o{" "}
-                  <Dialog>
+                  <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
                     <DialogTrigger asChild>
                       <button type="button" className="text-brand-orange hover:underline font-bold">
                         Termo de Consentimento e Uso de Imagem
@@ -218,15 +228,16 @@ function SignUp() {
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter className="mt-6">
-                        <DialogClose asChild>
-                          <Button 
-                            type="button" 
-                            onClick={() => setConsentAccepted(true)}
-                            className="brand-gradient text-white font-bold rounded-xl w-full"
-                          >
-                            Compreendo e Aceito
-                          </Button>
-                        </DialogClose>
+                        <Button 
+                          type="button" 
+                          onClick={() => {
+                            setConsentAccepted(true);
+                            setTermsOpen(false);
+                          }}
+                          className="brand-gradient text-white font-bold rounded-xl w-full"
+                        >
+                          Compreendo e Aceito
+                        </Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>

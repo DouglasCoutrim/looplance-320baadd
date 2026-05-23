@@ -29,6 +29,7 @@ function CompleteProfile() {
   const [birthDate, setBirthDate] = useState("");
   const [consentAccepted, setConsentAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [termsOpen, setTermsOpen] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -55,12 +56,14 @@ function CompleteProfile() {
       return;
     }
 
+    const updateToast = toast.loading("Salvando seus dados...");
     setLoading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não encontrado");
 
+      console.log("Updating profile for user:", user.id);
       const { error } = await supabase.from("profiles").upsert({
         id: user.id,
         email: user.email,
@@ -72,12 +75,19 @@ function CompleteProfile() {
         updated_at: new Date().toISOString(),
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase upsert error:", error);
+        toast.error(error.message || "Erro ao atualizar perfil", { id: updateToast });
+        setLoading(false);
+        return;
+      }
 
-      toast.success("Perfil atualizado com sucesso!");
+      console.log("Profile updated successfully");
+      toast.success("Perfil atualizado com sucesso!", { id: updateToast });
       navigate({ to: "/" });
     } catch (error: any) {
-      toast.error(error.message || "Erro ao atualizar perfil");
+      console.error("Detailed profile update error:", error);
+      toast.error(error.message || "Ocorreu um erro inesperado", { id: updateToast });
       setLoading(false);
     }
   };
@@ -160,7 +170,7 @@ function CompleteProfile() {
                   className="text-xs font-medium text-gray-600 leading-normal"
                 >
                   Li e concordo com o{" "}
-                  <Dialog>
+                  <Dialog open={termsOpen} onOpenChange={setTermsOpen}>
                     <DialogTrigger asChild>
                       <button type="button" className="text-brand-orange hover:underline font-bold">
                         Termo de Consentimento e Uso de Imagem
@@ -199,15 +209,16 @@ function CompleteProfile() {
                         </DialogDescription>
                       </DialogHeader>
                       <DialogFooter className="mt-6">
-                        <DialogClose asChild>
-                          <Button 
-                            type="button" 
-                            onClick={() => setConsentAccepted(true)}
-                            className="brand-gradient text-white font-bold rounded-xl w-full"
-                          >
-                            Compreendo e Aceito
-                          </Button>
-                        </DialogClose>
+                        <Button 
+                          type="button" 
+                          onClick={() => {
+                            setConsentAccepted(true);
+                            setTermsOpen(false);
+                          }}
+                          className="brand-gradient text-white font-bold rounded-xl w-full"
+                        >
+                          Compreendo e Aceito
+                        </Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>

@@ -82,7 +82,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       throw redirect({ 
         to: "/login",
         search: {
-          redirect: location.href,
+          redirect: location.pathname + location.search + location.hash,
         },
       });
     }
@@ -148,16 +148,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
     <html lang="en">
       <head>
         <HeadContent />
-        <script dangerouslySetInnerHTML={{ __html: `
-          if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-              const swPath = '/sw.js';
-              navigator.serviceWorker.register(swPath).catch(err => {
-                console.error('SW registration failed:', err);
-              });
-            });
-          }
-        ` }} />
       </head>
       <body>
         {children}
