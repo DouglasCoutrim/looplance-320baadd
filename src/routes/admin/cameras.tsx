@@ -71,6 +71,7 @@ function Cameras() {
   const [formData, setFormData] = useState({
     name: "",
     rtsp_url: "",
+    arena_id: "",
     quadra_id: "",
     edge_device_id: "",
     input_board_id: "",
