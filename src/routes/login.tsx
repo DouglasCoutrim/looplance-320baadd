@@ -24,8 +24,7 @@ function UserLogin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
-  const { redirect } = Route.useSearch() as { redirect?: string };
+  const { redirect: searchRedirect } = Route.useSearch() as { redirect?: string };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,20 +54,22 @@ function UserLogin() {
       console.log("Login successful, user:", data.user.id);
       toast.success("Login realizado com sucesso!", { id: loginToast });
       
-      // Short delay to ensure session is persisted
-      setTimeout(() => {
-        if (redirect) {
-          console.log("Redirecting to:", redirect);
-          if (redirect.startsWith("/")) {
-            navigate({ to: redirect as any });
+      // Use window.location.href to ensure a clean state and proper session persistence
+      if (searchRedirect) {
+        // If it's a full URL from this origin, use only the path or use as is if it's external
+        try {
+          const url = new URL(searchRedirect);
+          if (url.origin === window.location.origin) {
+            window.location.href = url.pathname + url.search + url.hash;
           } else {
-            window.location.href = redirect;
+            window.location.href = "/";
           }
-        } else {
-          console.log("Navigating to home");
-          navigate({ to: "/" });
+        } catch {
+          window.location.href = searchRedirect.startsWith("/") ? searchRedirect : "/";
         }
-      }, 500);
+      } else {
+        window.location.href = "/";
+      }
     } catch (error: any) {
       console.error("Detailed login error:", error);
       toast.error(error.message || "Ocorreu um erro inesperado", { id: loginToast });
