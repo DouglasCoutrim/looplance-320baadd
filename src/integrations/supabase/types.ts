@@ -232,6 +232,7 @@ export type Database = {
           email: string | null
           full_name: string | null
           id: string
+          is_arena_owner: boolean | null
           is_super_admin: boolean | null
           updated_at: string
         }
@@ -244,6 +245,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id: string
+          is_arena_owner?: boolean | null
           is_super_admin?: boolean | null
           updated_at?: string
         }
@@ -256,6 +258,7 @@ export type Database = {
           email?: string | null
           full_name?: string | null
           id?: string
+          is_arena_owner?: boolean | null
           is_super_admin?: boolean | null
           updated_at?: string
         }

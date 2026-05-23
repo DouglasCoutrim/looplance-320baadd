@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, UserPlus, Shield, Trash2, Mail } from "lucide-react";
+import { Plus, RefreshCw, UserPlus, Shield, Trash2, Mail, Users } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -18,6 +18,7 @@ interface Profile {
   id: string;
   email: string;
   is_super_admin: boolean;
+  is_arena_owner?: boolean;
   created_at: string;
 }
 
@@ -25,6 +26,7 @@ function AdminUsers() {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   
   // Form state for new admin
   const [email, setEmail] = useState("");
@@ -46,17 +48,82 @@ function AdminUsers() {
     setLoading(false);
   };
 
+  const fetchCurrentUser = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      setCurrentUserEmail(user.email || null);
+    }
+  };
+
   useEffect(() => {
     fetchProfiles();
+    fetchCurrentUser();
   }, []);
+
+  const isMainSuperAdmin = currentUserEmail === 'douglas@lovable.app';
+
+  const handleTogglePermission = async (profileId: string, field: 'is_super_admin' | 'is_arena_owner', currentValue: boolean) => {
+    // Permission checks
+    if (field === 'is_super_admin' && !isMainSuperAdmin) {
+      toast.error("Apenas o Super Admin mestre pode gerenciar outros Super Admins.");
+      return;
+    }
+
+    try {
+      const updateData: any = {};
+      updateData[field] = !currentValue;
+
+      const { error } = await supabase
+        .from("profiles")
+        .update(updateData)
+        .eq("id", profileId);
+
+      if (error) throw error;
+
+      toast.success("Permissão atualizada com sucesso!");
+      fetchProfiles();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao atualizar permissão");
+    }
+  };
+
+  const handleDeleteUser = async (profileId: string, email: string) => {
+    if (email === 'douglas@looplance.app') {
+      toast.error("O usuário mestre do sistema não pode ser removido.");
+      return;
+    }
+
+    if (!confirm(`Tem certeza que deseja remover o acesso de ${email}?`)) return;
+
+    try {
+      // Note: This only removes the profile, not the auth user (due to DB limitations from client side)
+      // But removing the profile will prevent admin access due to Route checks.
+      const { error } = await supabase
+        .from("profiles")
+        .delete()
+        .eq("id", profileId);
+
+      if (error) throw error;
+
+      toast.success("Usuário removido do painel admin.");
+      fetchProfiles();
+    } catch (error: any) {
+      toast.error(error.message || "Erro ao remover usuário");
+    }
+  };
 
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
     
+    // Non-main superadmins cannot create new superadmins
+    if (!isMainSuperAdmin) {
+      toast.error("Você não tem permissão para criar novos Super Admins.");
+      return;
+    }
+    
     setCreating(true);
     try {
-      // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -64,11 +131,6 @@ function AdminUsers() {
 
       if (authError) throw authError;
 
-      // The trigger 'on_auth_user_created' will handle profile creation.
-      // But we need to make sure 'is_super_admin' is set if the trigger didn't catch the email logic or for explicit setting.
-      // Note: By default the trigger makes anyone douglas@... a super admin.
-      // If we want this form to create ANY super admin, we need to update the profile.
-      
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ is_super_admin: true })
@@ -103,12 +165,14 @@ function AdminUsers() {
           <Button variant="outline" size="icon" onClick={fetchProfiles} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
-                <UserPlus className="mr-2 h-5 w-5" /> Novo Admin
-              </Button>
-            </DialogTrigger>
+          {isMainSuperAdmin && (
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+                  <UserPlus className="mr-2 h-5 w-5" /> Novo Admin
+                </Button>
+              </DialogTrigger>
+
             <DialogContent className="rounded-2xl border-none shadow-2xl overflow-hidden p-0">
                <div className="brand-gradient p-6 text-white">
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight">Criar Super Admin</DialogTitle>
@@ -153,7 +217,8 @@ function AdminUsers() {
                 </DialogFooter>
               </form>
             </DialogContent>
-          </Dialog>
+            </Dialog>
+          )}
         </div>
       </div>
 
@@ -189,13 +254,33 @@ function AdminUsers() {
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6">
-                    {profile.is_super_admin ? (
-                      <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">
-                        <Shield className="h-3 w-3 mr-1" /> Super Admin
-                      </Badge>
-                    ) : (
-                      <Badge variant="secondary" className="font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">Usuário Comum</Badge>
-                    )}
+                    <div className="flex flex-col gap-2">
+                      <div 
+                        className={`flex items-center gap-2 cursor-pointer ${!isMainSuperAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        onClick={() => handleTogglePermission(profile.id, 'is_super_admin', profile.is_super_admin)}
+                      >
+                        {profile.is_super_admin ? (
+                          <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">
+                            <Shield className="h-3 w-3 mr-1" /> Super Admin
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1 text-gray-400">Tornar Admin</Badge>
+                        )}
+                      </div>
+                      
+                      <div 
+                        className="flex items-center gap-2 cursor-pointer"
+                        onClick={() => handleTogglePermission(profile.id, 'is_arena_owner', !!profile.is_arena_owner)}
+                      >
+                        {profile.is_arena_owner ? (
+                          <Badge className="bg-blue-600 text-white border-none font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">
+                            <Users className="h-3 w-3 mr-1" /> Dono Arena
+                          </Badge>
+                        ) : (
+                          <Badge variant="outline" className="font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1 text-gray-400">Tornar Dono Arena</Badge>
+                        )}
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <span className="text-xs font-bold text-gray-500">
@@ -207,8 +292,9 @@ function AdminUsers() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
+                        onClick={() => handleDeleteUser(profile.id, profile.email)}
                         disabled={profile.email === 'douglas@looplance.app'}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
+                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-30"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
