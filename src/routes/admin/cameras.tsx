@@ -268,14 +268,28 @@ function Cameras() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Quadra (Court)</Label>
-                    <Select value={formData.quadra_id} onValueChange={(v) => setFormData({...formData, quadra_id: v})}>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Arena</Label>
+                    <Select value={formData.arena_id} onValueChange={(v) => setFormData({...formData, arena_id: v})}>
                       <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
-                        <SelectValue placeholder="Selecione a quadra" />
+                        <SelectValue placeholder="Selecione a arena" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl shadow-xl border-gray-100">
-                        {quadras.map((q) => (
-                          <SelectItem key={q.id} value={q.id}>{q.arenas?.nome} - {q.nome}</SelectItem>
+                        {arenas.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Quadra (Court)</Label>
+                    <Select value={formData.quadra_id} onValueChange={(v) => setFormData({...formData, quadra_id: v})} disabled={!formData.arena_id}>
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                        <SelectValue placeholder={formData.arena_id ? "Selecione a quadra" : "Selecione uma arena primeiro"} />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                        {filteredQuadras.map((q) => (
+                          <SelectItem key={q.id} value={q.id}>{q.nome}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
