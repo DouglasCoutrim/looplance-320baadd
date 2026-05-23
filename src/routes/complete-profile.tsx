@@ -36,18 +36,12 @@ function CompleteProfile() {
   useEffect(() => {
     const checkUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate({ to: "/login" });
-        return;
-      }
-      
-      // Pre-fill full name if available from social login
-      if (user.user_metadata?.full_name) {
+      if (user && user.user_metadata?.full_name) {
         setFullName(user.user_metadata.full_name);
       }
     };
     checkUser();
-  }, [navigate]);
+  }, []);
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
