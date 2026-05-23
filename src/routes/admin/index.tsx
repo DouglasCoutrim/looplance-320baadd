@@ -125,7 +125,7 @@ function AdminHome() {
             </div>
           </div>
           
-          <div className="h-[300px] w-full mt-4">
+          <div className="h-[250px] sm:h-[300px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={data}>
                 <XAxis 
