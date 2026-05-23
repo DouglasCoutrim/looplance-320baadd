@@ -176,7 +176,7 @@ function Home() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black shadow-xl h-14 sm:h-16">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#1C1B2F] shadow-xl h-14 sm:h-16">
         <div className="mx-auto flex h-full max-w-2xl items-center px-4">
           {/* Left: XP Badge */}
           <div className="flex-1">
@@ -191,7 +191,7 @@ function Home() {
             <img 
               src={logoUrl} 
               alt="Looplance" 
-              className="h-24 sm:h-28 w-auto object-contain transition-transform hover:scale-105 z-50 animate-logo-float brightness-0 invert" 
+              className="h-24 sm:h-28 w-auto object-contain transition-transform hover:scale-105 z-50 animate-logo-float" 
               style={{ marginTop: '0px' }}
             />
           </div>
