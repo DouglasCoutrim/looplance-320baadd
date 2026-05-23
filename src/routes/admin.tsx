@@ -13,7 +13,7 @@ import {
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
 import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -78,7 +78,9 @@ function AdminLayout() {
                 <div className="brand-gradient p-6 text-white">
                   <SheetHeader className="text-left">
                     <SheetTitle className="text-white font-black uppercase tracking-tight text-xl">Menu Admin</SheetTitle>
-                    <p className="text-white/70 text-xs font-bold uppercase tracking-widest">Looplance Edge</p>
+                    <SheetDescription className="text-white/70 text-xs font-bold uppercase tracking-widest">
+                      Navegação do painel de controle Looplance Edge.
+                    </SheetDescription>
                   </SheetHeader>
                 </div>
                 <div className="p-4 space-y-6">
