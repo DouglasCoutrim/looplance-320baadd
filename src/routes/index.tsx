@@ -128,13 +128,23 @@ function Home() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-2xl items-center justify-between px-4 py-3">
-          <div className="flex items-center gap-2 rounded-full border border-border bg-muted px-3 py-1.5">
-            <Trophy className="h-4 w-4 text-brand-orange" />
-            <span className="text-sm font-bold text-foreground">{points} XP</span>
+      <header className="sticky top-0 z-40 border-b border-border bg-background/90 backdrop-blur-xl">
+        <div className="mx-auto flex max-w-2xl items-center px-4 py-2">
+          {/* Left: XP Badge */}
+          <div className="flex-1">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-muted/50 px-2.5 py-1">
+              <Trophy className="h-3.5 w-3.5 text-brand-orange" />
+              <span className="text-xs font-bold text-[#222222]">{points} XP</span>
+            </div>
           </div>
-          <div className="w-[40px]" /> {/* Spacer to keep balance */}
+
+          {/* Center: Logo */}
+          <div className="flex-none">
+            <img src={logoUrl} alt="Looplance" className="h-7 w-auto" />
+          </div>
+
+          {/* Right: Spacer to maintain centering */}
+          <div className="flex-1" />
         </div>
       </header>
 
