@@ -57,14 +57,14 @@ function AdminHome() {
       {/* Hero Welcome */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 uppercase">
             Dashboard <span className="brand-text">Admin</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-lg">
-            Monitoramento e controle total da infraestrutura <span className="text-brand-orange font-bold">Edge Replay</span>.
+          <p className="text-muted-foreground mt-1 font-medium text-base sm:text-lg">
+            Monitoramento e controle da infraestrutura <span className="text-brand-orange font-bold">Edge Replay</span>.
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="hidden sm:flex items-center gap-3">
           <div className="h-12 w-12 rounded-full brand-gradient brand-glow flex items-center justify-center text-white">
             <ShieldCheck className="h-6 w-6" />
           </div>
