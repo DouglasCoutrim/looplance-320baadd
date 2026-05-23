@@ -90,9 +90,9 @@ function Quadras() {
               </DialogHeader>
               <div className="grid gap-6 py-6">
                 <div className="grid gap-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Complexo (Arena)</Label>
+                  <Label htmlFor="arena-select" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Complexo (Arena)</Label>
                   <Select value={arenaId} onValueChange={setArenaId}>
-                    <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                    <SelectTrigger id="arena-select" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
                       <SelectValue placeholder="Selecione a arena" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-gray-100 shadow-xl">

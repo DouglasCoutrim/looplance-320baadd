@@ -194,8 +194,9 @@ function Arenas() {
                           </DialogHeader>
                           <div className="grid gap-6 py-4">
                             <div className="flex flex-col gap-2">
-                              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Retenção de Replays (Dias)</Label>
+                              <Label htmlFor={`retention-${a.id}`} className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Retenção de Replays (Dias)</Label>
                               <Input 
+                                id={`retention-${a.id}`}
                                 type="number" 
                                 defaultValue={a.arena_settings?.replay_retention_days || 7}
                                 onBlur={(e) => handleUpdateSettings(a.id, parseInt(e.target.value), a.arena_settings?.auto_cleanup_enabled ?? true)}
