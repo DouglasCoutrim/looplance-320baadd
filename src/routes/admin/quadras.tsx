@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -84,6 +84,9 @@ function Quadras() {
             <DialogContent className="rounded-2xl border-none shadow-2xl">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">Configurar Quadra</DialogTitle>
+                <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
+                  Vincule uma nova quadra ou pista a um complexo esportivo.
+                </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-6">
                 <div className="grid gap-2">
@@ -111,7 +114,7 @@ function Quadras() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
+      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader className="bg-gray-50/50 border-b border-gray-100">
             <TableRow className="hover:bg-transparent">

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, RefreshCw, Camera, Video, Edit2, Trash2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -221,7 +221,9 @@ function Cameras() {
             <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl overflow-hidden p-0">
               <div className="brand-gradient p-6 text-white">
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight">Configurar Câmera</DialogTitle>
-                <p className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">Integração RTSP & Edge</p>
+                <DialogDescription className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">
+                  Mapeie fontes de vídeo RTSP e vincule a quadras e servidores edge.
+                </DialogDescription>
               </div>
               
               <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[70vh] overflow-y-auto">
@@ -275,7 +277,14 @@ function Cameras() {
 
                   <div className="grid gap-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Arena</Label>
-                    <Select value={formData.arena_id} onValueChange={(v) => setFormData({...formData, arena_id: v})}>
+                    <Select value={formData.arena_id} onValueChange={(v) => {
+                      const arenaEdge = devices.find(d => d.arena_id === v);
+                      setFormData(prev => ({
+                        ...prev, 
+                        arena_id: v,
+                        edge_device_id: arenaEdge ? arenaEdge.id : prev.edge_device_id
+                      }));
+                    }}>
                       <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
                         <SelectValue placeholder="Selecione a arena" />
                       </SelectTrigger>
@@ -350,7 +359,7 @@ function Cameras() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
+      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader className="bg-gray-50/50 border-b border-gray-100">
             <TableRow className="hover:bg-transparent">

@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, RefreshCw, MapPin, Edit2, Trash2 } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -73,6 +73,9 @@ function Arenas() {
             <DialogContent className="rounded-2xl border-none shadow-2xl">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">Adicionar Arena</DialogTitle>
+                <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
+                  Cadastre um novo complexo esportivo no sistema.
+                </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-6">
                 <div className="grid gap-2">
@@ -89,7 +92,7 @@ function Arenas() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
+      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
         <Table>
           <TableHeader className="bg-gray-50/50 border-b border-gray-100">
             <TableRow className="hover:bg-transparent">
