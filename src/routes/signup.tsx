@@ -103,11 +103,11 @@ function SignUp() {
             <ArrowLeft className="h-5 w-5" />
           </Link>
           <CardHeader className="p-0 space-y-0">
-            <div className="flex justify-center -mb-8 -mt-4">
+            <div className="flex justify-center -mb-14 -mt-8">
               <img 
                 src={logoUrl} 
                 alt="Looplance" 
-                className="h-36 w-auto object-contain drop-shadow-sm brightness-0 invert" 
+                className="h-48 w-auto object-contain drop-shadow-sm brightness-0 invert" 
               />
             </div>
             <CardTitle className="text-lg font-black uppercase tracking-tight text-white relative z-10">Criar Conta</CardTitle>
