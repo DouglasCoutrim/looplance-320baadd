@@ -130,30 +130,30 @@ function Quadras() {
             ) : (
               quadras.map((q) => (
                 <TableRow key={q.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
-                  <TableCell className="py-5 px-6">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white">
-                        <Layout className="h-6 w-6" />
+                  <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
+                    <div className="flex items-center gap-3 sm:gap-4">
+                      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white shrink-0">
+                        <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
-                      <div>
-                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{q.nome}</span>
-                        <p className="text-xs font-medium text-muted-foreground">ID: {q.id.slice(0, 8)}...</p>
+                      <div className="min-w-0">
+                        <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{q.nome}</span>
+                        <p className="text-[10px] font-medium text-muted-foreground truncate">ID: {q.id.slice(0, 8)}...</p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="py-5 px-6">
+                  <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
                     <div className="flex items-center gap-2">
-                      <Tv className="h-4 w-4 text-brand-orange" />
-                      <span className="font-bold text-gray-700">{q.arenas?.nome}</span>
+                      <Tv className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-orange shrink-0" />
+                      <span className="font-bold text-gray-700 text-xs sm:text-sm truncate">{q.arenas?.nome}</span>
                     </div>
                   </TableCell>
-                  <TableCell className="text-right py-5 px-6">
-                    <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
-                        <Edit2 className="h-4 w-4" />
+                  <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
+                    <div className="flex justify-end gap-1 sm:gap-2">
+                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
+                        <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                        <Trash2 className="h-4 w-4" />
+                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                        <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
                   </TableCell>
