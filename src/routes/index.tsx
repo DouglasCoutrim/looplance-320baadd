@@ -249,12 +249,6 @@ function Home() {
                 Selecione a arena, escolha a quadra e reviva cada jogada.
               </p>
               
-              <Link
-                to="/login"
-                className="mt-8 flex w-full items-center justify-center gap-2 rounded-full px-6 py-5 text-base font-bold transition shadow-2xl brand-gradient brand-glow animate-pulse-glow text-white hover:scale-[1.02]"
-              >
-                {!user ? <><LogIn className="h-5 w-5" /> Entrar para ver lances</> : <><Play className="h-5 w-5" /> Ver meus lances</>}
-              </Link>
             </div>
 
             {/* Pagination Dots */}
