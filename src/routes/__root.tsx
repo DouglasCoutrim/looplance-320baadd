@@ -12,6 +12,10 @@ import {
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { AuthProvider, useAuth } from "@/providers/AuthProvider";
+import { RouterContext } from "../router";
+import { Loader2 } from "lucide-react";
+
 
 
 function NotFoundComponent() {
