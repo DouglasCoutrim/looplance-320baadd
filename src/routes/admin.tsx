@@ -39,18 +39,19 @@ export const Route = createFileRoute("/admin")({
         .maybeSingle();
 
       if (error) {
-        console.error("Admin check error:", error);
-        // Do not throw "forbidden" on query error, just let them in if they have a session
-        // They might be restricted by RLS on specific actions
+        console.error("Erro ao verificar acesso admin:", error);
         return;
       }
 
-      if (profile?.is_super_admin !== true) {
+      console.log("Admin Check - Dados do Perfil:", profile);
+
+      if (profile?.is_super_admin !== true && profile?.is_arena_owner !== true) {
+        console.log("Acesso negado: não é super admin nem dono de arena.");
         throw redirect({ to: "/" });
       }
     } catch (err) {
-      if (err instanceof Error && 'to' in err) throw err;
-      // Fail silently for other errors to avoid redirect loops
+      if (err && typeof err === 'object' && 'to' in err) throw err;
+      console.error("Falha na verificação de admin:", err);
     }
   },
 
