@@ -38,12 +38,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = useCallback(async (userId: string) => {
     if (fetchingRef.current === userId) {
+      console.log("[PROFILE LOADED] Already fetching for:", userId);
       return null;
     }
 
     try {
       fetchingRef.current = userId;
       console.log("[PROFILE LOADED] Start for:", userId);
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("id, email, role, full_name, cpf, birth_date")
@@ -52,13 +54,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error("[AUTH ERROR] Failed to fetch profile:", error);
+        // Important: throw error so initializeAuth can catch it if needed, or handle it here
         return null;
       }
 
+      console.log("[ROLE DETECTED] Raw data:", data);
+      
       if (data) {
-        console.log("[ROLE DETECTED]", data.role);
-        console.log("[isSuperAdmin]", data.role === 'super-admin');
+        console.log("[ROLE DETECTED] Role from DB:", data.role);
+        console.log("[ROLE DETECTED] isSuperAdmin check:", data.role === 'super-admin');
+        // Add to window for easier debugging in console
+        (window as any).lastProfile = data;
+      } else {
+        console.warn("[AUTH WARNING] No profile found for user:", userId);
       }
+      
       return data as Profile;
     } catch (err) {
       console.error("[AUTH ERROR] Unexpected error fetching profile:", err);
