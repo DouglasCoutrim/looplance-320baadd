@@ -135,12 +135,12 @@ function RootComponent() {
 
 function InnerRoot() {
   const { queryClient } = Route.useRouteContext();
-  const { user, profile, isLoading } = useAuth();
+  const { user, profile, isLoading, initialized, isSuperAdmin } = useAuth();
   const router = useRouter();
   const location = router.state.location;
 
-  // Global loading gate
-  if (isLoading) {
+  // Global loading gate - wait for auth initialization
+  if (isLoading || !initialized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
         <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
@@ -152,26 +152,24 @@ function InnerRoot() {
   const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js"];
   const isPublicPath = publicPaths.includes(location.pathname);
 
-  // If not a public path and no user, redirect to login
+  // Protected route logic
   if (!isPublicPath && !user) {
-    console.log("Root: [REDIRECT] No session, moving to /login");
+    console.log("[REDIRECT] No session, moving to /login");
     return <Redirect to="/login" search={{ redirect: location.href }} />;
   }
 
-  // If user is logged in and on a public-only path like /login, redirect to home
+  // Public-only paths
   const publicOnlyPaths = ["/login", "/signup", "/admin/login"];
   if (user && publicOnlyPaths.includes(location.pathname)) {
-    console.log("Root: [REDIRECT] User already logged in, moving to /");
+    console.log("[REDIRECT] Already logged in, moving home");
     return <Redirect to="/" />;
   }
 
-  // Check profile completeness for logged in users
+  // Profile completeness check
   if (user && !isPublicPath && location.pathname !== "/complete-profile" && !location.pathname.startsWith('/admin')) {
     const isProfileIncomplete = !profile?.cpf || !profile?.birth_date;
-    const isSuperAdmin = profile?.role === 'super-admin' || !!profile?.is_super_admin;
-
     if (isProfileIncomplete && !isSuperAdmin) {
-      console.log("Root: [REDIRECT] Profile incomplete, moving to /complete-profile");
+      console.log("[REDIRECT] Profile incomplete, moving to /complete-profile");
       return <Redirect to="/complete-profile" />;
     }
   }
@@ -183,7 +181,6 @@ function InnerRoot() {
   );
 }
 
-// Helper component for stable redirects within render
 function Redirect({ to, search }: { to: string; search?: any }) {
   const navigate = useRouter().navigate;
   useEffect(() => {
