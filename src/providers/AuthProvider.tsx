@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 
@@ -42,16 +42,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const fetchingRef = React.useRef<string | null>(null);
+  const fetchingRef = useRef<string | null>(null);
 
   const fetchProfile = useCallback(async (userId: string) => {
     if (fetchingRef.current === userId) {
       console.log("AuthProvider: [SKIP] Already fetching profile for:", userId);
       return null;
     }
-    
-    fetchingRef.current = userId;
+
     try {
+      fetchingRef.current = userId;
       console.log("AuthProvider: [START] Fetching profile for:", userId);
       const { data, error } = await supabase
         .from("profiles")
@@ -69,13 +69,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     } catch (err) {
       console.error("AuthProvider: [ERROR] Unexpected error fetching profile:", err);
       return null;
+    } finally {
+      fetchingRef.current = null;
     }
   }, []);
 
   const refreshProfile = async () => {
     if (user) {
       const updatedProfile = await fetchProfile(user.id);
-      setProfile(updatedProfile);
+      if (updatedProfile) setProfile(updatedProfile);
     }
   };
 
@@ -122,10 +124,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(currentSession);
           setUser(currentSession.user);
           
-          // Only fetch profile if it's a significant event or we don't have it
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || !profile) {
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
             const userProfile = await fetchProfile(currentSession.user.id);
-            if (mounted) setProfile(userProfile);
+            if (mounted && userProfile) setProfile(userProfile);
           }
         } else {
           setSession(null);
@@ -141,7 +142,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [fetchProfile, profile]);
+  }, [fetchProfile]);
 
   const signOut = async () => {
     try {
