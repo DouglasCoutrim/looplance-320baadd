@@ -234,6 +234,7 @@ export type Database = {
           id: string
           is_arena_owner: boolean | null
           is_super_admin: boolean | null
+          role: string | null
           updated_at: string
         }
         Insert: {
@@ -247,6 +248,7 @@ export type Database = {
           id: string
           is_arena_owner?: boolean | null
           is_super_admin?: boolean | null
+          role?: string | null
           updated_at?: string
         }
         Update: {
@@ -260,6 +262,7 @@ export type Database = {
           id?: string
           is_arena_owner?: boolean | null
           is_super_admin?: boolean | null
+          role?: string | null
           updated_at?: string
         }
         Relationships: []
