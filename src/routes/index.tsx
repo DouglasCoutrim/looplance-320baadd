@@ -49,13 +49,9 @@ function Home() {
   const { user, profile, signOut, isLoading: authLoading, isSuperAdmin } = useAuth();
   
   useEffect(() => {
-    if (user) {
-      console.log("[ADMIN MENU DEBUG]", {
-        profile,
-        role: profile?.role,
-        isSuperAdmin,
-        authLoading
-      });
+    if (user && profile) {
+      console.log("[ROLE]", profile.role);
+      console.log("[ADMIN ACCESS]", isSuperAdmin);
       if (isSuperAdmin) {
         console.log("[ADMIN MENU] rendering");
       }
