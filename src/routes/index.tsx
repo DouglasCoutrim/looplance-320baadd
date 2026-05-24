@@ -43,9 +43,10 @@ function Home() {
   
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
-  const { user, signOut } = useAuth();
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const [isLoadingProfile, setIsLoadingProfile] = useState(false);
+  const { user, profile, signOut, isLoading: authLoading } = useAuth();
+  const isSuperAdmin = !!profile?.is_super_admin;
+  const isArenaOwner = !!profile?.is_arena_owner;
+  const isLoadingProfile = authLoading;
   const navigate = useNavigate();
 
   const checkProfileCompleteness = async (userId: string) => {
@@ -71,47 +72,14 @@ function Home() {
 
   // Initial load
   useEffect(() => {
-    const fetchProfile = async () => {
-      if (!user) {
-        setIsSuperAdmin(false);
-        setIsLoadingProfile(false);
-        return;
-      }
-
-      try {
-        checkProfileCompleteness(user.id);
-        setIsLoadingProfile(true);
-        
-        console.log("Fetching super admin status for user:", user.id);
-        
-        const { data, error } = await supabase
-          .from("profiles")
-          .select("is_super_admin")
-          .eq("id", user.id)
-          .maybeSingle();
-
-        if (error) {
-          console.error("Critical error fetching profile role:", error);
-          toast.error(`Erro ao verificar permissões: ${error.message}`);
-          return;
-        }
-        
-        console.log("Profile data received:", data);
-        setIsSuperAdmin(!!data?.is_super_admin);
-      } catch (err) {
-        console.error("Unexpected error in profile fetch:", err);
-        toast.error("Erro inesperado ao carregar perfil");
-      } finally {
-        setIsLoadingProfile(false);
-      }
-    };
-
-    fetchProfile();
+    if (user && !authLoading) {
+      checkProfileCompleteness(user.id);
+    }
 
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
     fetchFeatured();
-  }, [user]);
+  }, [user, authLoading]);
 
 
   const fetchFeatured = async () => {
@@ -245,7 +213,7 @@ function Home() {
                 <div className="h-4 w-4 sm:h-5 sm:w-5 animate-spin rounded-full border-2 border-brand-orange border-t-transparent" />
                 <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/50 tracking-widest">...</span>
               </div>
-            ) : isSuperAdmin && (
+            ) : (isSuperAdmin || isArenaOwner) && (
               <Link 
                 to="/admin" 
                 className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"

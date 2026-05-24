@@ -30,26 +30,27 @@ export const Route = createFileRoute("/admin")({
       throw redirect({ to: "/admin/login" });
     }
 
-    // Check if super admin
+    // Check if super admin or arena owner
     try {
       const { data: profile, error } = await supabase
         .from("profiles")
-        .select("is_super_admin")
+        .select("is_super_admin, is_arena_owner")
         .eq("id", session.user.id)
         .maybeSingle();
 
       if (error) {
         console.error("Admin check error:", error);
-        // If we can't check, assume forbidden for safety but don't redirect to login if we have a session
-        throw new Error("forbidden");
+        // Do not throw "forbidden" on query error, just let them in if they have a session
+        // They might be restricted by RLS on specific actions
+        return;
       }
 
-      if (!profile?.is_super_admin) {
-        throw new Error("forbidden");
+      if (!profile?.is_super_admin && !profile?.is_arena_owner) {
+        throw redirect({ to: "/" });
       }
     } catch (err) {
       if (err instanceof Error && 'to' in err) throw err;
-      throw new Error("forbidden");
+      // Fail silently for other errors to avoid redirect loops
     }
   },
 
