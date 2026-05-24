@@ -9,6 +9,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 import { UserCircle, Shield } from "lucide-react";
 import logoUrl from "@/assets/looplance-logo.png";
+import { useAuth } from "@/providers/AuthProvider";
+
 import {
   Dialog,
   DialogContent,
