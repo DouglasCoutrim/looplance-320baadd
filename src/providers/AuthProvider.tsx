@@ -86,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!mounted) return;
 
         if (initialSession) {
-          console.log("[SESSION LOADED] User ID:", initialSession.user.id);
+          console.log("[SESSION LOADED] User ID:", initialSession.user.id, "Email:", initialSession.user.email);
           setSession(initialSession);
           setUser(initialSession.user);
           const userProfile = await fetchProfile(initialSession.user.id);
