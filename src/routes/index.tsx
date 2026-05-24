@@ -44,6 +44,18 @@ function Home() {
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const { user, profile, signOut, isLoading: authLoading } = useAuth();
+  
+  // Debug log to check profile on every render (useful for troubleshooting)
+  useEffect(() => {
+    if (!authLoading) {
+      console.log("Home - Estado da Auth:", { 
+        isLoggedIn: !!user, 
+        profileData: profile,
+        isSuperAdmin: profile?.is_super_admin 
+      });
+    }
+  }, [user, profile, authLoading]);
+
   const isSuperAdmin = !!profile?.is_super_admin;
   const isArenaOwner = !!profile?.is_arena_owner;
   const isLoadingProfile = authLoading;
@@ -73,13 +85,17 @@ function Home() {
   // Initial load
   useEffect(() => {
     if (user && !authLoading) {
-      checkProfileCompleteness(user.id);
+      // Usar o perfil do AuthContext em vez de buscar de novo
+      if (profile && (!profile.cpf || !profile.birth_date)) {
+        console.log("Perfil incompleto detectado, redirecionando...");
+        navigate({ to: "/complete-profile" });
+      }
     }
 
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
     fetchFeatured();
-  }, [user, authLoading]);
+  }, [user, authLoading, profile, navigate]);
 
 
   const fetchFeatured = async () => {
