@@ -140,7 +140,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(currentSession);
           setUser(currentSession.user);
           
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION') {
             const userProfile = await fetchProfile(currentSession.user.id);
             if (mounted && userProfile) setProfile(userProfile);
           }
@@ -150,7 +150,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setProfile(null);
         }
         
-        setIsLoading(false);
+        if (mounted) {
+          setInitialized(true);
+          setIsLoading(false);
+        }
       }
     );
 
