@@ -4,6 +4,7 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
+  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
@@ -138,65 +139,68 @@ function InnerRoot() {
   const { user, profile, isLoading, initialized, isSuperAdmin } = useAuth();
   const router = useRouter();
   const location = router.state.location;
+  const navigate = useNavigate();
 
-  // Global loading gate - wait for auth initialization
+  // Normalize path by removing trailing slash for comparison
+  const normalizedPath = location.pathname === "/" ? "/" : location.pathname.replace(/\/$/, "");
+
+  // Redirection Logic in useEffect to avoid render-path loops
+  useEffect(() => {
+    if (isLoading || !initialized) return;
+
+    const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js", "/favicon.png"];
+    const isPublicPath = publicPaths.includes(normalizedPath);
+
+    // 1. Protected route logic
+    if (!isPublicPath && !user) {
+      console.log("[AUTH REDIRECT] No session, moving to /login from:", normalizedPath);
+      navigate({ to: "/login", search: { redirect: location.href }, replace: true });
+      return;
+    }
+
+    // 2. Admin route protection
+    if (normalizedPath.startsWith('/admin') && normalizedPath !== '/admin/login' && !isSuperAdmin) {
+      console.log("[AUTH REDIRECT] Not super-admin, moving home from:", normalizedPath);
+      navigate({ to: "/", replace: true });
+      return;
+    }
+
+    // 3. Public-only paths
+    const publicOnlyPaths = ["/login", "/signup", "/admin/login"];
+    if (user && publicOnlyPaths.includes(normalizedPath)) {
+      console.log("[AUTH REDIRECT] Already logged in, moving home from:", normalizedPath);
+      navigate({ to: "/", replace: true });
+      return;
+    }
+
+    // 4. Profile completeness check
+    if (user && !isPublicPath && normalizedPath !== "/complete-profile" && !normalizedPath.startsWith('/admin')) {
+      const isProfileIncomplete = !profile?.cpf || !profile?.birth_date;
+      if (isProfileIncomplete && !isSuperAdmin) {
+        console.log("[AUTH REDIRECT] Profile incomplete, moving to /complete-profile");
+        navigate({ to: "/complete-profile", replace: true });
+        return;
+      }
+    }
+  }, [isLoading, initialized, user, isSuperAdmin, normalizedPath, profile, navigate, location.href]);
+
+  // Global loading gate
   if (isLoading || !initialized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
-        <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
+          <p className="text-white/50 text-[10px] font-black uppercase tracking-[0.3em]">
+            LOOPLANCE STARTING...
+          </p>
+        </div>
       </div>
     );
-  }
-
-  // Centralized Route Protection Logic
-  const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js"];
-  const isPublicPath = publicPaths.includes(location.pathname);
-
-  // Protected route logic
-  if (!isPublicPath && !user) {
-    console.log("[PROTECTED ROUTE] [REDIRECT] No session, moving to /login");
-    return <Redirect to="/login" search={{ redirect: location.href }} />;
-  }
-
-  // Admin route protection
-  if (location.pathname.startsWith('/admin') && !isSuperAdmin) {
-    console.log("[PROTECTED ROUTE] [REDIRECT] Not super-admin, moving home");
-    console.log("[ROLE DETECTED]", profile?.role);
-    return <Redirect to="/" />;
-  }
-
-  // Public-only paths
-  const publicOnlyPaths = ["/login", "/signup", "/admin/login"];
-  if (user && publicOnlyPaths.includes(location.pathname)) {
-    console.log("[REDIRECT] Already logged in, moving home");
-    return <Redirect to="/" />;
-  }
-
-  // Profile completeness check
-  if (user && !isPublicPath && location.pathname !== "/complete-profile" && !location.pathname.startsWith('/admin')) {
-    const isProfileIncomplete = !profile?.cpf || !profile?.birth_date;
-    if (isProfileIncomplete && !isSuperAdmin) {
-      console.log("[REDIRECT] Profile incomplete, moving to /complete-profile");
-      return <Redirect to="/complete-profile" />;
-    }
   }
 
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
     </QueryClientProvider>
-  );
-}
-
-function Redirect({ to, search }: { to: string; search?: any }) {
-  const navigate = useRouter().navigate;
-  useEffect(() => {
-    navigate({ to, search, replace: true });
-  }, [navigate, to, search]);
-  
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-black">
-      <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
-    </div>
   );
 }

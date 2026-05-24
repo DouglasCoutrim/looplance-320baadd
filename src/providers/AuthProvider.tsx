@@ -38,12 +38,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const fetchProfile = useCallback(async (userId: string) => {
     if (fetchingRef.current === userId) {
+      console.log("[PROFILE LOADED] Already fetching for:", userId);
       return null;
     }
 
     try {
       fetchingRef.current = userId;
       console.log("[PROFILE LOADED] Start for:", userId);
+      
       const { data, error } = await supabase
         .from("profiles")
         .select("id, email, role, full_name, cpf, birth_date")
@@ -52,13 +54,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (error) {
         console.error("[AUTH ERROR] Failed to fetch profile:", error);
+        // Important: throw error so initializeAuth can catch it if needed, or handle it here
         return null;
       }
 
+      console.log("[ROLE DETECTED] Raw data:", data);
+      
       if (data) {
-        console.log("[ROLE DETECTED]", data.role);
-        console.log("[isSuperAdmin]", data.role === 'super-admin');
+        console.log("[ROLE DETECTED] Role from DB:", data.role);
+        console.log("[ROLE DETECTED] isSuperAdmin check:", data.role === 'super-admin');
+        // Add to window for easier debugging in console
+        (window as any).lastProfile = data;
+      } else {
+        console.warn("[AUTH WARNING] No profile found for user:", userId);
       }
+      
       return data as Profile;
     } catch (err) {
       console.error("[AUTH ERROR] Unexpected error fetching profile:", err);
@@ -80,29 +90,40 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const initializeAuth = async () => {
       try {
-        console.log("[AUTH INIT] Initializing...");
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        console.log("[AUTH INIT] Getting session...");
         
+        let initialSession = null;
+        try {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError) console.error("[AUTH ERROR] getSession error:", sessionError);
+          initialSession = session;
+        } catch (err) {
+          console.error("[AUTH ERROR] getSession catch:", err);
+        }
+
         if (!mounted) return;
 
         if (initialSession) {
-          console.log("[SESSION LOADED] User ID:", initialSession.user.id, "Email:", initialSession.user.email);
+          console.log("[SESSION LOADED] User ID:", initialSession.user.id);
           setSession(initialSession);
           setUser(initialSession.user);
+          
+          // Fetch profile
           const userProfile = await fetchProfile(initialSession.user.id);
-          if (mounted) {
+          if (mounted && userProfile) {
+            console.log("[AUTH INIT] Profile set:", userProfile.role);
             setProfile(userProfile);
           }
         } else {
-          console.log("[AUTH INIT] No session found.");
+          console.log("[AUTH INIT] No initial session found.");
         }
       } catch (error) {
-        console.error("[AUTH ERROR] Initialization failed:", error);
+        console.error("[AUTH ERROR] Initialization critical failure:", error);
       } finally {
         if (mounted) {
+          console.log("[AUTH INIT] Setting initialized=true");
           setInitialized(true);
           setIsLoading(false);
-          console.log("[AUTH INIT] Completed.");
         }
       }
     };
@@ -119,9 +140,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setSession(currentSession);
           setUser(currentSession.user);
           
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || event === 'INITIAL_SESSION') {
             const userProfile = await fetchProfile(currentSession.user.id);
-            if (mounted) setProfile(userProfile);
+            if (mounted && userProfile) setProfile(userProfile);
           }
         } else {
           setSession(null);
@@ -129,7 +150,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setProfile(null);
         }
         
-        setIsLoading(false);
+        if (mounted) {
+          setInitialized(true);
+          setIsLoading(false);
+        }
       }
     );
 
@@ -151,6 +175,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setProfile(null);
     }
   };
+
+  useEffect(() => {
+    // Safety timer to prevent being stuck on loader
+    const safetyTimer = setTimeout(() => {
+      if (!initialized) {
+        console.warn("[AUTH] Initialization taking too long, forcing state...");
+        setInitialized(true);
+        setIsLoading(false);
+      }
+    }, 6000);
+
+    return () => {
+      clearTimeout(safetyTimer);
+    };
+  }, [initialized]);
 
   const contextValue = useMemo(() => ({
     session,
