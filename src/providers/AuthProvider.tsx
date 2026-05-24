@@ -38,9 +38,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [isProfileLoading, setIsProfileLoading] = useState(false);
 
   const fetchProfile = async (userId: string) => {
+    // Avoid double fetching if already loading
+    if (isProfileLoading) return;
+    
     setIsProfileLoading(true);
     try {
-      console.log("Buscando perfil para:", userId);
+      console.log("AuthProvider: Buscando perfil para:", userId);
       const { data, error } = await supabase
         .from("profiles")
         .select("id, email, is_super_admin, is_arena_owner, full_name, cpf, birth_date")
@@ -48,14 +51,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         .maybeSingle();
 
       if (error) {
-        console.error("Erro ao buscar perfil:", error);
-        return;
+        console.error("AuthProvider: Erro ao buscar perfil:", error);
+      } else {
+        console.log("AuthProvider: Dados do Perfil recebidos:", data);
+        setProfile(data as Profile);
       }
-      
-      console.log("Dados do Perfil recebidos:", data);
-      setProfile(data as Profile);
     } catch (err) {
-      console.error("Erro inesperado ao buscar perfil:", err);
+      console.error("AuthProvider: Erro inesperado ao buscar perfil:", err);
     } finally {
       setIsProfileLoading(false);
     }
@@ -66,19 +68,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     // Initial session check
     const initAuth = async () => {
       try {
+        console.log("AuthProvider: Iniciando verificação de auth...");
         const { data: { session } } = await supabase.auth.getSession();
+        
+        if (!mounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
+        
         if (session?.user) {
           await fetchProfile(session.user.id);
         }
       } catch (error) {
-        console.error("Error initializing auth:", error);
+        console.error("AuthProvider: Erro na inicialização do auth:", error);
       } finally {
-        setIsLoading(false);
+        if (mounted) {
+          console.log("AuthProvider: Inicialização concluída.");
+          setIsLoading(false);
+        }
       }
     };
 
@@ -86,13 +98,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        console.log("Evento de mudança de auth:", _event);
+      async (event, session) => {
+        console.log("AuthProvider: Evento de mudança de auth:", event);
+        
+        if (!mounted) return;
+
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
+            await fetchProfile(session.user.id);
+          }
         } else {
           setProfile(null);
         }
@@ -102,15 +119,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     );
 
     return () => {
+      mounted = false;
       subscription.unsubscribe();
     };
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
-    setSession(null);
-    setUser(null);
-    setProfile(null);
+    try {
+      await supabase.auth.signOut();
+    } catch (error) {
+      console.error("AuthProvider: Erro ao sair:", error);
+    } finally {
+      setSession(null);
+      setUser(null);
+      setProfile(null);
+    }
   };
 
   return (
@@ -118,7 +141,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       session, 
       user, 
       profile, 
-      isLoading: isLoading || isProfileLoading, 
+      isLoading, // Only wait for the initial auth/profile check once
       signOut, 
       refreshProfile 
     }}>
