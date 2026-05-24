@@ -221,33 +221,3 @@ function InnerRoot() {
     </QueryClientProvider>
   );
 }
-
-  return (
-    <QueryClientProvider client={queryClient}>
-      <Outlet />
-    </QueryClientProvider>
-  );
-}
-
-function Redirect({ to, search }: { to: string; search?: any }) {
-  const navigate = useRouter().navigate;
-  const currentPath = useRouter().state.location.pathname;
-  
-  useEffect(() => {
-    if (currentPath !== to) {
-      console.log(`[NAVIGATING] From ${currentPath} to ${to}`);
-      navigate({ to, search, replace: true });
-    }
-  }, [navigate, to, search, currentPath]);
-  
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-black">
-      <div className="flex flex-col items-center gap-4">
-        <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
-        <p className="text-white/50 text-xs font-bold uppercase tracking-widest animate-pulse">
-          Redirecionando...
-        </p>
-      </div>
-    </div>
-  );
-}
