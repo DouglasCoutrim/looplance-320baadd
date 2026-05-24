@@ -14,7 +14,7 @@ import appCss from "../styles.css?url";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
 import { RouterContext } from "../router";
-import { Loader2 } from "lucide-react";
+import { Loader2, LayoutDashboard } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -151,6 +151,12 @@ function InnerRoot() {
     const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js", "/favicon.png"];
     const isPublicPath = publicPaths.includes(normalizedPath);
 
+    // Debug logs
+    if (user && profile) {
+      console.log("[ROLE]", profile.role);
+      console.log("[ADMIN ACCESS]", isSuperAdmin);
+    }
+
     // 1. Protected route logic
     if (!isPublicPath && !user) {
       console.log("[AUTH REDIRECT] No session, moving to /login from:", normalizedPath);
@@ -159,10 +165,15 @@ function InnerRoot() {
     }
 
     // 2. Admin route protection
-    if (normalizedPath.startsWith('/admin') && normalizedPath !== '/admin/login' && !isSuperAdmin) {
-      console.log("[AUTH REDIRECT] Not super-admin, moving home from:", normalizedPath);
-      navigate({ to: "/", replace: true });
-      return;
+    if (normalizedPath.startsWith('/admin') && normalizedPath !== '/admin/login') {
+      if (!isSuperAdmin) {
+        console.log("[ADMIN ROUTE] blocked (not super-admin)");
+        console.log("[AUTH REDIRECT] Not super-admin, moving home from:", normalizedPath);
+        navigate({ to: "/", replace: true });
+        return;
+      } else {
+        console.log("[ADMIN ROUTE] allowed");
+      }
     }
 
     // 3. Public-only paths
@@ -201,6 +212,17 @@ function InnerRoot() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      
+      {/* TEMPORARY ADMIN TEST BUTTON */}
+      {isSuperAdmin && (
+        <button
+          onClick={() => navigate({ to: "/admin" })}
+          className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2 rounded-full bg-brand-orange px-6 py-4 font-black uppercase tracking-tighter text-white shadow-2xl ring-4 ring-white transition-all hover:scale-110 active:scale-95"
+        >
+          <LayoutDashboard className="h-6 w-6" />
+          ADMIN TEST
+        </button>
+      )}
     </QueryClientProvider>
   );
 }

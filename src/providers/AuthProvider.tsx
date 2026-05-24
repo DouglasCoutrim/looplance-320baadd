@@ -61,12 +61,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("[ROLE DETECTED] Raw data:", data);
       
       if (data) {
-        console.log("[ROLE DETECTED] Role from DB:", data.role);
-        console.log("[ROLE DETECTED] isSuperAdmin check:", data.role === 'super-admin');
+        console.log("[ROLE]", data.role);
+        console.log("[ADMIN ACCESS]", data.role === 'super-admin');
         // Add to window for easier debugging in console
         (window as any).lastProfile = data;
       } else {
         console.warn("[AUTH WARNING] No profile found for user:", userId);
+        console.log("[ADMIN ACCESS] false (no profile)");
       }
       
       return data as Profile;

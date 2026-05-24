@@ -49,13 +49,9 @@ function Home() {
   const { user, profile, signOut, isLoading: authLoading, isSuperAdmin } = useAuth();
   
   useEffect(() => {
-    if (user) {
-      console.log("[ADMIN MENU DEBUG]", {
-        profile,
-        role: profile?.role,
-        isSuperAdmin,
-        authLoading
-      });
+    if (user && profile) {
+      console.log("[ROLE]", profile.role);
+      console.log("[ADMIN ACCESS]", isSuperAdmin);
       if (isSuperAdmin) {
         console.log("[ADMIN MENU] rendering");
       }
@@ -233,13 +229,13 @@ function Home() {
               </Link>
             )}
             
-            {!authLoading && isSuperAdmin && (
+            {isSuperAdmin && (
               <Link 
                 to="/admin" 
-                className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
+                className="group flex flex-col items-center gap-0.5 rounded-xl border-2 border-brand-orange bg-brand-orange/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-brand-orange/20 shadow-lg shadow-brand-orange/20"
               >
                 <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange" />
-                <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
+                <span className="text-[8px] sm:text-[10px] font-black uppercase text-white tracking-widest">Admin Panel</span>
               </Link>
             )}
           </div>
