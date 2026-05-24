@@ -55,7 +55,6 @@ function CompleteProfile() {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Usuário não encontrado");
 
       console.log("Updating profile for user:", user.id);
