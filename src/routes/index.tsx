@@ -201,7 +201,7 @@ function Home() {
           <div className="flex-1 flex justify-end items-center gap-3">
             {user ? (
               <button 
-                onClick={() => supabase.auth.signOut()}
+                onClick={() => signOut()}
                 className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-red-500/50"
               >
                 <LogOut className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 transition-transform group-hover:scale-110" />
