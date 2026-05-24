@@ -34,16 +34,14 @@ function CompleteProfile() {
   const [loading, setLoading] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   useEffect(() => {
-    const checkUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && user.user_metadata?.full_name) {
-        setFullName(user.user_metadata.full_name);
-      }
-    };
-    checkUser();
-  }, []);
+    if (user?.user_metadata?.full_name) {
+      setFullName(user.user_metadata.full_name);
+    }
+  }, [user]);
+
 
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
