@@ -103,23 +103,26 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       try {
         const { data: profile, error } = await supabase
           .from("profiles")
-          .select("cpf, birth_date")
+          .select("cpf, birth_date, is_super_admin")
           .eq("id", user.id)
           .maybeSingle();
 
         if (error) {
           console.error("Error fetching profile in beforeLoad:", error);
-          // If it's a permission error (RLS), don't kick the user out
-          // Just let them through and handle it in the component if needed
+          return { user, session };
+        }
+
+        // Se for Super Admin, não precisa completar o perfil para navegar
+        if (profile?.is_super_admin) {
           return { user, session };
         }
 
         // If no profile found or missing required fields, redirect to complete-profile
         if (!profile || !profile.cpf || !profile.birth_date) {
+          console.log("Redirecionando para completar perfil...");
           throw redirect({ to: "/complete-profile" });
         }
       } catch (err) {
-        // If it's a redirect, re-throw it
         if (err && typeof err === 'object' && 'to' in err) throw err;
         console.error("Profile check failed:", err);
       }
