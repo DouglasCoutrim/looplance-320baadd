@@ -25,25 +25,29 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminGuard() {
-  const { user, isSuperAdmin, isArenaOwner, isLoading, signOut } = useAuth();
+  const { user, isSuperAdmin, isArenaOwner, isLoading, initialized, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    // If auth initialization is finished and we have no valid admin access
-    if (!isLoading) {
+    // Wait for initialization
+    if (initialized && !isLoading) {
       if (!user) {
-        console.log("AdminGuard: [REDIRECT] No user, moving to /admin/login");
-        navigate({ to: "/admin/login" });
-      } else if (!isSuperAdmin && !isArenaOwner && location.pathname !== "/admin/login") {
-        console.log("AdminGuard: [REDIRECT] Not an admin, moving to /");
-        toast.error("Acesso negado: você não tem permissão de administrador.");
-        navigate({ to: "/" });
+        if (location.pathname !== "/admin/login") {
+          console.log("[PROTECTED ROUTE] Admin: [REDIRECT] No user, moving to /admin/login");
+          navigate({ to: "/admin/login" });
+        }
+      } else if (!isSuperAdmin && !isArenaOwner) {
+        if (location.pathname !== "/admin/login") {
+          console.log("[PROTECTED ROUTE] Admin: [REDIRECT] Not an admin, moving home");
+          toast.error("Acesso negado: você não tem permissão de administrador.");
+          navigate({ to: "/" });
+        }
       }
     }
-  }, [user, isSuperAdmin, isArenaOwner, isLoading, navigate, location.pathname]);
+  }, [user, isSuperAdmin, isArenaOwner, isLoading, initialized, navigate, location.pathname]);
 
-  if (isLoading) {
+  if (isLoading || !initialized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
         <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
@@ -51,18 +55,14 @@ function AdminGuard() {
     );
   }
 
-  // If we are at login, just show the login page (Outlet will render it)
+  // If we are at login, just show the login page
   if (location.pathname === "/admin/login") {
     return <Outlet />;
   }
 
-  // If not admin and not login, don't render layout yet while redirecting
-  if (!isSuperAdmin && !isArenaOwner) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
-      </div>
-    );
+  // Final check before rendering layout
+  if (!user || (!isSuperAdmin && !isArenaOwner)) {
+    return null;
   }
 
   return <AdminLayout signOut={signOut} />;
@@ -89,7 +89,6 @@ function AdminLayout({ signOut }: { signOut: () => Promise<void> }) {
     { to: "/admin/users", label: "Usuários", icon: Users },
   ];
 
-  // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
@@ -120,7 +119,6 @@ function AdminLayout({ signOut }: { signOut: () => Promise<void> }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-black shadow-xl h-16 sm:h-20">
         <div className="mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
           <div className="flex-1 flex items-center gap-2">

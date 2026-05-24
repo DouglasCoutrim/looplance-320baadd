@@ -18,8 +18,7 @@ export const Route = createFileRoute("/admin/users")({
 interface Profile {
   id: string;
   email: string;
-  is_super_admin: boolean;
-  is_arena_owner?: boolean;
+  role: 'super-admin' | 'arena-owner' | 'user';
   created_at: string;
 }
 
@@ -29,7 +28,6 @@ function AdminUsers() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
-  // Form state for new admin
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [creating, setCreating] = useState(false);
@@ -38,7 +36,7 @@ function AdminUsers() {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("*")
+      .select("id, email, role, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -55,20 +53,21 @@ function AdminUsers() {
 
   const isMainSuperAdmin = currentUser?.email === 'douglas@looplance.app';
 
-  const handleTogglePermission = async (profileId: string, field: 'is_super_admin' | 'is_arena_owner', currentValue: boolean) => {
-    // Permission checks
+  const handleUpdateRole = async (profileId: string, newRole: 'super-admin' | 'arena-owner' | 'user') => {
     if (!isMainSuperAdmin) {
-      toast.error("Apenas o Super Admin mestre pode gerenciar permissões de Super Admin e Dono de Arena.");
+      toast.error("Apenas o Super Admin mestre pode gerenciar permissões.");
       return;
     }
 
     try {
-      const updateData: any = {};
-      updateData[field] = !currentValue;
-
       const { error } = await supabase
         .from("profiles")
-        .update(updateData)
+        .update({ 
+          role: newRole,
+          // Maintain legacy flags for safety until migration is fully verified
+          is_super_admin: newRole === 'super-admin',
+          is_arena_owner: newRole === 'arena-owner'
+        })
         .eq("id", profileId);
 
       if (error) throw error;
@@ -89,8 +88,6 @@ function AdminUsers() {
     if (!confirm(`Tem certeza que deseja remover o acesso de ${email}?`)) return;
 
     try {
-      // Note: This only removes the profile, not the auth user (due to DB limitations from client side)
-      // But removing the profile will prevent admin access due to Route checks.
       const { error } = await supabase
         .from("profiles")
         .delete()
@@ -109,7 +106,6 @@ function AdminUsers() {
     e.preventDefault();
     if (!email || !password) return;
     
-    // Non-main superadmins cannot create new superadmins
     if (!isMainSuperAdmin) {
       toast.error("Você não tem permissão para criar novos Super Admins.");
       return;
@@ -126,7 +122,10 @@ function AdminUsers() {
 
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ is_super_admin: true })
+        .update({ 
+          role: 'super-admin',
+          is_super_admin: true 
+        })
         .eq("id", authData.user?.id || "");
 
       if (updateError) throw updateError;
@@ -252,9 +251,9 @@ function AdminUsers() {
                     <div className="flex flex-col gap-2">
                       <div 
                         className={`flex items-center gap-2 cursor-pointer ${!isMainSuperAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        onClick={() => handleTogglePermission(profile.id, 'is_super_admin', profile.is_super_admin)}
+                        onClick={() => handleUpdateRole(profile.id, profile.role === 'super-admin' ? 'user' : 'super-admin')}
                       >
-                        {profile.is_super_admin ? (
+                        {profile.role === 'super-admin' ? (
                           <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">
                             <Shield className="h-3 w-3 mr-1" /> Super Admin
                           </Badge>
@@ -265,9 +264,9 @@ function AdminUsers() {
                       
                       <div 
                         className={`flex items-center gap-2 cursor-pointer ${!isMainSuperAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        onClick={() => handleTogglePermission(profile.id, 'is_arena_owner', !!profile.is_arena_owner)}
+                        onClick={() => handleUpdateRole(profile.id, profile.role === 'arena-owner' ? 'user' : 'arena-owner')}
                       >
-                        {profile.is_arena_owner ? (
+                        {profile.role === 'arena-owner' ? (
                           <Badge className="bg-blue-600 text-white border-none font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">
                             <Users className="h-3 w-3 mr-1" /> Dono Arena
                           </Badge>
