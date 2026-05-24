@@ -63,13 +63,14 @@ function Home() {
 
   // Optimized fetchReplays with pagination
   const fetchReplays = useCallback(async (pageNum = 0) => {
+    console.log("[DEBUG] fetchReplays called, pageNum:", pageNum, "loadingReplays:", loadingReplays);
     if (loadingReplays) return;
     setLoadingReplays(true);
     
     try {
       const { data, error } = await supabase
         .from("replays")
-        .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+        .select("id, video_url, created_at, quadra_id")
         .order("created_at", { ascending: false })
         .range(pageNum * 20, (pageNum + 1) * 20 - 1);
       
@@ -100,7 +101,7 @@ function Home() {
     // Fetch featured
     supabase
       .from("replays")
-      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .select("id, video_url, created_at, quadra_id")
       .order("created_at", { ascending: false })
       .limit(3)
       .then(({ data }) => setFeaturedReplays((data ?? []) as Replay[]));
@@ -154,7 +155,8 @@ function Home() {
   }, [fetchReplays]);
 
   const filtered = useMemo(() => {
-    return replays.filter((r) => {
+    console.log("[DEBUG] Filtering replays. Total:", replays.length, "arenaId:", arenaId, "quadraId:", quadraId, "date:", date);
+    const result = replays.filter((r) => {
       if (quadraId && r.quadra_id !== quadraId) return false;
       if (arenaId && !quadraId) {
         const ok = quadras.some((q) => q.id === r.quadra_id);
@@ -170,6 +172,8 @@ function Home() {
       
       return true;
     });
+    console.log("[DEBUG] Filtered result count:", result.length);
+    return result;
   }, [replays, arenaId, quadraId, quadras, date, startHour, endHour]);
 
   const reward = () => {
