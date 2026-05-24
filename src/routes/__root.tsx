@@ -188,7 +188,12 @@ function InnerRoot() {
   if (isLoading || !initialized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
-        <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
+          <p className="text-white/50 text-[10px] font-black uppercase tracking-[0.3em]">
+            LOOPLANCE STARTING...
+          </p>
+        </div>
       </div>
     );
   }
