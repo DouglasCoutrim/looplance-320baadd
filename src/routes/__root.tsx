@@ -212,6 +212,17 @@ function InnerRoot() {
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
+      
+      {/* TEMPORARY ADMIN TEST BUTTON */}
+      {isSuperAdmin && (
+        <button
+          onClick={() => navigate({ to: "/admin" })}
+          className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2 rounded-full bg-brand-orange px-6 py-4 font-black uppercase tracking-tighter text-white shadow-2xl ring-4 ring-white transition-all hover:scale-110 active:scale-95"
+        >
+          <LayoutDashboard className="h-6 w-6" />
+          ADMIN TEST
+        </button>
+      )}
     </QueryClientProvider>
   );
 }
