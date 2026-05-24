@@ -32,16 +32,16 @@ function AdminLogin() {
 
       if (authError) throw authError;
 
-      // Check if user is super admin
+      // Check if user is super admin or arena owner
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("is_super_admin")
+        .select("is_super_admin, is_arena_owner")
         .eq("id", authData.user.id)
-        .single();
+        .maybeSingle();
 
-      if (profileError || !profileData?.is_super_admin) {
-        await supabase.auth.signOut();
-        toast.error("Acesso negado. Apenas super admins podem acessar esta área.");
+      if (profileError || (!profileData?.is_super_admin && !profileData?.is_arena_owner)) {
+        // DO NOT signOut() here as requested by user
+        toast.error("Acesso negado. Apenas administradores podem acessar esta área.");
         setLoading(false);
         return;
       }
