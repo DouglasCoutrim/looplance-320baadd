@@ -32,12 +32,12 @@ function AdminGuard() {
   useEffect(() => {
     // Wait for initialization
     if (initialized && !isLoading) {
-      console.log("[ADMIN GUARD] State check:", {
-        user: !!user,
-        role: profile?.role,
-        isSuperAdmin,
-        path: location.pathname
-      });
+      console.log("[ROLE]", profile?.role);
+      console.log("[ADMIN ACCESS]", isSuperAdmin);
+      
+      if (location.pathname.startsWith('/admin')) {
+        console.log("[ADMIN ROUTE]", isSuperAdmin ? "allowed" : "blocked");
+      }
 
       if (!user) {
         if (location.pathname !== "/admin/login") {
