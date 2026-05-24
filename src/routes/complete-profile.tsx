@@ -34,7 +34,7 @@ function CompleteProfile() {
   const [loading, setLoading] = useState(false);
   const [termsOpen, setTermsOpen] = useState(false);
   const navigate = useNavigate();
-  const { user } = useAuth();
+  const { user, refreshProfile } = useAuth();
 
   useEffect(() => {
     if (user?.user_metadata?.full_name) {
@@ -57,7 +57,7 @@ function CompleteProfile() {
     try {
       if (!user) throw new Error("Usuário não encontrado");
 
-      console.log("Updating profile for user:", user.id);
+      console.log("[AUTH ACTION] Updating profile for user:", user.id);
       const { error } = await supabase.from("profiles").upsert({
         id: user.id,
         email: user.email,
@@ -70,17 +70,18 @@ function CompleteProfile() {
       });
 
       if (error) {
-        console.error("Supabase upsert error:", error);
+        console.error("[AUTH ERROR] Supabase upsert error:", error);
         toast.error(error.message || "Erro ao atualizar perfil", { id: updateToast });
         setLoading(false);
         return;
       }
 
-      console.log("Profile updated successfully");
+      console.log("[AUTH ACTION] Profile updated successfully");
+      await refreshProfile(); // Refresh global auth state
       toast.success("Perfil atualizado com sucesso!", { id: updateToast });
       navigate({ to: "/" });
     } catch (error: any) {
-      console.error("Detailed profile update error:", error);
+      console.error("[AUTH ERROR] Detailed profile update error:", error);
       toast.error(error.message || "Ocorreu um erro inesperado", { id: updateToast });
       setLoading(false);
     }
