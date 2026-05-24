@@ -120,8 +120,7 @@ function AdminUsers() {
       const { error: updateError } = await supabase
         .from("profiles")
         .update({ 
-          role: 'super-admin',
-          is_super_admin: true 
+          role: 'super-admin'
         })
         .eq("id", authData.user?.id || "");
 
