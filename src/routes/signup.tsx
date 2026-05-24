@@ -23,12 +23,7 @@ import {
 } from "@/components/ui/dialog";
 
 export const Route = createFileRoute("/signup")({
-  beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      throw redirect({ to: "/" });
-    }
-  },
+  // Redirection handled globally in __root.tsx
   component: SignUp,
 });
 

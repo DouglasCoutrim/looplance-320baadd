@@ -11,12 +11,7 @@ import { LogIn } from "lucide-react";
 import logoUrl from "@/assets/looplance-logo.png";
 
 export const Route = createFileRoute("/login")({
-  beforeLoad: async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session) {
-      throw redirect({ to: "/" });
-    }
-  },
+  // Redirection handled globally in __root.tsx
   component: UserLogin,
 });
 

@@ -158,6 +158,13 @@ function InnerRoot() {
     return <Redirect to="/login" search={{ redirect: location.href }} />;
   }
 
+  // If user is logged in and on a public-only path like /login, redirect to home
+  const publicOnlyPaths = ["/login", "/signup", "/admin/login"];
+  if (user && publicOnlyPaths.includes(location.pathname)) {
+    console.log("Root: [REDIRECT] User already logged in, moving to /");
+    return <Redirect to="/" />;
+  }
+
   // Check profile completeness for logged in users
   if (user && !isPublicPath && location.pathname !== "/complete-profile" && !location.pathname.startsWith('/admin')) {
     const isProfileIncomplete = !profile?.cpf || !profile?.birth_date;
