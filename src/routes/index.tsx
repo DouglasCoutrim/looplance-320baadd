@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard, User } from "lucide-react";
+import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard, User, Loader2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
 import { useAuth } from "@/providers/AuthProvider";
+import { Button } from "@/components/ui/button";
 
 
 export const Route = createFileRoute("/")({
@@ -35,6 +36,9 @@ function Home() {
   const [arenas, setArenas] = useState<Arena[]>([]);
   const [quadras, setQuadras] = useState<Quadra[]>([]);
   const [replays, setReplays] = useState<Replay[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
+  const [loadingReplays, setLoadingReplays] = useState(false);
   const [arenaId, setArenaId] = useState<string>("");
   const [quadraId, setQuadraId] = useState<string>("");
   const [date, setDate] = useState<string>("");
@@ -43,7 +47,7 @@ function Home() {
   
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
-  const { user, profile, signOut, isLoading: authLoading, isProfileLoading } = useAuth();
+  const { user, profile, signOut, isLoading: authLoading, isSuperAdmin, isArenaOwner } = useAuth();
   
   // Debug log to check profile on every render (useful for troubleshooting)
   useEffect(() => {
@@ -56,9 +60,7 @@ function Home() {
     }
   }, [user, profile, authLoading]);
 
-  const isSuperAdmin = !!profile?.is_super_admin;
-  const isArenaOwner = !!profile?.is_arena_owner;
-  const isLoadingProfile = isProfileLoading;
+  const isLoadingProfile = authLoading;
   const navigate = useNavigate();
 
   const checkProfileCompleteness = async (userId: string) => {
@@ -123,13 +125,41 @@ function Home() {
     setQuadraId("");
   }, [arenaId]);
 
-  const fetchReplays = async () => {
-    const { data } = await supabase
-      .from("replays")
-      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
-      .order("created_at", { ascending: false })
-      .limit(100);
-    setReplays((data ?? []) as Replay[]);
+  const fetchReplays = async (pageNum = 0) => {
+    if (loadingReplays) return;
+    setLoadingReplays(true);
+    console.log("Home: Fetching replays page", pageNum);
+    
+    try {
+      const { data, error } = await supabase
+        .from("replays")
+        .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+        .order("created_at", { ascending: false })
+        .range(pageNum * 20, (pageNum + 1) * 20 - 1);
+      
+      if (error) throw error;
+
+      if (data) {
+        if (pageNum === 0) {
+          setReplays(data as Replay[]);
+        } else {
+          setReplays(prev => [...prev, ...data as Replay[]]);
+        }
+        setHasMore(data.length === 20);
+        setPage(pageNum);
+      }
+    } catch (err) {
+      console.error("Error fetching replays:", err);
+      toast.error("Erro ao carregar lances");
+    } finally {
+      setLoadingReplays(false);
+    }
+  };
+
+  const loadMore = () => {
+    if (hasMore && !loadingReplays) {
+      fetchReplays(page + 1);
+    }
   };
 
   // Realtime
@@ -347,8 +377,23 @@ function Home() {
           {filtered.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-              {filtered.map((r) => <ReplayCard key={r.id} replay={r} onReward={reward} />)}
+            <div className="space-y-8">
+              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+                {filtered.map((r) => <ReplayCard key={r.id} replay={r} onReward={reward} />)}
+              </div>
+              
+              {hasMore && (
+                <div className="flex justify-center pb-8">
+                  <Button 
+                    onClick={loadMore} 
+                    disabled={loadingReplays}
+                    variant="outline"
+                    className="rounded-xl border-gray-200 font-bold uppercase tracking-widest px-8"
+                  >
+                    {loadingReplays ? "Carregando..." : "Carregar mais"}
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </section>

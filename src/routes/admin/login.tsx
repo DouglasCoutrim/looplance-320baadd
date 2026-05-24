@@ -1,20 +1,20 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Lock } from "lucide-react";
-import logoUrl from "@/assets/looplance-logo.png";
+import { useAuth } from "@/providers/AuthProvider";
 
 export const Route = createFileRoute("/admin/login")({
   component: AdminLogin,
 });
 
 function AdminLogin() {
+  const { refreshProfile } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,20 +32,10 @@ function AdminLogin() {
 
       if (authError) throw authError;
 
-      // Check if user is super admin or arena owner
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("is_super_admin, is_arena_owner")
-        .eq("id", authData.user.id)
-        .maybeSingle();
-
-      if (profileError || (!profileData?.is_super_admin && !profileData?.is_arena_owner)) {
-        // DO NOT signOut() here as requested by user
-        toast.error("Acesso negado. Apenas administradores podem acessar esta área.");
-        setLoading(false);
-        return;
-      }
-
+      // Profile will be fetched by AuthProvider automatically
+      // We just refresh it to be sure and then move to /admin
+      await refreshProfile();
+      
       toast.success("Login realizado com sucesso!");
       navigate({ to: "/admin" });
     } catch (error: any) {

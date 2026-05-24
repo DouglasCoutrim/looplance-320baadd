@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useLocation, useNavigate, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { 
   Tv, 
   HardDrive, 
@@ -10,72 +10,71 @@ import {
   Menu,
   X,
   Users,
-  LogOut
+  LogOut,
+  Loader2
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
-import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { useAuth } from "@/providers/AuthProvider";
 
 export const Route = createFileRoute("/admin")({
-  beforeLoad: async ({ location }) => {
-    // Skip auth check for login page to avoid recursion
-    if (location.pathname === "/admin/login") return;
-
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      throw redirect({ to: "/admin/login" });
-    }
-
-    // Check if super admin or arena owner
-    try {
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("is_super_admin, is_arena_owner")
-        .eq("id", session.user.id)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Erro ao verificar acesso admin:", error);
-        return;
-      }
-
-      console.log("Admin Check - Dados do Perfil:", profile);
-
-      if (profile?.is_super_admin !== true && profile?.is_arena_owner !== true) {
-        console.log("Acesso negado: não é super admin nem dono de arena.");
-        throw redirect({ to: "/" });
-      }
-    } catch (err) {
-      if (err && typeof err === 'object' && 'to' in err) throw err;
-      console.error("Falha na verificação de admin:", err);
-    }
-  },
-
-  errorComponent: ({ error }: { error: any }) => {
-    const navigate = useNavigate();
-    
-    useEffect(() => {
-      if (error.message === "unauthorized" || error.message === "forbidden") {
-        navigate({ to: "/admin/login" });
-      }
-    }, [error, navigate]);
-
-    return null;
-  },
-  component: AdminLayout,
+  component: AdminGuard,
 });
 
-function AdminLayout() {
+function AdminGuard() {
+  const { user, isSuperAdmin, isArenaOwner, isLoading, signOut } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    // If auth initialization is finished and we have no valid admin access
+    if (!isLoading) {
+      if (!user) {
+        console.log("AdminGuard: [REDIRECT] No user, moving to /admin/login");
+        navigate({ to: "/admin/login" });
+      } else if (!isSuperAdmin && !isArenaOwner && location.pathname !== "/admin/login") {
+        console.log("AdminGuard: [REDIRECT] Not an admin, moving to /");
+        toast.error("Acesso negado: você não tem permissão de administrador.");
+        navigate({ to: "/" });
+      }
+    }
+  }, [user, isSuperAdmin, isArenaOwner, isLoading, navigate, location.pathname]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
+      </div>
+    );
+  }
+
+  // If we are at login, just show the login page (Outlet will render it)
+  if (location.pathname === "/admin/login") {
+    return <Outlet />;
+  }
+
+  // If not admin and not login, don't render layout yet while redirecting
+  if (!isSuperAdmin && !isArenaOwner) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
+      </div>
+    );
+  }
+
+  return <AdminLayout signOut={signOut} />;
+}
+
+function AdminLayout({ signOut }: { signOut: () => Promise<void> }) {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const handleLogout = async () => {
-    await supabase.auth.signOut();
+    await signOut();
     toast.success("Logoff realizado");
     navigate({ to: "/admin/login" });
   };
@@ -121,10 +120,9 @@ function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
-      {/* Header - Fixed Height & High Impact */}
+      {/* Header */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-black shadow-xl h-16 sm:h-20">
         <div className="mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
-          {/* Left: Back to Site / Menu Trigger */}
           <div className="flex-1 flex items-center gap-2">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -172,7 +170,6 @@ function AdminLayout() {
             </Link>
           </div>
 
-          {/* Center: Logo */}
           <div className="flex-none relative flex justify-center items-center h-full">
             <Link to="/admin">
               <img 
@@ -184,7 +181,6 @@ function AdminLayout() {
             </Link>
           </div>
 
-          {/* Right: User/Settings */}
           <div className="flex-1 flex justify-end gap-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-2 sm:px-3 py-1.5 backdrop-blur-md text-white/50">
               <Settings className="h-4 w-4" />
@@ -203,20 +199,13 @@ function AdminLayout() {
       </header>
 
       <div className="flex-1 flex flex-col md:flex-row max-w-7xl mx-auto w-full gap-6 p-4 sm:p-6 lg:p-8">
-        {/* Navigation Sidebar - Hidden on mobile, shown on desktop */}
         <aside className="hidden md:block w-64 space-y-2 shrink-0">
           <div className="px-2 mb-4">
             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Gestão de Infra</h2>
           </div>
           <NavLinks />
-          <div className="mt-8 px-2 pt-6 border-t border-gray-200">
-            <p className="text-[10px] font-medium text-muted-foreground leading-relaxed italic">
-              Controlando o futuro do replay esportivo.
-            </p>
-          </div>
         </aside>
 
-        {/* Main Content Area */}
         <main className="flex-1 min-w-0">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Outlet />

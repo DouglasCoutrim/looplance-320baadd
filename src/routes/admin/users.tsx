@@ -9,6 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useAuth } from "@/providers/AuthProvider";
 
 export const Route = createFileRoute("/admin/users")({
   component: AdminUsers,
@@ -23,10 +24,10 @@ interface Profile {
 }
 
 function AdminUsers() {
+  const { user: currentUser } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [currentUserEmail, setCurrentUserEmail] = useState<string | null>(null);
   
   // Form state for new admin
   const [email, setEmail] = useState("");
@@ -48,19 +49,11 @@ function AdminUsers() {
     setLoading(false);
   };
 
-  const fetchCurrentUser = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      setCurrentUserEmail(user.email || null);
-    }
-  };
-
   useEffect(() => {
     fetchProfiles();
-    fetchCurrentUser();
   }, []);
 
-  const isMainSuperAdmin = currentUserEmail === 'douglas@looplance.app';
+  const isMainSuperAdmin = currentUser?.email === 'douglas@looplance.app';
 
   const handleTogglePermission = async (profileId: string, field: 'is_super_admin' | 'is_arena_owner', currentValue: boolean) => {
     // Permission checks
