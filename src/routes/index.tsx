@@ -213,7 +213,7 @@ function Home() {
                 <div className="h-4 w-4 sm:h-5 sm:w-5 animate-spin rounded-full border-2 border-brand-orange border-t-transparent" />
                 <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/50 tracking-widest">...</span>
               </div>
-            ) : (isSuperAdmin || isArenaOwner) && (
+            ) : (isSuperAdmin === true) && (
               <Link 
                 to="/admin" 
                 className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
