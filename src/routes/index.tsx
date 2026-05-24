@@ -43,7 +43,7 @@ function Home() {
   
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
-  const { user, profile, signOut, isLoading: authLoading } = useAuth();
+  const { user, profile, signOut, isLoading: authLoading, isProfileLoading } = useAuth();
   
   // Debug log to check profile on every render (useful for troubleshooting)
   useEffect(() => {
@@ -58,7 +58,7 @@ function Home() {
 
   const isSuperAdmin = !!profile?.is_super_admin;
   const isArenaOwner = !!profile?.is_arena_owner;
-  const isLoadingProfile = authLoading;
+  const isLoadingProfile = isProfileLoading;
   const navigate = useNavigate();
 
   const checkProfileCompleteness = async (userId: string) => {
