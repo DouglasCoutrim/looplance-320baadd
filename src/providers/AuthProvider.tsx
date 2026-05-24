@@ -91,6 +91,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const initializeAuth = async () => {
       try {
+        console.log("[DEBUG] Auth initialization started");
         console.log("[AUTH INIT] Getting session...");
         
         let initialSession = null;
