@@ -48,6 +48,20 @@ function Home() {
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const { user, profile, signOut, isLoading: authLoading, isSuperAdmin } = useAuth();
   
+  useEffect(() => {
+    if (user) {
+      console.log("[ADMIN MENU DEBUG]", {
+        profile,
+        role: profile?.role,
+        isSuperAdmin,
+        authLoading
+      });
+      if (isSuperAdmin) {
+        console.log("[ADMIN MENU] rendering");
+      }
+    }
+  }, [user, profile, isSuperAdmin, authLoading]);
+  
   const observerTarget = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
