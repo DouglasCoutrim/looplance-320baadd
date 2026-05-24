@@ -184,8 +184,7 @@ function InnerRoot() {
     }
   }, [isLoading, initialized, user, isSuperAdmin, normalizedPath, profile, navigate, location.href]);
 
-  // TEMP: Disable loading gate for debugging
-  /*
+  // Global loading gate
   if (isLoading || !initialized) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
@@ -193,7 +192,6 @@ function InnerRoot() {
       </div>
     );
   }
-  */
 
   return (
     <QueryClientProvider client={queryClient}>
