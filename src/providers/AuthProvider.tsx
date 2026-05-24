@@ -105,11 +105,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(initialSession.user);
           
           // Fetch profile before setting initialized to true
-          console.log("[AUTH INIT] Fetching profile for:", initialSession.user.id);
           const userProfile = await fetchProfile(initialSession.user.id);
           
-          if (mounted) {
-            console.log("[AUTH INIT] Profile set:", userProfile?.role || "no-role");
+          if (mounted && userProfile) {
+            console.log("[AUTH INIT] Profile set:", userProfile.role);
             setProfile(userProfile);
           }
         } else {
@@ -119,7 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("[AUTH ERROR] Initialization failed:", error);
       } finally {
         if (mounted) {
-          console.log("[AUTH INIT] Setting initialized=true, isLoading=false");
+          console.log("[AUTH INIT] Completed. Setting initialized=true");
           setInitialized(true);
           setIsLoading(false);
         }
@@ -140,7 +139,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
             const userProfile = await fetchProfile(currentSession.user.id);
-            if (mounted) setProfile(userProfile);
+            if (mounted && userProfile) setProfile(userProfile);
           }
         } else {
           setSession(null);
