@@ -25,7 +25,7 @@ export const Route = createFileRoute("/admin")({
 });
 
 function AdminGuard() {
-  const { user, isSuperAdmin, isArenaOwner, isLoading, initialized, signOut } = useAuth();
+  const { user, isSuperAdmin, isLoading, initialized, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
