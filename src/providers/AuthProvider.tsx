@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       console.log("[ROLE DETECTED] Raw data:", data);
       
       if (data) {
-        console.log("[ROLE DETECTED]", data.role);
+        console.log("[ROLE]", data.role);
         console.log("[ADMIN ACCESS]", data.role === 'super-admin');
         // Add to window for easier debugging in console
         (window as any).lastProfile = data;
