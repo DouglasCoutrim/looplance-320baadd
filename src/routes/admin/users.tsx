@@ -16,8 +16,9 @@ export const Route = createFileRoute("/admin/users")({
 
 interface Profile {
   id: string;
-  email: string;
-  is_super_admin: boolean;
+  email: string | null;
+  full_name: string | null;
+  is_super_admin: boolean | null;
   created_at: string;
 }
 
@@ -35,7 +36,7 @@ function AdminUsers() {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("*")
+      .select("id, email, full_name, is_super_admin, created_at")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -189,7 +190,7 @@ function AdminUsers() {
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6">
-                    {profile.is_super_admin ? (
+                    {profile.is_super_admin === true ? (
                       <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">
                         <Shield className="h-3 w-3 mr-1" /> Super Admin
                       </Badge>

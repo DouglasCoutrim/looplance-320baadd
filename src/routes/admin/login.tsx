@@ -34,11 +34,16 @@ function AdminLogin() {
       // Check if user is super admin
       const { data: profileData, error: profileError } = await supabase
         .from("profiles")
-        .select("is_super_admin")
+        .select("id, email, full_name, is_super_admin")
         .eq("id", authData.user.id)
         .single();
 
-      if (profileError || !profileData?.is_super_admin) {
+      console.log("[PROFILE]", profileData);
+      console.log("[SUPER ADMIN]", profileData?.is_super_admin);
+
+      const isSuperAdmin = profileData?.is_super_admin === true;
+
+      if (profileError || !isSuperAdmin) {
         await supabase.auth.signOut();
         toast.error("Acesso negado. Apenas super admins podem acessar esta área.");
         setLoading(false);

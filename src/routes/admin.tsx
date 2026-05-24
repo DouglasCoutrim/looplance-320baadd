@@ -33,11 +33,16 @@ export const Route = createFileRoute("/admin")({
     // Check if super admin
     const { data: profile } = await supabase
       .from("profiles")
-      .select("is_super_admin")
+      .select("id, email, full_name, is_super_admin")
       .eq("id", session.user.id)
       .single();
 
-    if (!profile?.is_super_admin) {
+    console.log("[PROFILE]", profile);
+    console.log("[SUPER ADMIN]", profile?.is_super_admin);
+
+    const isSuperAdmin = profile?.is_super_admin === true;
+
+    if (!isSuperAdmin) {
       throw new Error("forbidden");
     }
   },
