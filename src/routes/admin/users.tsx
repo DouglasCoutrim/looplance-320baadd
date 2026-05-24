@@ -63,10 +63,7 @@ function AdminUsers() {
       const { error } = await supabase
         .from("profiles")
         .update({ 
-          role: newRole,
-          // Maintain legacy flags for safety until migration is fully verified
-          is_super_admin: newRole === 'super-admin',
-          is_arena_owner: newRole === 'arena-owner'
+          role: newRole
         })
         .eq("id", profileId);
 
