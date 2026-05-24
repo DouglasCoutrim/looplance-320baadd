@@ -154,8 +154,15 @@ function InnerRoot() {
 
   // Protected route logic
   if (!isPublicPath && !user) {
-    console.log("[REDIRECT] No session, moving to /login");
+    console.log("[PROTECTED ROUTE] [REDIRECT] No session, moving to /login");
     return <Redirect to="/login" search={{ redirect: location.href }} />;
+  }
+
+  // Admin route protection
+  if (location.pathname.startsWith('/admin') && !isSuperAdmin) {
+    console.log("[PROTECTED ROUTE] [REDIRECT] Not super-admin, moving home");
+    console.log("[ROLE DETECTED]", profile?.role);
+    return <Redirect to="/" />;
   }
 
   // Public-only paths

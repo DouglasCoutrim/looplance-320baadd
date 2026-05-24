@@ -57,6 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       if (data) {
         console.log("[ROLE DETECTED]", data.role);
+        console.log("[isSuperAdmin]", data.role === 'super-admin');
       }
       return data as Profile;
     } catch (err) {
@@ -85,7 +86,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!mounted) return;
 
         if (initialSession) {
-          console.log("[SESSION LOADED] User ID:", initialSession.user.id);
+          console.log("[SESSION LOADED] User ID:", initialSession.user.id, "Email:", initialSession.user.email);
           setSession(initialSession);
           setUser(initialSession.user);
           const userProfile = await fetchProfile(initialSession.user.id);
