@@ -37,15 +37,16 @@ function AdminGuard() {
           console.log("[PROTECTED ROUTE] Admin: [REDIRECT] No user, moving to /admin/login");
           navigate({ to: "/admin/login" });
         }
-      } else if (!isSuperAdmin && !isArenaOwner) {
+      } else if (!isSuperAdmin) {
         if (location.pathname !== "/admin/login") {
           console.log("[PROTECTED ROUTE] Admin: [REDIRECT] Not an admin, moving home");
+          console.log("[ROLE DETECTED]", profile?.role);
           toast.error("Acesso negado: você não tem permissão de administrador.");
           navigate({ to: "/" });
         }
       }
     }
-  }, [user, isSuperAdmin, isArenaOwner, isLoading, initialized, navigate, location.pathname]);
+  }, [user, isSuperAdmin, isLoading, initialized, navigate, location.pathname, profile]);
 
   if (isLoading || !initialized) {
     return (
