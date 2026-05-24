@@ -6,7 +6,8 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
-import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useAuth } from "@/providers/AuthProvider";
+
 
 export const Route = createFileRoute("/")({
   component: Home,
