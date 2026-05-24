@@ -155,7 +155,8 @@ function Home() {
   }, [fetchReplays]);
 
   const filtered = useMemo(() => {
-    return replays.filter((r) => {
+    console.log("[DEBUG] Filtering replays. Total:", replays.length, "arenaId:", arenaId, "quadraId:", quadraId, "date:", date);
+    const result = replays.filter((r) => {
       if (quadraId && r.quadra_id !== quadraId) return false;
       if (arenaId && !quadraId) {
         const ok = quadras.some((q) => q.id === r.quadra_id);
@@ -171,6 +172,8 @@ function Home() {
       
       return true;
     });
+    console.log("[DEBUG] Filtered result count:", result.length);
+    return result;
   }, [replays, arenaId, quadraId, quadras, date, startHour, endHour]);
 
   const reward = () => {
