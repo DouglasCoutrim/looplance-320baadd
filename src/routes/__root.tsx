@@ -7,6 +7,7 @@ import {
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
+import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
@@ -154,8 +155,6 @@ function InnerRoot() {
   // If not a public path and no user, redirect to login
   if (!isPublicPath && !user) {
     console.log("Root: [REDIRECT] No session, moving to /login");
-    // We use window.location or router.navigate because we are inside a component
-    // but redirecting during render can be tricky. Using useEffect or a Navigate component is safer.
     return <Redirect to="/login" search={{ redirect: location.href }} />;
   }
 
