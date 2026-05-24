@@ -62,7 +62,7 @@ function AdminGuard() {
   }
 
   // Final check before rendering layout
-  if (!user || (!isSuperAdmin && !isArenaOwner)) {
+  if (!user || !isSuperAdmin) {
     return null;
   }
 
