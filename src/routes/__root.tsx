@@ -139,6 +139,18 @@ function InnerRoot() {
   const router = useRouter();
   const location = router.state.location;
 
+  // Debug log every render during loop investigation
+  useEffect(() => {
+    console.log("[AUTH ROUTE CHECK]", {
+      path: location.pathname,
+      user: !!user,
+      role: profile?.role,
+      isSuperAdmin,
+      isLoading,
+      initialized
+    });
+  }, [location.pathname, user, profile?.role, isSuperAdmin, isLoading, initialized]);
+
   // Global loading gate - wait for auth initialization
   if (isLoading || !initialized) {
     return (
@@ -149,31 +161,32 @@ function InnerRoot() {
   }
 
   // Centralized Route Protection Logic
-  const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js"];
-  const isPublicPath = publicPaths.includes(location.pathname);
+  const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js", "/favicon.png"];
+  // Normalize path by removing trailing slash for comparison
+  const normalizedPath = location.pathname === "/" ? "/" : location.pathname.replace(/\/$/, "");
+  const isPublicPath = publicPaths.includes(normalizedPath);
 
   // Protected route logic
   if (!isPublicPath && !user) {
-    console.log("[PROTECTED ROUTE] [REDIRECT] No session, moving to /login");
+    console.log("[PROTECTED ROUTE] [REDIRECT] No session, moving to /login from:", normalizedPath);
     return <Redirect to="/login" search={{ redirect: location.href }} />;
   }
 
   // Admin route protection
-  if (location.pathname.startsWith('/admin') && !isSuperAdmin) {
-    console.log("[PROTECTED ROUTE] [REDIRECT] Not super-admin, moving home");
-    console.log("[ROLE DETECTED]", profile?.role);
+  if (normalizedPath.startsWith('/admin') && normalizedPath !== '/admin/login' && !isSuperAdmin) {
+    console.log("[PROTECTED ROUTE] [REDIRECT] Not super-admin, moving home from:", normalizedPath);
     return <Redirect to="/" />;
   }
 
-  // Public-only paths
+  // Public-only paths (if logged in, don't go here)
   const publicOnlyPaths = ["/login", "/signup", "/admin/login"];
-  if (user && publicOnlyPaths.includes(location.pathname)) {
-    console.log("[REDIRECT] Already logged in, moving home");
+  if (user && publicOnlyPaths.includes(normalizedPath)) {
+    console.log("[REDIRECT] Already logged in, moving home from:", normalizedPath);
     return <Redirect to="/" />;
   }
 
   // Profile completeness check
-  if (user && !isPublicPath && location.pathname !== "/complete-profile" && !location.pathname.startsWith('/admin')) {
+  if (user && !isPublicPath && normalizedPath !== "/complete-profile" && !normalizedPath.startsWith('/admin')) {
     const isProfileIncomplete = !profile?.cpf || !profile?.birth_date;
     if (isProfileIncomplete && !isSuperAdmin) {
       console.log("[REDIRECT] Profile incomplete, moving to /complete-profile");

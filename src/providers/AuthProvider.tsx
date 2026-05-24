@@ -81,16 +81,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const initializeAuth = async () => {
       try {
         console.log("[AUTH INIT] Initializing...");
-        const { data: { session: initialSession } } = await supabase.auth.getSession();
+        const { data: { session: initialSession }, error: sessionError } = await supabase.auth.getSession();
         
+        if (sessionError) {
+          console.error("[AUTH ERROR] getSession error:", sessionError);
+        }
+
         if (!mounted) return;
 
         if (initialSession) {
           console.log("[SESSION LOADED] User ID:", initialSession.user.id, "Email:", initialSession.user.email);
           setSession(initialSession);
           setUser(initialSession.user);
+          
+          // Fetch profile before setting initialized to true
+          console.log("[AUTH INIT] Fetching profile for:", initialSession.user.id);
           const userProfile = await fetchProfile(initialSession.user.id);
+          
           if (mounted) {
+            console.log("[AUTH INIT] Profile set:", userProfile?.role || "no-role");
             setProfile(userProfile);
           }
         } else {
@@ -100,9 +109,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("[AUTH ERROR] Initialization failed:", error);
       } finally {
         if (mounted) {
+          console.log("[AUTH INIT] Setting initialized=true, isLoading=false");
           setInitialized(true);
           setIsLoading(false);
-          console.log("[AUTH INIT] Completed.");
         }
       }
     };
