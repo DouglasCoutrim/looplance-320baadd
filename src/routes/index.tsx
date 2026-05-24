@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef, useCallback } from "react";
 import { Toaster, toast } from "sonner";
 import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard, User, Loader2 } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -8,7 +8,6 @@ import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
 import { useAuth } from "@/providers/AuthProvider";
 import { Button } from "@/components/ui/button";
-
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -47,88 +46,15 @@ function Home() {
   
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
-  const { user, profile, signOut, isLoading: authLoading, isSuperAdmin, isArenaOwner } = useAuth();
+  const { user, profile, signOut, isLoading: authLoading, isSuperAdmin } = useAuth();
   
-  // Debug log to check profile on every render (useful for troubleshooting)
-  useEffect(() => {
-    if (!authLoading) {
-      console.log("Home - Estado da Auth:", { 
-        isLoggedIn: !!user, 
-        profileData: profile,
-        isSuperAdmin: profile?.is_super_admin 
-      });
-    }
-  }, [user, profile, authLoading]);
-
-  const isLoadingProfile = authLoading;
+  const observerTarget = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
-  const checkProfileCompleteness = async (userId: string) => {
-    try {
-      const { data: profile, error } = await supabase
-        .from("profiles")
-        .select("cpf, birth_date")
-        .eq("id", userId)
-        .maybeSingle();
-
-      if (error) {
-        console.error("Profile check error:", error);
-        return;
-      }
-
-      if (!profile || !profile.cpf || !profile.birth_date) {
-        navigate({ to: "/complete-profile" });
-      }
-    } catch (err) {
-      console.error("Profile check failed:", err);
-    }
-  };
-
-  // Initial load
-  useEffect(() => {
-    if (user && !authLoading) {
-      // Usar o perfil do AuthContext em vez de buscar de novo
-      if (profile && (!profile.cpf || !profile.birth_date)) {
-        console.log("Perfil incompleto detectado, redirecionando...");
-        navigate({ to: "/complete-profile" });
-      }
-    }
-
-    supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
-    fetchReplays();
-    fetchFeatured();
-  }, [user, authLoading, profile, navigate]);
-
-
-  const fetchFeatured = async () => {
-    const { data } = await supabase
-      .from("replays")
-      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
-      .order("created_at", { ascending: false })
-      .limit(3);
-    setFeaturedReplays((data ?? []) as Replay[]);
-  };
-
-  useEffect(() => {
-    if (featuredReplays.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentSlide((prev) => (prev + 1) % featuredReplays.length);
-    }, 5000);
-    return () => clearInterval(interval);
-  }, [featuredReplays]);
-
-  // Filter quadras when arena changes
-  useEffect(() => {
-    if (!arenaId) { setQuadras([]); setQuadraId(""); return; }
-    supabase.from("quadras").select("*").eq("arena_id", arenaId).order("nome")
-      .then(({ data }) => setQuadras(data ?? []));
-    setQuadraId("");
-  }, [arenaId]);
-
-  const fetchReplays = async (pageNum = 0) => {
+  // Optimized fetchReplays with pagination
+  const fetchReplays = useCallback(async (pageNum = 0) => {
     if (loadingReplays) return;
     setLoadingReplays(true);
-    console.log("Home: Fetching replays page", pageNum);
     
     try {
       const { data, error } = await supabase
@@ -149,30 +75,73 @@ function Home() {
         setPage(pageNum);
       }
     } catch (err) {
-      console.error("Error fetching replays:", err);
+      console.error("[AUTH ERROR] Error fetching replays:", err);
       toast.error("Erro ao carregar lances");
     } finally {
       setLoadingReplays(false);
     }
-  };
+  }, [loadingReplays]);
 
-  const loadMore = () => {
-    if (hasMore && !loadingReplays) {
-      fetchReplays(page + 1);
+  // Initial load
+  useEffect(() => {
+    supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
+    fetchReplays(0);
+    
+    // Fetch featured
+    supabase
+      .from("replays")
+      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .then(({ data }) => setFeaturedReplays((data ?? []) as Replay[]));
+  }, []);
+
+  // Intersection Observer for Infinite Scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      entries => {
+        if (entries[0].isIntersecting && hasMore && !loadingReplays) {
+          fetchReplays(page + 1);
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
     }
-  };
 
-  // Realtime
+    return () => observer.disconnect();
+  }, [hasMore, loadingReplays, page, fetchReplays]);
+
+  // Carousel logic
+  useEffect(() => {
+    if (featuredReplays.length <= 1) return;
+    const interval = setInterval(() => {
+      setCurrentSlide((prev) => (prev + 1) % featuredReplays.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [featuredReplays]);
+
+  // Filter quadras when arena changes
+  useEffect(() => {
+    if (!arenaId) { setQuadras([]); setQuadraId(""); return; }
+    supabase.from("quadras").select("*").eq("arena_id", arenaId).order("nome")
+      .then(({ data }) => setQuadras(data ?? []));
+    setQuadraId("");
+  }, [arenaId]);
+
+  // Realtime subscription - optimized to be unique
   useEffect(() => {
     const ch = supabase
       .channel("replays-feed")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "replays" }, () => {
-        fetchReplays();
+        fetchReplays(0);
         toast("🔥 Novo lance na quadra!");
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [fetchReplays]);
 
   const filtered = useMemo(() => {
     return replays.filter((r) => {
@@ -200,7 +169,6 @@ function Home() {
     setTimeout(() => setXpPops((arr) => arr.filter((p) => p.id !== id)), 1300);
   };
 
-
   return (
     <div className="relative min-h-screen bg-background text-foreground">
       <Toaster theme="light" position="top-center" />
@@ -217,7 +185,6 @@ function Home() {
       {/* Header */}
       <header className="sticky top-0 z-40 border-b border-white/10 bg-[#1C1B2F] shadow-xl h-14 sm:h-16">
         <div className="mx-auto flex h-full max-w-2xl items-center px-4">
-          {/* Left: XP Badge */}
           <div className="flex-1">
             <div className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 sm:px-2.5 sm:py-1 backdrop-blur-md">
               <Trophy className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-brand-orange" />
@@ -225,24 +192,21 @@ function Home() {
             </div>
           </div>
 
-          {/* Center: Logo */}
           <div className="flex-none relative flex justify-center items-center h-full">
             <img 
               src={logoUrl} 
               alt="Looplance" 
               className="h-24 sm:h-28 w-auto object-contain transition-transform hover:scale-105 z-50 animate-logo-float" 
-              style={{ marginTop: '0px' }}
             />
           </div>
 
-          {/* Right: Auth/Admin Links */}
           <div className="flex-1 flex justify-end items-center gap-3">
             {user ? (
               <button 
                 onClick={() => signOut()}
                 className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-red-500/50"
               >
-                <LogOut className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 transition-transform group-hover:scale-110" />
+                <LogOut className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
                 <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Sair</span>
               </button>
             ) : (
@@ -250,21 +214,17 @@ function Home() {
                 to="/login" 
                 className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
               >
-                <User className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange transition-transform group-hover:scale-110" />
+                <User className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange" />
                 <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Login</span>
               </Link>
             )}
-            {isLoadingProfile ? (
-              <div className="flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md">
-                <div className="h-4 w-4 sm:h-5 sm:w-5 animate-spin rounded-full border-2 border-brand-orange border-t-transparent" />
-                <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/50 tracking-widest">...</span>
-              </div>
-            ) : (isSuperAdmin === true) && (
+            
+            {!authLoading && isSuperAdmin && (
               <Link 
                 to="/admin" 
                 className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
               >
-                <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange transition-transform group-hover:scale-110" />
+                <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange" />
                 <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
               </Link>
             )}
@@ -273,7 +233,7 @@ function Home() {
       </header>
 
       <main className="mx-auto max-w-2xl space-y-8 px-6 pb-24 pt-10">
-        {/* Hero / Dynamic Video Carousel */}
+        {/* Hero Carousel */}
         <section className="relative overflow-hidden rounded-3xl bg-black shadow-2xl ring-1 ring-white/10">
           <div className="aspect-[9/16] w-full overflow-hidden relative">
             {featuredReplays.length > 0 ? (
@@ -295,22 +255,15 @@ function Home() {
             ) : (
               <div className="absolute inset-0 brand-gradient opacity-20" />
             )}
-            
-            {/* Overlay Gradient */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
-            
-            {/* Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-end p-8 text-center pb-12">
-              <h1 className="text-4xl font-black leading-tight tracking-tight text-white drop-shadow-lg">
+              <h1 className="text-4xl font-black text-white drop-shadow-lg">
                 Seus lances <span className="brand-text">em loop.</span>
               </h1>
-              <p className="mt-3 text-base text-white/80 leading-relaxed font-medium max-w-[280px]">
+              <p className="mt-3 text-base text-white/80 font-medium max-w-[280px]">
                 Selecione a arena, escolha a quadra e reviva cada jogada.
               </p>
-              
             </div>
-
-            {/* Pagination Dots */}
             {featuredReplays.length > 1 && (
               <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
                 {featuredReplays.map((_, idx) => (
@@ -324,7 +277,7 @@ function Home() {
           </div>
         </section>
 
-        {/* Location selectors */}
+        {/* Selectors */}
         <section className="glass-card space-y-5 p-6 bg-white shadow-md border border-gray-200">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/80">
             <MapPin className="h-3.5 w-3.5" /> Localização
@@ -382,18 +335,10 @@ function Home() {
                 {filtered.map((r) => <ReplayCard key={r.id} replay={r} onReward={reward} />)}
               </div>
               
-              {hasMore && (
-                <div className="flex justify-center pb-8">
-                  <Button 
-                    onClick={loadMore} 
-                    disabled={loadingReplays}
-                    variant="outline"
-                    className="rounded-xl border-gray-200 font-bold uppercase tracking-widest px-8"
-                  >
-                    {loadingReplays ? "Carregando..." : "Carregar mais"}
-                  </Button>
-                </div>
-              )}
+              {/* Observer Target for Infinite Scroll */}
+              <div ref={observerTarget} className="h-10 flex justify-center items-center">
+                {loadingReplays && <Loader2 className="h-6 w-6 animate-spin text-brand-orange" />}
+              </div>
             </div>
           )}
         </section>
@@ -432,7 +377,7 @@ function TimeInput({ label, value, onChange }: { label: string; value: string; o
       >
         <option value="">--:00</option>
         {Array.from({ length: 24 }).map((_, h) => (
-          <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
+          <option key={h} value={h}>{h.toString().padStart(2, "0")}:00</option>
         ))}
       </select>
     </div>
@@ -441,16 +386,12 @@ function TimeInput({ label, value, onChange }: { label: string; value: string; o
 
 function EmptyState() {
   return (
-    <div className="glass-card flex flex-col items-center gap-6 px-6 py-16 text-center bg-white shadow-md border border-gray-200">
-      <div className="brand-gradient grid h-20 w-20 place-items-center rounded-full brand-glow shadow-lg transition-transform hover:scale-105">
-        <Play className="h-9 w-9 fill-white text-white" />
+    <div className="flex flex-col items-center justify-center py-20 text-center glass-card bg-white/50">
+      <div className="mb-4 rounded-full bg-muted p-4">
+        <Play className="h-8 w-8 text-muted-foreground" />
       </div>
-      <div className="max-w-[280px] space-y-2">
-        <h3 className="text-lg font-black text-gray-900">Aguardando o lance...</h3>
-        <p className="text-sm font-medium text-muted-foreground leading-relaxed">
-          Aperte o botão na quadra e o seu replay aparecerá aqui em poucos segundos!
-        </p>
-      </div>
+      <h3 className="text-lg font-bold text-gray-900">Nenhum lance encontrado</h3>
+      <p className="max-w-[260px] text-sm text-muted-foreground">Tente ajustar os filtros ou escolha outra quadra.</p>
     </div>
   );
 }
