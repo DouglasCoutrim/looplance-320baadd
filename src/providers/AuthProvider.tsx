@@ -90,45 +90,38 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const initializeAuth = async () => {
       try {
-        console.log("[AUTH INIT] Getting session with timeout...");
+        console.log("[AUTH INIT] Getting session...");
         
-        // Add a timeout to session fetching to prevent permanent hang
-        const sessionPromise = supabase.auth.getSession();
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Session fetch timeout")), 5000)
-        );
-
-        const { data: { session: initialSession }, error: sessionError } = await Promise.race([
-          sessionPromise,
-          timeoutPromise
-        ]) as any;
-        
-        if (sessionError) {
-          console.error("[AUTH ERROR] getSession error:", sessionError);
+        let initialSession = null;
+        try {
+          const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+          if (sessionError) console.error("[AUTH ERROR] getSession error:", sessionError);
+          initialSession = session;
+        } catch (err) {
+          console.error("[AUTH ERROR] getSession catch:", err);
         }
 
         if (!mounted) return;
 
         if (initialSession) {
-          console.log("[SESSION LOADED] User ID:", initialSession.user.id, "Email:", initialSession.user.email);
+          console.log("[SESSION LOADED] User ID:", initialSession.user.id);
           setSession(initialSession);
           setUser(initialSession.user);
           
-          // Fetch profile before setting initialized to true
+          // Fetch profile
           const userProfile = await fetchProfile(initialSession.user.id);
-          
           if (mounted && userProfile) {
             console.log("[AUTH INIT] Profile set:", userProfile.role);
             setProfile(userProfile);
           }
         } else {
-          console.log("[AUTH INIT] No session found.");
+          console.log("[AUTH INIT] No initial session found.");
         }
       } catch (error) {
-        console.error("[AUTH ERROR] Initialization failed:", error);
+        console.error("[AUTH ERROR] Initialization critical failure:", error);
       } finally {
         if (mounted) {
-          console.log("[AUTH INIT] Completed. Setting initialized=true");
+          console.log("[AUTH INIT] Setting initialized=true");
           setInitialized(true);
           setIsLoading(false);
         }
