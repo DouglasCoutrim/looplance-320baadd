@@ -63,6 +63,7 @@ function Home() {
 
   // Optimized fetchReplays with pagination
   const fetchReplays = useCallback(async (pageNum = 0) => {
+    console.log("[DEBUG] fetchReplays called, pageNum:", pageNum, "loadingReplays:", loadingReplays);
     if (loadingReplays) return;
     setLoadingReplays(true);
     
