@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, email, is_super_admin, is_arena_owner, full_name, cpf, birth_date")
         .eq("id", userId)
         .maybeSingle();
 
@@ -48,6 +48,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         console.error("Error fetching profile:", error);
         return;
       }
+      
+      console.log("Dados do Perfil:", data);
       setProfile(data as Profile);
     } catch (err) {
       console.error("Unexpected error fetching profile:", err);

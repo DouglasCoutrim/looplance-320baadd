@@ -45,7 +45,7 @@ export const Route = createFileRoute("/admin")({
         return;
       }
 
-      if (!profile?.is_super_admin && !profile?.is_arena_owner) {
+      if (profile?.is_super_admin !== true) {
         throw redirect({ to: "/" });
       }
     } catch (err) {
