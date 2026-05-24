@@ -105,11 +105,19 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     if (location.pathname !== "/complete-profile") {
       try {
         console.log("Root: Fetching profile for completeness check...");
-        const { data: profile, error } = await supabase
+        
+        // Adicionando um timeout manual para evitar travamento eterno caso o Supabase demore
+        const profilePromise = supabase
           .from("profiles")
           .select("cpf, birth_date, is_super_admin")
           .eq("id", user.id)
           .maybeSingle();
+          
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Timeout ao buscar perfil")), 5000)
+        );
+
+        const { data: profile, error } = await (Promise.race([profilePromise, timeoutPromise]) as Promise<{ data: any, error: any }>);
 
         if (error) {
           console.error("Root: Error fetching profile in beforeLoad:", error);
@@ -131,7 +139,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
         }
       } catch (err) {
         if (err && typeof err === 'object' && 'to' in err) throw err;
-        console.error("Root: Profile check failed unexpectedly:", err);
+        console.error("Root: Profile check failed or timed out:", err);
       }
     }
 

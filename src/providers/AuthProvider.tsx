@@ -17,6 +17,7 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   isLoading: boolean;
+  isProfileLoading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -26,6 +27,7 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   isLoading: true,
+  isProfileLoading: false,
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -82,7 +84,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          await fetchProfile(session.user.id);
+          // Iniciar busca do perfil mas não necessariamente bloquear a interface principal
+          // a menos que estejamos em uma rota que dependa estritamente dele.
+          fetchProfile(session.user.id);
         }
       } catch (error) {
         console.error("AuthProvider: Erro na inicialização do auth:", error);
@@ -108,7 +112,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (session?.user) {
           if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-            await fetchProfile(session.user.id);
+            fetchProfile(session.user.id);
           }
         } else {
           setProfile(null);
@@ -141,7 +145,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       session, 
       user, 
       profile, 
-      isLoading, // Only wait for the initial auth/profile check once
+      isLoading,
+      isProfileLoading,
       signOut, 
       refreshProfile 
     }}>
