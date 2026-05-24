@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 
@@ -11,8 +11,6 @@ export interface Profile {
   full_name?: string | null;
   cpf?: string | null;
   birth_date?: string | null;
-  is_super_admin: boolean | null;
-  is_arena_owner: boolean | null;
 }
 
 interface AuthContextType {
@@ -20,54 +18,49 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   isLoading: boolean;
+  initialized: boolean;
+  isAuthenticated: boolean;
   isSuperAdmin: boolean;
   isArenaOwner: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType>({
-  session: null,
-  user: null,
-  profile: null,
-  isLoading: true,
-  isSuperAdmin: false,
-  isArenaOwner: false,
-  signOut: async () => {},
-  refreshProfile: async () => {},
-});
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [initialized, setInitialized] = useState(false);
   const fetchingRef = useRef<string | null>(null);
 
   const fetchProfile = useCallback(async (userId: string) => {
     if (fetchingRef.current === userId) {
-      console.log("AuthProvider: [SKIP] Already fetching profile for:", userId);
       return null;
     }
 
     try {
       fetchingRef.current = userId;
-      console.log("AuthProvider: [START] Fetching profile for:", userId);
+      console.log("[PROFILE LOADED] Start for:", userId);
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, role, is_super_admin, is_arena_owner, full_name, cpf, birth_date")
+        .select("id, email, role, full_name, cpf, birth_date")
         .eq("id", userId)
         .maybeSingle();
 
       if (error) {
-        console.error("AuthProvider: [ERROR] Failed to fetch profile:", error);
+        console.error("[AUTH ERROR] Failed to fetch profile:", error);
         return null;
       }
 
-      console.log("AuthProvider: [SUCCESS] Profile loaded:", data);
+      if (data) {
+        console.log("[ROLE DETECTED]", data.role);
+      }
       return data as Profile;
     } catch (err) {
-      console.error("AuthProvider: [ERROR] Unexpected error fetching profile:", err);
+      console.error("[AUTH ERROR] Unexpected error fetching profile:", err);
       return null;
     } finally {
       fetchingRef.current = null;
@@ -86,28 +79,29 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const initializeAuth = async () => {
       try {
-        console.log("AuthProvider: [INIT] Initializing auth state...");
+        console.log("[AUTH INIT] Initializing...");
         const { data: { session: initialSession } } = await supabase.auth.getSession();
         
         if (!mounted) return;
 
         if (initialSession) {
-          console.log("AuthProvider: [INIT] Session found, fetching profile...");
+          console.log("[SESSION LOADED] User ID:", initialSession.user.id);
+          setSession(initialSession);
+          setUser(initialSession.user);
           const userProfile = await fetchProfile(initialSession.user.id);
           if (mounted) {
-            setSession(initialSession);
-            setUser(initialSession.user);
             setProfile(userProfile);
           }
         } else {
-          console.log("AuthProvider: [INIT] No initial session found.");
+          console.log("[AUTH INIT] No session found.");
         }
       } catch (error) {
-        console.error("AuthProvider: [ERROR] Initialization failed:", error);
+        console.error("[AUTH ERROR] Initialization failed:", error);
       } finally {
         if (mounted) {
+          setInitialized(true);
           setIsLoading(false);
-          console.log("AuthProvider: [INIT] Completed.");
+          console.log("[AUTH INIT] Completed.");
         }
       }
     };
@@ -116,7 +110,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, currentSession) => {
-        console.log(`AuthProvider: [EVENT] ${event}`);
+        console.log(`[AUTH EVENT] ${event}`);
         
         if (!mounted) return;
 
@@ -126,7 +120,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           
           if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
             const userProfile = await fetchProfile(currentSession.user.id);
-            if (mounted && userProfile) setProfile(userProfile);
+            if (mounted) setProfile(userProfile);
           }
         } else {
           setSession(null);
@@ -146,10 +140,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      console.log("AuthProvider: [ACTION] Signing out...");
+      console.log("[AUTH ACTION] Signing out...");
       await supabase.auth.signOut();
     } catch (error) {
-      console.error("AuthProvider: [ERROR] Sign out failed:", error);
+      console.error("[AUTH ERROR] Sign out failed:", error);
     } finally {
       setSession(null);
       setUser(null);
@@ -157,20 +151,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const isSuperAdmin = profile?.role === 'super-admin' || !!profile?.is_super_admin;
-  const isArenaOwner = profile?.role === 'arena-owner' || !!profile?.is_arena_owner;
+  const contextValue = useMemo(() => ({
+    session,
+    user,
+    profile,
+    isLoading,
+    initialized,
+    isAuthenticated: !!user,
+    isSuperAdmin: profile?.role === 'super-admin',
+    isArenaOwner: profile?.role === 'arena-owner',
+    signOut,
+    refreshProfile
+  }), [session, user, profile, isLoading, initialized]);
 
   return (
-    <AuthContext.Provider value={{ 
-      session, 
-      user, 
-      profile, 
-      isLoading,
-      isSuperAdmin,
-      isArenaOwner,
-      signOut, 
-      refreshProfile 
-    }}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );
