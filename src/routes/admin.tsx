@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useLocation, useNavigate, redirect } from "@tanstack/react-router";
 import { 
   Tv, 
   HardDrive, 
@@ -27,20 +27,32 @@ export const Route = createFileRoute("/admin")({
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {
-      throw new Error("unauthorized");
+      throw redirect({ to: "/admin/login" });
     }
 
     // Check if super admin
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("is_super_admin")
-      .eq("id", session.user.id)
-      .single();
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("is_super_admin")
+        .eq("id", session.user.id)
+        .maybeSingle();
 
-    if (!profile?.is_super_admin) {
+      if (error) {
+        console.error("Admin check error:", error);
+        // If we can't check, assume forbidden for safety but don't redirect to login if we have a session
+        throw new Error("forbidden");
+      }
+
+      if (!profile?.is_super_admin) {
+        throw new Error("forbidden");
+      }
+    } catch (err) {
+      if (err instanceof Error && 'to' in err) throw err;
       throw new Error("forbidden");
     }
   },
+
   errorComponent: ({ error }: { error: any }) => {
     const navigate = useNavigate();
     

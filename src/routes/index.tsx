@@ -6,7 +6,8 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
-import { User as SupabaseUser } from "@supabase/supabase-js";
+import { useAuth } from "@/providers/AuthProvider";
+
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -42,62 +43,52 @@ function Home() {
   
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const { user, signOut } = useAuth();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const navigate = useNavigate();
 
   const checkProfileCompleteness = async (userId: string) => {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("cpf, birth_date")
-      .eq("id", userId)
-      .single();
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("cpf, birth_date")
+        .eq("id", userId)
+        .maybeSingle();
 
-    if (!profile || !profile.cpf || !profile.birth_date) {
-      navigate({ to: "/complete-profile" });
+      if (error) {
+        console.error("Profile check error:", error);
+        return;
+      }
+
+      if (!profile || !profile.cpf || !profile.birth_date) {
+        navigate({ to: "/complete-profile" });
+      }
+    } catch (err) {
+      console.error("Profile check failed:", err);
     }
   };
 
   // Initial load
   useEffect(() => {
-    const fetchUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        checkProfileCompleteness(user.id);
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("is_super_admin")
-          .eq("id", user.id)
-          .maybeSingle();
-        setIsSuperAdmin(!!profile?.is_super_admin);
-      }
-    };
-
-    fetchUserData();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        checkProfileCompleteness(currentUser.id);
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("is_super_admin")
-          .eq("id", currentUser.id)
-          .maybeSingle();
-        setIsSuperAdmin(!!profile?.is_super_admin);
-      } else {
-        setIsSuperAdmin(false);
-      }
-    });
+    if (user) {
+      checkProfileCompleteness(user.id);
+      supabase
+        .from("profiles")
+        .select("is_super_admin")
+        .eq("id", user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          setIsSuperAdmin(!!data?.is_super_admin);
+        });
+    } else {
+      setIsSuperAdmin(false);
+    }
 
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
     fetchFeatured();
+  }, [user]);
 
-    return () => subscription.unsubscribe();
-  }, []);
 
   const fetchFeatured = async () => {
     const { data } = await supabase
@@ -210,7 +201,7 @@ function Home() {
           <div className="flex-1 flex justify-end items-center gap-3">
             {user ? (
               <button 
-                onClick={() => supabase.auth.signOut()}
+                onClick={() => signOut()}
                 className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-red-500/50"
               >
                 <LogOut className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 transition-transform group-hover:scale-110" />

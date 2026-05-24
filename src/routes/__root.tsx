@@ -12,6 +12,10 @@ import {
 import appCss from "../styles.css?url";
 import { supabase } from "@/integrations/supabase/client";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
+import { AuthProvider, useAuth } from "@/providers/AuthProvider";
+import { RouterContext } from "../router";
+import { Loader2 } from "lucide-react";
+
 
 
 function NotFoundComponent() {
@@ -71,14 +75,20 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ location }) => {
     const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js"];
-    if (publicPaths.includes(location.pathname)) return;
-
+    
+    // Check session
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
-    
+
+    // If it's a public path, we don't need to redirect to login
+    if (publicPaths.includes(location.pathname)) {
+      return { user, session };
+    }
+
+    // Not a public path and no user? Redirect to login
     if (!user) {
       throw redirect({ 
         to: "/login",
@@ -88,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       });
     }
 
-    // Check profile completeness for logged in users
+    // Check profile completeness for logged in users on protected routes
     if (location.pathname !== "/complete-profile") {
       try {
         const { data: profile, error } = await supabase
@@ -98,8 +108,10 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           .maybeSingle();
 
         if (error) {
-          console.error("Error fetching profile:", error);
-          return;
+          console.error("Error fetching profile in beforeLoad:", error);
+          // If it's a permission error (RLS), don't kick the user out
+          // Just let them through and handle it in the component if needed
+          return { user, session };
         }
 
         // If no profile found or missing required fields, redirect to complete-profile
@@ -107,11 +119,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           throw redirect({ to: "/complete-profile" });
         }
       } catch (err) {
-        if (err instanceof Error && 'to' in err) throw err;
+        // If it's a redirect, re-throw it
+        if (err && typeof err === 'object' && 'to' in err) throw err;
         console.error("Profile check failed:", err);
       }
     }
+
+    return { user, session };
   },
+
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -140,6 +156,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 
   shellComponent: RootShell,
   component: RootComponent,
+  pendingComponent: () => (
+    <div className="flex min-h-screen items-center justify-center bg-black">
+      <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
+    </div>
+  ),
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
@@ -161,7 +182,24 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  return (
+    <AuthProvider>
+      <InnerRoot />
+    </AuthProvider>
+  );
+}
+
+function InnerRoot() {
   const { queryClient } = Route.useRouteContext();
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
+      </div>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
