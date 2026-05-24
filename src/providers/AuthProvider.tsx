@@ -176,6 +176,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  useEffect(() => {
+    // Safety timer to prevent being stuck on loader
+    const safetyTimer = setTimeout(() => {
+      if (!initialized) {
+        console.warn("[AUTH] Initialization taking too long, forcing state...");
+        setInitialized(true);
+        setIsLoading(false);
+      }
+    }, 6000);
+
+    return () => {
+      clearTimeout(safetyTimer);
+    };
+  }, [initialized]);
+
   const contextValue = useMemo(() => ({
     session,
     user,
