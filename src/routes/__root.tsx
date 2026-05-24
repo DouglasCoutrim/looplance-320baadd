@@ -193,29 +193,6 @@ function InnerRoot() {
     );
   }
 
-  // If we are about to redirect (based on the same logic as useEffect), show a loader
-  const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js", "/favicon.png"];
-  const isPublicPath = publicPaths.includes(normalizedPath);
-  const publicOnlyPaths = ["/login", "/signup", "/admin/login"];
-  
-  const willRedirect = 
-    (!isPublicPath && !user) || 
-    (normalizedPath.startsWith('/admin') && normalizedPath !== '/admin/login' && !isSuperAdmin) ||
-    (user && publicOnlyPaths.includes(normalizedPath));
-
-  if (willRedirect) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
-          <p className="text-white/50 text-xs font-bold uppercase tracking-widest animate-pulse">
-            Redirecionando...
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
