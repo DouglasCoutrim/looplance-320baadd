@@ -151,6 +151,12 @@ function InnerRoot() {
     const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js", "/favicon.png"];
     const isPublicPath = publicPaths.includes(normalizedPath);
 
+    // Debug logs
+    if (user && profile) {
+      console.log("[ROLE]", profile.role);
+      console.log("[ADMIN ACCESS]", isSuperAdmin);
+    }
+
     // 1. Protected route logic
     if (!isPublicPath && !user) {
       console.log("[AUTH REDIRECT] No session, moving to /login from:", normalizedPath);
@@ -159,10 +165,15 @@ function InnerRoot() {
     }
 
     // 2. Admin route protection
-    if (normalizedPath.startsWith('/admin') && normalizedPath !== '/admin/login' && !isSuperAdmin) {
-      console.log("[AUTH REDIRECT] Not super-admin, moving home from:", normalizedPath);
-      navigate({ to: "/", replace: true });
-      return;
+    if (normalizedPath.startsWith('/admin') && normalizedPath !== '/admin/login') {
+      if (!isSuperAdmin) {
+        console.log("[ADMIN ROUTE] blocked (not super-admin)");
+        console.log("[AUTH REDIRECT] Not super-admin, moving home from:", normalizedPath);
+        navigate({ to: "/", replace: true });
+        return;
+      } else {
+        console.log("[ADMIN ROUTE] allowed");
+      }
     }
 
     // 3. Public-only paths
