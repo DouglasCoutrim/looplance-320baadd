@@ -6,17 +6,13 @@ import {
   useRouter,
   HeadContent,
   Scripts,
-  redirect,
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { supabase } from "@/integrations/supabase/client";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
 import { RouterContext } from "../router";
 import { Loader2 } from "lucide-react";
-
-
 
 function NotFoundComponent() {
   return (
@@ -76,76 +72,6 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<RouterContext>()({
-  beforeLoad: async ({ location }) => {
-    const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js"];
-    
-    console.log("Root: Checking path:", location.pathname);
-    
-    // Check session
-    const { data: { session } } = await supabase.auth.getSession();
-    const user = session?.user;
-
-    // If it's a public path, we don't need to redirect to login
-    if (publicPaths.includes(location.pathname)) {
-      return { user, session };
-    }
-
-    // Not a public path and no user? Redirect to login
-    if (!user) {
-      console.log("Root: No user found, redirecting to login");
-      throw redirect({ 
-        to: "/login",
-        search: {
-          redirect: location.href,
-        },
-      });
-    }
-
-    // Check profile completeness for logged in users on protected routes
-    if (location.pathname !== "/complete-profile") {
-      try {
-        console.log("Root: Fetching profile for completeness check...");
-        
-        // Adicionando um timeout manual para evitar travamento eterno caso o Supabase demore
-        const profilePromise = supabase
-          .from("profiles")
-          .select("cpf, birth_date, is_super_admin")
-          .eq("id", user.id)
-          .maybeSingle();
-          
-        const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Timeout ao buscar perfil")), 5000)
-        );
-
-        const { data: profile, error } = await (Promise.race([profilePromise, timeoutPromise]) as Promise<{ data: any, error: any }>);
-
-        if (error) {
-          console.error("Root: Error fetching profile in beforeLoad:", error);
-          return { user, session };
-        }
-
-        console.log("Root: Profile data for check:", profile);
-
-        // Se for Super Admin, não precisa completar o perfil para navegar
-        if (profile?.is_super_admin) {
-          console.log("Root: User is Super Admin, skipping completeness check");
-          return { user, session };
-        }
-
-        // If no profile found or missing required fields, redirect to complete-profile
-        if (!profile || !profile.cpf || !profile.birth_date) {
-          console.log("Root: Profile incomplete, redirecting to complete-profile");
-          throw redirect({ to: "/complete-profile" });
-        }
-      } catch (err) {
-        if (err && typeof err === 'object' && 'to' in err) throw err;
-        console.error("Root: Profile check failed or timed out:", err);
-      }
-    }
-
-    return { user, session };
-  },
-
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -194,7 +120,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
         <PWAInstallPrompt />
         <Scripts />
       </body>
-
     </html>
   );
 }
@@ -209,8 +134,11 @@ function RootComponent() {
 
 function InnerRoot() {
   const { queryClient } = Route.useRouteContext();
-  const { isLoading } = useAuth();
+  const { user, profile, isLoading } = useAuth();
+  const router = useRouter();
+  const location = router.state.location;
 
+  // Global loading gate
   if (isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-black">
@@ -219,9 +147,46 @@ function InnerRoot() {
     );
   }
 
+  // Centralized Route Protection Logic
+  const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js"];
+  const isPublicPath = publicPaths.includes(location.pathname);
+
+  // If not a public path and no user, redirect to login
+  if (!isPublicPath && !user) {
+    console.log("Root: [REDIRECT] No session, moving to /login");
+    // We use window.location or router.navigate because we are inside a component
+    // but redirecting during render can be tricky. Using useEffect or a Navigate component is safer.
+    return <Redirect to="/login" search={{ redirect: location.href }} />;
+  }
+
+  // Check profile completeness for logged in users
+  if (user && !isPublicPath && location.pathname !== "/complete-profile" && !location.pathname.startsWith('/admin')) {
+    const isProfileIncomplete = !profile?.cpf || !profile?.birth_date;
+    const isSuperAdmin = profile?.role === 'super-admin' || !!profile?.is_super_admin;
+
+    if (isProfileIncomplete && !isSuperAdmin) {
+      console.log("Root: [REDIRECT] Profile incomplete, moving to /complete-profile");
+      return <Redirect to="/complete-profile" />;
+    }
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
     </QueryClientProvider>
+  );
+}
+
+// Helper component for stable redirects within render
+function Redirect({ to, search }: { to: string; search?: any }) {
+  const navigate = useRouter().navigate;
+  useEffect(() => {
+    navigate({ to, search, replace: true });
+  }, [navigate, to, search]);
+  
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-black">
+      <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
+    </div>
   );
 }
