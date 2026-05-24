@@ -4,12 +4,12 @@ import { Session, User } from "@supabase/supabase-js";
 
 interface Profile {
   id: string;
-  email: string;
-  is_super_admin: boolean;
-  is_arena_owner: boolean;
-  full_name?: string;
-  cpf?: string;
-  birth_date?: string;
+  email: string | null;
+  is_super_admin: boolean | null;
+  is_arena_owner: boolean | null;
+  full_name?: string | null;
+  cpf?: string | null;
+  birth_date?: string | null;
 }
 
 interface AuthContextType {
