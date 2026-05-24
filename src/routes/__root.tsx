@@ -182,7 +182,24 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
+  return (
+    <AuthProvider>
+      <InnerRoot />
+    </AuthProvider>
+  );
+}
+
+function InnerRoot() {
   const { queryClient } = Route.useRouteContext();
+  const { isLoading } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-black">
+        <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
+      </div>
+    );
+  }
 
   return (
     <QueryClientProvider client={queryClient}>
