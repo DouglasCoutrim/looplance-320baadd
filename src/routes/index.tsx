@@ -43,62 +43,52 @@ function Home() {
   
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
-  const [user, setUser] = useState<SupabaseUser | null>(null);
+  const { user, signOut } = useAuth();
   const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const navigate = useNavigate();
 
   const checkProfileCompleteness = async (userId: string) => {
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("cpf, birth_date")
-      .eq("id", userId)
-      .single();
+    try {
+      const { data: profile, error } = await supabase
+        .from("profiles")
+        .select("cpf, birth_date")
+        .eq("id", userId)
+        .maybeSingle();
 
-    if (!profile || !profile.cpf || !profile.birth_date) {
-      navigate({ to: "/complete-profile" });
+      if (error) {
+        console.error("Profile check error:", error);
+        return;
+      }
+
+      if (!profile || !profile.cpf || !profile.birth_date) {
+        navigate({ to: "/complete-profile" });
+      }
+    } catch (err) {
+      console.error("Profile check failed:", err);
     }
   };
 
   // Initial load
   useEffect(() => {
-    const fetchUserData = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (user) {
-        checkProfileCompleteness(user.id);
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("is_super_admin")
-          .eq("id", user.id)
-          .maybeSingle();
-        setIsSuperAdmin(!!profile?.is_super_admin);
-      }
-    };
-
-    fetchUserData();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      const currentUser = session?.user ?? null;
-      setUser(currentUser);
-      if (currentUser) {
-        checkProfileCompleteness(currentUser.id);
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("is_super_admin")
-          .eq("id", currentUser.id)
-          .maybeSingle();
-        setIsSuperAdmin(!!profile?.is_super_admin);
-      } else {
-        setIsSuperAdmin(false);
-      }
-    });
+    if (user) {
+      checkProfileCompleteness(user.id);
+      supabase
+        .from("profiles")
+        .select("is_super_admin")
+        .eq("id", user.id)
+        .maybeSingle()
+        .then(({ data }) => {
+          setIsSuperAdmin(!!data?.is_super_admin);
+        });
+    } else {
+      setIsSuperAdmin(false);
+    }
 
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
     fetchFeatured();
+  }, [user]);
 
-    return () => subscription.unsubscribe();
-  }, []);
 
   const fetchFeatured = async () => {
     const { data } = await supabase
