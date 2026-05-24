@@ -1,15 +1,18 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Session, User } from "@supabase/supabase-js";
 
-interface Profile {
+export type UserRole = 'super-admin' | 'arena-owner' | 'user';
+
+export interface Profile {
   id: string;
   email: string | null;
-  is_super_admin: boolean | null;
-  is_arena_owner: boolean | null;
+  role: UserRole;
   full_name?: string | null;
   cpf?: string | null;
   birth_date?: string | null;
+  is_super_admin: boolean | null;
+  is_arena_owner: boolean | null;
 }
 
 interface AuthContextType {
@@ -17,7 +20,8 @@ interface AuthContextType {
   user: User | null;
   profile: Profile | null;
   isLoading: boolean;
-  isProfileLoading: boolean;
+  isSuperAdmin: boolean;
+  isArenaOwner: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
 }
@@ -27,7 +31,8 @@ const AuthContext = createContext<AuthContextType>({
   user: null,
   profile: null,
   isLoading: true,
-  isProfileLoading: false,
+  isSuperAdmin: false,
+  isArenaOwner: false,
   signOut: async () => {},
   refreshProfile: async () => {},
 });
@@ -37,84 +42,87 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isProfileLoading, setIsProfileLoading] = useState(false);
 
-  const fetchProfile = async (userId: string) => {
-    // Avoid double fetching if already loading
-    if (isProfileLoading) return;
-    
-    setIsProfileLoading(true);
+  const fetchProfile = useCallback(async (userId: string) => {
     try {
-      console.log("AuthProvider: Buscando perfil para:", userId);
+      console.log("AuthProvider: [START] Fetching profile for:", userId);
       const { data, error } = await supabase
         .from("profiles")
-        .select("id, email, is_super_admin, is_arena_owner, full_name, cpf, birth_date")
+        .select("id, email, role, is_super_admin, is_arena_owner, full_name, cpf, birth_date")
         .eq("id", userId)
         .maybeSingle();
 
       if (error) {
-        console.error("AuthProvider: Erro ao buscar perfil:", error);
-      } else {
-        console.log("AuthProvider: Dados do Perfil recebidos:", data);
-        setProfile(data as Profile);
+        console.error("AuthProvider: [ERROR] Failed to fetch profile:", error);
+        return null;
       }
+
+      console.log("AuthProvider: [SUCCESS] Profile loaded:", data);
+      return data as Profile;
     } catch (err) {
-      console.error("AuthProvider: Erro inesperado ao buscar perfil:", err);
-    } finally {
-      setIsProfileLoading(false);
+      console.error("AuthProvider: [ERROR] Unexpected error fetching profile:", err);
+      return null;
     }
-  };
+  }, []);
 
   const refreshProfile = async () => {
-    if (user) await fetchProfile(user.id);
+    if (user) {
+      const updatedProfile = await fetchProfile(user.id);
+      setProfile(updatedProfile);
+    }
   };
 
   useEffect(() => {
     let mounted = true;
 
-    // Initial session check
-    const initAuth = async () => {
+    const initializeAuth = async () => {
       try {
-        console.log("AuthProvider: Iniciando verificação de auth...");
-        const { data: { session } } = await supabase.auth.getSession();
+        console.log("AuthProvider: [INIT] Initializing auth state...");
+        const { data: { session: initialSession } } = await supabase.auth.getSession();
         
         if (!mounted) return;
 
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Iniciar busca do perfil mas não necessariamente bloquear a interface principal
-          // a menos que estejamos em uma rota que dependa estritamente dele.
-          fetchProfile(session.user.id);
+        if (initialSession) {
+          console.log("AuthProvider: [INIT] Session found, fetching profile...");
+          const userProfile = await fetchProfile(initialSession.user.id);
+          if (mounted) {
+            setSession(initialSession);
+            setUser(initialSession.user);
+            setProfile(userProfile);
+          }
+        } else {
+          console.log("AuthProvider: [INIT] No initial session found.");
         }
       } catch (error) {
-        console.error("AuthProvider: Erro na inicialização do auth:", error);
+        console.error("AuthProvider: [ERROR] Initialization failed:", error);
       } finally {
         if (mounted) {
-          console.log("AuthProvider: Inicialização concluída.");
           setIsLoading(false);
+          console.log("AuthProvider: [INIT] Completed.");
         }
       }
     };
 
-    initAuth();
+    initializeAuth();
 
-    // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("AuthProvider: Evento de mudança de auth:", event);
+      async (event, currentSession) => {
+        console.log(`AuthProvider: [EVENT] ${event}`);
         
         if (!mounted) return;
 
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED') {
-            fetchProfile(session.user.id);
+        if (currentSession) {
+          setSession(currentSession);
+          setUser(currentSession.user);
+          
+          // Only fetch profile if it's a significant event or we don't have it
+          if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED' || event === 'USER_UPDATED' || !profile) {
+            const userProfile = await fetchProfile(currentSession.user.id);
+            if (mounted) setProfile(userProfile);
           }
         } else {
+          setSession(null);
+          setUser(null);
           setProfile(null);
         }
         
@@ -126,13 +134,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, []);
+  }, [fetchProfile, profile]);
 
   const signOut = async () => {
     try {
+      console.log("AuthProvider: [ACTION] Signing out...");
       await supabase.auth.signOut();
     } catch (error) {
-      console.error("AuthProvider: Erro ao sair:", error);
+      console.error("AuthProvider: [ERROR] Sign out failed:", error);
     } finally {
       setSession(null);
       setUser(null);
@@ -140,13 +149,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const isSuperAdmin = profile?.role === 'super-admin' || !!profile?.is_super_admin;
+  const isArenaOwner = profile?.role === 'arena-owner' || !!profile?.is_arena_owner;
+
   return (
     <AuthContext.Provider value={{ 
       session, 
       user, 
       profile, 
       isLoading,
-      isProfileLoading,
+      isSuperAdmin,
+      isArenaOwner,
       signOut, 
       refreshProfile 
     }}>
