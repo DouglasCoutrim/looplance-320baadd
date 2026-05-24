@@ -32,21 +32,27 @@ function AdminGuard() {
   useEffect(() => {
     // Wait for initialization
     if (initialized && !isLoading) {
+      console.log("[ADMIN GUARD] State check:", {
+        user: !!user,
+        role: profile?.role,
+        isSuperAdmin,
+        path: location.pathname
+      });
+
       if (!user) {
         if (location.pathname !== "/admin/login") {
-          console.log("[PROTECTED ROUTE] Admin: [REDIRECT] No user, moving to /admin/login");
+          console.log("[ADMIN GUARD] [REDIRECT] No user, moving to /admin/login");
           navigate({ to: "/admin/login" });
         }
       } else if (!isSuperAdmin) {
         if (location.pathname !== "/admin/login") {
-          console.log("[PROTECTED ROUTE] Admin: [REDIRECT] Not an admin, moving home");
-          console.log("[ROLE DETECTED]", profile?.role);
+          console.log("[ADMIN GUARD] [REDIRECT] Not an admin, moving home");
           toast.error("Acesso negado: você não tem permissão de administrador.");
           navigate({ to: "/" });
         }
       }
     }
-  }, [user, isSuperAdmin, isLoading, initialized, navigate, location.pathname, profile]);
+  }, [user, isSuperAdmin, isLoading, initialized, navigate, location.pathname, profile?.role]);
 
   if (isLoading || !initialized) {
     return (
