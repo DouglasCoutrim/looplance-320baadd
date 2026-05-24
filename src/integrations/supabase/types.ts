@@ -14,41 +14,6 @@ export type Database = {
   }
   public: {
     Tables: {
-      arena_settings: {
-        Row: {
-          arena_id: string
-          auto_cleanup_enabled: boolean
-          created_at: string | null
-          id: string
-          replay_retention_days: number
-          updated_at: string | null
-        }
-        Insert: {
-          arena_id: string
-          auto_cleanup_enabled?: boolean
-          created_at?: string | null
-          id?: string
-          replay_retention_days?: number
-          updated_at?: string | null
-        }
-        Update: {
-          arena_id?: string
-          auto_cleanup_enabled?: boolean
-          created_at?: string | null
-          id?: string
-          replay_retention_days?: number
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "arena_settings_arena_id_fkey"
-            columns: ["arena_id"]
-            isOneToOne: true
-            referencedRelation: "arenas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       arenas: {
         Row: {
           created_at: string
@@ -139,40 +104,31 @@ export type Database = {
           arena_id: string | null
           created_at: string | null
           edge_token: string | null
-          edge_version: string | null
           hostname: string | null
           id: string
           last_seen: string | null
-          local_ip: string | null
           name: string
           status: string | null
-          uptime_seconds: number | null
         }
         Insert: {
           arena_id?: string | null
           created_at?: string | null
           edge_token?: string | null
-          edge_version?: string | null
           hostname?: string | null
           id?: string
           last_seen?: string | null
-          local_ip?: string | null
           name: string
           status?: string | null
-          uptime_seconds?: number | null
         }
         Update: {
           arena_id?: string | null
           created_at?: string | null
           edge_token?: string | null
-          edge_version?: string | null
           hostname?: string | null
           id?: string
           last_seen?: string | null
-          local_ip?: string | null
           name?: string
           status?: string | null
-          uptime_seconds?: number | null
         }
         Relationships: [
           {
@@ -224,46 +180,25 @@ export type Database = {
       }
       profiles: {
         Row: {
-          birth_date: string | null
-          consent_accepted: boolean | null
-          consent_timestamp: string | null
-          cpf: string | null
-          created_at: string
-          email: string | null
-          full_name: string | null
+          created_at: string | null
+          email: string
           id: string
-          is_arena_owner: boolean | null
           is_super_admin: boolean | null
-          role: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
-          birth_date?: string | null
-          consent_accepted?: boolean | null
-          consent_timestamp?: string | null
-          cpf?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
+          created_at?: string | null
+          email: string
           id: string
-          is_arena_owner?: boolean | null
           is_super_admin?: boolean | null
-          role?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
-          birth_date?: string | null
-          consent_accepted?: boolean | null
-          consent_timestamp?: string | null
-          cpf?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
+          created_at?: string | null
+          email?: string
           id?: string
-          is_arena_owner?: boolean | null
           is_super_admin?: boolean | null
-          role?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: []
       }
@@ -301,21 +236,18 @@ export type Database = {
           created_at: string
           id: string
           quadra_id: string
-          r2_key: string | null
           video_url: string
         }
         Insert: {
           created_at?: string
           id?: string
           quadra_id: string
-          r2_key?: string | null
           video_url: string
         }
         Update: {
           created_at?: string
           id?: string
           quadra_id?: string
-          r2_key?: string | null
           video_url?: string
         }
         Relationships: [
@@ -333,8 +265,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      is_admin: { Args: { _uid: string }; Returns: boolean }
-      is_arena_manager: { Args: { _uid: string }; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never

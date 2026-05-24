@@ -68,7 +68,7 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
           src={`${replay.video_url}#t=3.0`}
           playsInline
           muted
-          preload="none"
+          preload="metadata"
           className="h-full w-full object-cover"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-100 transition group-hover:bg-black/25">

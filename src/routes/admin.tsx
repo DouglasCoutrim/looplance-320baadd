@@ -10,78 +10,58 @@ import {
   Menu,
   X,
   Users,
-  LogOut,
-  Loader2
+  LogOut
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
+import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { useAuth } from "@/providers/AuthProvider";
 
 export const Route = createFileRoute("/admin")({
-  component: AdminGuard,
+  beforeLoad: async ({ location }) => {
+    // Skip auth check for login page to avoid recursion
+    if (location.pathname === "/admin/login") return;
+
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    if (!session) {
+      throw new Error("unauthorized");
+    }
+
+    // Check if super admin
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_super_admin")
+      .eq("id", session.user.id)
+      .single();
+
+    if (!profile?.is_super_admin) {
+      throw new Error("forbidden");
+    }
+  },
+  errorComponent: ({ error }: { error: any }) => {
+    const navigate = useNavigate();
+    
+    useEffect(() => {
+      if (error.message === "unauthorized" || error.message === "forbidden") {
+        navigate({ to: "/admin/login" });
+      }
+    }, [error, navigate]);
+
+    return null;
+  },
+  component: AdminLayout,
 });
 
-function AdminGuard() {
-  const { user, profile, isSuperAdmin, isLoading, initialized, signOut } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  useEffect(() => {
-    // Wait for initialization
-    if (initialized && !isLoading) {
-      console.log("[ROLE]", profile?.role);
-      console.log("[ADMIN ACCESS]", isSuperAdmin);
-      
-      if (location.pathname.startsWith('/admin')) {
-        console.log("[ADMIN ROUTE]", isSuperAdmin ? "allowed" : "blocked");
-      }
-
-      if (!user) {
-        if (location.pathname !== "/admin/login") {
-          console.log("[ADMIN GUARD] [REDIRECT] No user, moving to /admin/login");
-          navigate({ to: "/admin/login" });
-        }
-      } else if (!isSuperAdmin) {
-        if (location.pathname !== "/admin/login") {
-          console.log("[ADMIN GUARD] [REDIRECT] Not an admin, moving home");
-          toast.error("Acesso negado: você não tem permissão de administrador.");
-          navigate({ to: "/" });
-        }
-      }
-    }
-  }, [user, isSuperAdmin, isLoading, initialized, navigate, location.pathname, profile?.role]);
-
-  if (isLoading || !initialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
-      </div>
-    );
-  }
-
-  // If we are at login, just show the login page
-  if (location.pathname === "/admin/login") {
-    return <Outlet />;
-  }
-
-  // Final check before rendering layout
-  if (!user || !isSuperAdmin) {
-    return null;
-  }
-
-  return <AdminLayout signOut={signOut} />;
-}
-
-function AdminLayout({ signOut }: { signOut: () => Promise<void> }) {
+function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   
   const handleLogout = async () => {
-    await signOut();
+    await supabase.auth.signOut();
     toast.success("Logoff realizado");
     navigate({ to: "/admin/login" });
   };
@@ -93,9 +73,10 @@ function AdminLayout({ signOut }: { signOut: () => Promise<void> }) {
     { to: "/admin/cameras", label: "Cameras", icon: Camera },
     { to: "/admin/arenas", label: "Arenas", icon: Tv },
     { to: "/admin/quadras", label: "Quadras", icon: Tv },
-    { to: "/admin/users", label: "Usuários", icon: Users },
+    { to: "/admin/users", label: "Admins", icon: Users },
   ];
 
+  // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
@@ -126,8 +107,10 @@ function AdminLayout({ signOut }: { signOut: () => Promise<void> }) {
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
+      {/* Header - Fixed Height & High Impact */}
       <header className="sticky top-0 z-50 border-b border-white/10 bg-black shadow-xl h-16 sm:h-20">
         <div className="mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
+          {/* Left: Back to Site / Menu Trigger */}
           <div className="flex-1 flex items-center gap-2">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
               <SheetTrigger asChild>
@@ -175,6 +158,7 @@ function AdminLayout({ signOut }: { signOut: () => Promise<void> }) {
             </Link>
           </div>
 
+          {/* Center: Logo */}
           <div className="flex-none relative flex justify-center items-center h-full">
             <Link to="/admin">
               <img 
@@ -186,6 +170,7 @@ function AdminLayout({ signOut }: { signOut: () => Promise<void> }) {
             </Link>
           </div>
 
+          {/* Right: User/Settings */}
           <div className="flex-1 flex justify-end gap-3">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-2 sm:px-3 py-1.5 backdrop-blur-md text-white/50">
               <Settings className="h-4 w-4" />
@@ -204,13 +189,20 @@ function AdminLayout({ signOut }: { signOut: () => Promise<void> }) {
       </header>
 
       <div className="flex-1 flex flex-col md:flex-row max-w-7xl mx-auto w-full gap-6 p-4 sm:p-6 lg:p-8">
+        {/* Navigation Sidebar - Hidden on mobile, shown on desktop */}
         <aside className="hidden md:block w-64 space-y-2 shrink-0">
           <div className="px-2 mb-4">
             <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Gestão de Infra</h2>
           </div>
           <NavLinks />
+          <div className="mt-8 px-2 pt-6 border-t border-gray-200">
+            <p className="text-[10px] font-medium text-muted-foreground leading-relaxed italic">
+              Controlando o futuro do replay esportivo.
+            </p>
+          </div>
         </aside>
 
+        {/* Main Content Area */}
         <main className="flex-1 min-w-0">
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Outlet />

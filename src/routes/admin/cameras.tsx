@@ -229,15 +229,15 @@ function Cameras() {
               <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[70vh] overflow-y-auto">
                 <div className="space-y-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="camera-name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome da Câmera</Label>
-                    <Input id="camera-name" value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Ex: Câmera Principal Quadra 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome da Câmera</Label>
+                    <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Ex: Câmera Principal Quadra 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
                   </div>
                   
                   <div className="grid gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/30">
                     <div className="grid gap-2">
-                      <Label htmlFor="camera-brand" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Marca da Câmera</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Marca da Câmera</Label>
                       <Select value={formData.brand} onValueChange={(v) => setFormData({...formData, brand: v})}>
-                        <SelectTrigger id="camera-brand" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange">
+                        <SelectTrigger className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange">
                           <SelectValue placeholder="Selecione a marca" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl shadow-xl border-gray-100">
@@ -251,32 +251,32 @@ function Cameras() {
                     {formData.brand !== "custom" && (
                       <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
                         <div className="grid gap-2">
-                          <Label htmlFor="username" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuário</Label>
-                          <Input id="username" value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder="admin" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuário</Label>
+                          <Input value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder="admin" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
                         </div>
                         <div className="grid gap-2">
-                          <Label htmlFor="cam-password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
-                          <Input id="cam-password" type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder="senha" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
+                          <Input type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder="senha" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
                         </div>
                         <div className="grid gap-2">
-                          <Label htmlFor="ip-address" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Endereço IP</Label>
-                          <Input id="ip-address" value={formData.ip} onChange={(e) => setFormData({...formData, ip: e.target.value})} placeholder="192.168.1.100" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Endereço IP</Label>
+                          <Input value={formData.ip} onChange={(e) => setFormData({...formData, ip: e.target.value})} placeholder="192.168.1.100" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
                         </div>
                         <div className="grid gap-2">
-                          <Label htmlFor="port" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Porta</Label>
-                          <Input id="port" value={formData.port} onChange={(e) => setFormData({...formData, port: e.target.value})} placeholder="554" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Porta</Label>
+                          <Input value={formData.port} onChange={(e) => setFormData({...formData, port: e.target.value})} placeholder="554" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
                         </div>
                       </div>
                     )}
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="rtsp-url" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">RTSP URL Final</Label>
-                    <Input id="rtsp-url" value={formData.rtsp_url} onChange={(e) => setFormData({...formData, rtsp_url: e.target.value, brand: "custom"})} placeholder="rtsp://user:pass@ip:554/stream" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono text-[10px]" />
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">RTSP URL Final</Label>
+                    <Input value={formData.rtsp_url} onChange={(e) => setFormData({...formData, rtsp_url: e.target.value, brand: "custom"})} placeholder="rtsp://user:pass@ip:554/stream" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono text-[10px]" />
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="arena-select" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Arena</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Arena</Label>
                     <Select value={formData.arena_id} onValueChange={(v) => {
                       const arenaEdge = devices.find(d => d.arena_id === v);
                       setFormData(prev => ({
@@ -285,7 +285,7 @@ function Cameras() {
                         edge_device_id: arenaEdge ? arenaEdge.id : prev.edge_device_id
                       }));
                     }}>
-                      <SelectTrigger id="arena-select" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
                         <SelectValue placeholder="Selecione a arena" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl shadow-xl border-gray-100">
@@ -297,9 +297,9 @@ function Cameras() {
                   </div>
 
                   <div className="grid gap-2">
-                    <Label htmlFor="quadra-select" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Quadra (Court)</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Quadra (Court)</Label>
                     <Select value={formData.quadra_id} onValueChange={(v) => setFormData({...formData, quadra_id: v})} disabled={!formData.arena_id}>
-                      <SelectTrigger id="quadra-select" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
                         <SelectValue placeholder={formData.arena_id ? "Selecione a quadra" : "Selecione uma arena primeiro"} />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl shadow-xl border-gray-100">
@@ -313,9 +313,9 @@ function Cameras() {
 
                 <div className="space-y-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="edge-select" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Edge Device</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Edge Device</Label>
                     <Select value={formData.edge_device_id} onValueChange={(v) => setFormData({...formData, edge_device_id: v})}>
-                      <SelectTrigger id="edge-select" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
                         <SelectValue placeholder="Selecione o servidor" />
                       </SelectTrigger>
                       <SelectContent className="rounded-xl shadow-xl border-gray-100">
@@ -327,9 +327,9 @@ function Cameras() {
                   </div>
                   <div className="grid gap-4 grid-cols-2">
                     <div className="grid gap-2">
-                      <Label htmlFor="trigger-select" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Botão (Gatilho)</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Botão (Gatilho)</Label>
                       <Select value={formData.trigger_button} onValueChange={(v) => setFormData({...formData, trigger_button: v})}>
-                        <SelectTrigger id="trigger-select" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                        <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
                           <SelectValue placeholder="Botão" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl shadow-xl border-gray-100">
@@ -340,8 +340,8 @@ function Cameras() {
                       </Select>
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="replay-seconds" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Seconds</Label>
-                      <Input id="replay-seconds" type="number" value={formData.replay_seconds} onChange={(e) => setFormData({...formData, replay_seconds: e.target.value})} className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Seconds</Label>
+                      <Input type="number" value={formData.replay_seconds} onChange={(e) => setFormData({...formData, replay_seconds: e.target.value})} className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
                     </div>
                   </div>
                   <div className="flex items-center justify-between p-4 rounded-xl border border-dashed border-gray-200 bg-gray-50/50">

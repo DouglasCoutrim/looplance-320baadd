@@ -4,17 +4,11 @@ import {
   Link,
   createRootRouteWithContext,
   useRouter,
-  useNavigate,
   HeadContent,
   Scripts,
 } from "@tanstack/react-router";
-import { useEffect } from "react";
 
 import appCss from "../styles.css?url";
-import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
-import { AuthProvider, useAuth } from "@/providers/AuthProvider";
-import { RouterContext } from "../router";
-import { Loader2, LayoutDashboard } from "lucide-react";
 
 function NotFoundComponent() {
   return (
@@ -73,7 +67,7 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
   );
 }
 
-export const Route = createRootRouteWithContext<RouterContext>()({
+export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
   head: () => ({
     meta: [
       { charSet: "utf-8" },
@@ -81,10 +75,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: "theme-color", content: "#000000" },
       { title: "Looplance — Replays na palma da mão" },
       { name: "description", content: "Veja, baixe e compartilhe seus melhores lances em tempo real direto da quadra." },
-      { name: "mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-capable", content: "yes" },
-      { name: "apple-mobile-web-app-status-bar-style", content: "black-translucent" },
-      { name: "apple-mobile-web-app-title", content: "Looplance" },
       { property: "og:title", content: "Looplance — Replays na palma da mão" },
       { property: "og:description", content: "Veja, baixe e compartilhe seus melhores lances em tempo real direto da quadra." },
       { property: "og:type", content: "website" },
@@ -93,20 +83,13 @@ export const Route = createRootRouteWithContext<RouterContext>()({
       { name: "twitter:description", content: "Veja, baixe e compartilhe seus melhores lances em tempo real direto da quadra." },
     ],
     links: [
-      { rel: "manifest", href: "/manifest.json" },
       { rel: "icon", type: "image/png", href: "/favicon.png" },
       { rel: "apple-touch-icon", href: "/favicon.png" },
       { rel: "stylesheet", href: appCss },
     ],
   }),
-
   shellComponent: RootShell,
   component: RootComponent,
-  pendingComponent: () => (
-    <div className="flex min-h-screen items-center justify-center bg-black">
-      <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
-    </div>
-  ),
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
@@ -119,7 +102,6 @@ function RootShell({ children }: { children: React.ReactNode }) {
       </head>
       <body>
         {children}
-        <PWAInstallPrompt />
         <Scripts />
       </body>
     </html>
@@ -127,102 +109,11 @@ function RootShell({ children }: { children: React.ReactNode }) {
 }
 
 function RootComponent() {
-  return (
-    <AuthProvider>
-      <InnerRoot />
-    </AuthProvider>
-  );
-}
-
-function InnerRoot() {
   const { queryClient } = Route.useRouteContext();
-  const { user, profile, isLoading, initialized, isSuperAdmin } = useAuth();
-  const router = useRouter();
-  const location = router.state.location;
-  const navigate = useNavigate();
-
-  // Normalize path by removing trailing slash for comparison
-  const normalizedPath = location.pathname === "/" ? "/" : location.pathname.replace(/\/$/, "");
-
-  // Redirection Logic in useEffect to avoid render-path loops
-  useEffect(() => {
-    if (isLoading || !initialized) return;
-
-    const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js", "/favicon.png"];
-    const isPublicPath = publicPaths.includes(normalizedPath);
-
-    // Debug logs
-    if (user && profile) {
-      console.log("[ROLE]", profile.role);
-      console.log("[ADMIN ACCESS]", isSuperAdmin);
-    }
-
-    // 1. Protected route logic
-    if (!isPublicPath && !user) {
-      console.log("[AUTH REDIRECT] No session, moving to /login from:", normalizedPath);
-      navigate({ to: "/login", search: { redirect: location.href }, replace: true });
-      return;
-    }
-
-    // 2. Admin route protection
-    if (normalizedPath.startsWith('/admin') && normalizedPath !== '/admin/login') {
-      if (!isSuperAdmin) {
-        console.log("[ADMIN ROUTE] blocked (not super-admin)");
-        console.log("[AUTH REDIRECT] Not super-admin, moving home from:", normalizedPath);
-        navigate({ to: "/", replace: true });
-        return;
-      } else {
-        console.log("[ADMIN ROUTE] allowed");
-      }
-    }
-
-    // 3. Public-only paths
-    const publicOnlyPaths = ["/login", "/signup", "/admin/login"];
-    if (user && publicOnlyPaths.includes(normalizedPath)) {
-      console.log("[AUTH REDIRECT] Already logged in, moving home from:", normalizedPath);
-      navigate({ to: "/", replace: true });
-      return;
-    }
-
-    // 4. Profile completeness check
-    if (user && !isPublicPath && normalizedPath !== "/complete-profile" && !normalizedPath.startsWith('/admin')) {
-      const isProfileIncomplete = !profile?.cpf || !profile?.birth_date;
-      if (isProfileIncomplete && !isSuperAdmin) {
-        console.log("[AUTH REDIRECT] Profile incomplete, moving to /complete-profile");
-        navigate({ to: "/complete-profile", replace: true });
-        return;
-      }
-    }
-  }, [isLoading, initialized, user, isSuperAdmin, normalizedPath, profile, navigate, location.href]);
-
-  // Global loading gate
-  if (isLoading || !initialized) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <div className="flex flex-col items-center gap-4">
-          <Loader2 className="h-12 w-12 animate-spin text-brand-orange" />
-          <p className="text-white/50 text-[10px] font-black uppercase tracking-[0.3em]">
-            LOOPLANCE STARTING...
-          </p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
-      
-      {/* TEMPORARY ADMIN TEST BUTTON */}
-      {isSuperAdmin && (
-        <button
-          onClick={() => navigate({ to: "/admin" })}
-          className="fixed bottom-6 right-6 z-[9999] flex items-center gap-2 rounded-full bg-brand-orange px-6 py-4 font-black uppercase tracking-tighter text-white shadow-2xl ring-4 ring-white transition-all hover:scale-110 active:scale-95"
-        >
-          <LayoutDashboard className="h-6 w-6" />
-          ADMIN TEST
-        </button>
-      )}
     </QueryClientProvider>
   );
 }

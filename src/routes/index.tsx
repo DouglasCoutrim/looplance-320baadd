@@ -1,13 +1,11 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState, useRef, useCallback } from "react";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard, User, Loader2 } from "lucide-react";
+import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
-import { useAuth } from "@/providers/AuthProvider";
-import { Button } from "@/components/ui/button";
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -35,97 +33,31 @@ function Home() {
   const [arenas, setArenas] = useState<Arena[]>([]);
   const [quadras, setQuadras] = useState<Quadra[]>([]);
   const [replays, setReplays] = useState<Replay[]>([]);
-  const [page, setPage] = useState(0);
-  const [hasMore, setHasMore] = useState(true);
-  const [loadingReplays, setLoadingReplays] = useState(false);
   const [arenaId, setArenaId] = useState<string>("");
   const [quadraId, setQuadraId] = useState<string>("");
   const [date, setDate] = useState<string>("");
   const [startHour, setStartHour] = useState<string>("");
   const [endHour, setEndHour] = useState<string>("");
-  
+  const [checkInAt, setCheckInAt] = useState<Date | null>(null);
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
-  const { user, profile, signOut, isLoading: authLoading, isSuperAdmin } = useAuth();
-  
-  useEffect(() => {
-    if (user && profile) {
-      console.log("[ROLE]", profile.role);
-      console.log("[ADMIN ACCESS]", isSuperAdmin);
-      if (isSuperAdmin) {
-        console.log("[ADMIN MENU] rendering");
-      }
-    }
-  }, [user, profile, isSuperAdmin, authLoading]);
-  
-  const observerTarget = useRef<HTMLDivElement>(null);
-  const navigate = useNavigate();
-
-  // Optimized fetchReplays with pagination
-  const fetchReplays = useCallback(async (pageNum = 0) => {
-    console.log("[DEBUG] fetchReplays called, pageNum:", pageNum, "loadingReplays:", loadingReplays);
-    if (loadingReplays) return;
-    setLoadingReplays(true);
-    
-    try {
-      const { data, error } = await supabase
-        .from("replays")
-        .select("id, video_url, created_at, quadra_id")
-        .order("created_at", { ascending: false })
-        .range(pageNum * 20, (pageNum + 1) * 20 - 1);
-      
-      if (error) throw error;
-
-      if (data) {
-        if (pageNum === 0) {
-          setReplays(data as Replay[]);
-        } else {
-          setReplays(prev => [...prev, ...data as Replay[]]);
-        }
-        setHasMore(data.length === 20);
-        setPage(pageNum);
-      }
-    } catch (err) {
-      console.error("[AUTH ERROR] Error fetching replays:", err);
-      toast.error("Erro ao carregar lances");
-    } finally {
-      setLoadingReplays(false);
-    }
-  }, [loadingReplays]);
 
   // Initial load
   useEffect(() => {
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
-    fetchReplays(0);
-    
-    // Fetch featured
-    supabase
-      .from("replays")
-      .select("id, video_url, created_at, quadra_id")
-      .order("created_at", { ascending: false })
-      .limit(3)
-      .then(({ data }) => setFeaturedReplays((data ?? []) as Replay[]));
+    fetchReplays();
+    fetchFeatured();
   }, []);
 
-  // Intersection Observer for Infinite Scroll
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      entries => {
-        if (entries[0].isIntersecting && hasMore && !loadingReplays) {
-          fetchReplays(page + 1);
-        }
-      },
-      { threshold: 1.0 }
-    );
+  const fetchFeatured = async () => {
+    const { data } = await supabase
+      .from("replays")
+      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .order("created_at", { ascending: false })
+      .limit(3);
+    setFeaturedReplays((data ?? []) as Replay[]);
+  };
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
-    }
-
-    return () => observer.disconnect();
-  }, [hasMore, loadingReplays, page, fetchReplays]);
-
-  // Carousel logic
   useEffect(() => {
     if (featuredReplays.length <= 1) return;
     const interval = setInterval(() => {
@@ -142,21 +74,29 @@ function Home() {
     setQuadraId("");
   }, [arenaId]);
 
-  // Realtime subscription - optimized to be unique
+  const fetchReplays = async () => {
+    const { data } = await supabase
+      .from("replays")
+      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    setReplays((data ?? []) as Replay[]);
+  };
+
+  // Realtime
   useEffect(() => {
     const ch = supabase
       .channel("replays-feed")
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "replays" }, () => {
-        fetchReplays(0);
+        fetchReplays();
         toast("🔥 Novo lance na quadra!");
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, [fetchReplays]);
+  }, []);
 
   const filtered = useMemo(() => {
-    console.log("[DEBUG] Filtering replays. Total:", replays.length, "arenaId:", arenaId, "quadraId:", quadraId, "date:", date);
-    const result = replays.filter((r) => {
+    return replays.filter((r) => {
       if (quadraId && r.quadra_id !== quadraId) return false;
       if (arenaId && !quadraId) {
         const ok = quadras.some((q) => q.id === r.quadra_id);
@@ -169,18 +109,30 @@ function Home() {
       }
       if (startHour && d.getHours() < parseInt(startHour)) return false;
       if (endHour && d.getHours() >= parseInt(endHour)) return false;
-      
+      if (checkInAt && d < checkInAt) return false;
       return true;
     });
-    console.log("[DEBUG] Filtered result count:", result.length);
-    return result;
-  }, [replays, arenaId, quadraId, quadras, date, startHour, endHour]);
+  }, [replays, arenaId, quadraId, quadras, date, startHour, endHour, checkInAt]);
 
   const reward = () => {
     setPoints((p) => p + 10);
     const id = Date.now() + Math.random();
     setXpPops((arr) => [...arr, { id }]);
     setTimeout(() => setXpPops((arr) => arr.filter((p) => p.id !== id)), 1300);
+  };
+
+  const toggleCheckIn = () => {
+    if (!quadraId) {
+      toast.error("Selecione uma quadra primeiro");
+      return;
+    }
+    if (checkInAt) {
+      setCheckInAt(null);
+      toast("Check-out realizado");
+    } else {
+      setCheckInAt(new Date());
+      toast.success("Check-in! Mostrando apenas lances a partir de agora");
+    }
   };
 
   return (
@@ -197,57 +149,41 @@ function Home() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#1C1B2F] shadow-xl h-14 sm:h-16">
-        <div className="mx-auto flex h-full max-w-2xl items-center px-4">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-black shadow-xl h-16 sm:h-20">
+        <div className="mx-auto flex h-full max-w-2xl items-center px-4 sm:px-6">
+          {/* Left: XP Badge */}
           <div className="flex-1">
-            <div className="inline-flex items-center gap-1 sm:gap-1.5 rounded-full border border-white/20 bg-white/10 px-2 py-0.5 sm:px-2.5 sm:py-1 backdrop-blur-md">
-              <Trophy className="h-3 w-3 sm:h-3.5 sm:w-3.5 text-brand-orange" />
-              <span className="text-[9px] sm:text-[10px] font-bold text-white tracking-tight">{points} XP</span>
+            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 sm:px-3 sm:py-1.5 backdrop-blur-md">
+              <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-orange" />
+              <span className="text-[10px] sm:text-xs font-bold text-white tracking-tight">{points} XP</span>
             </div>
           </div>
 
+          {/* Center: Logo */}
           <div className="flex-none relative flex justify-center items-center h-full">
             <img 
               src={logoUrl} 
               alt="Looplance" 
-              className="h-24 sm:h-28 w-auto object-contain transition-transform hover:scale-105 z-50 animate-logo-float" 
+              className="h-28 sm:h-36 w-auto object-contain transition-transform hover:scale-105 z-50" 
+              style={{ marginTop: '4px' }}
             />
           </div>
 
-          <div className="flex-1 flex justify-end items-center gap-3">
-            {user ? (
-              <button 
-                onClick={() => signOut()}
-                className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-red-500/50"
-              >
-                <LogOut className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
-                <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Sair</span>
-              </button>
-            ) : (
-              <Link 
-                to="/login" 
-                className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
-              >
-                <User className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange" />
-                <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Login</span>
-              </Link>
-            )}
-            
-            {isSuperAdmin && (
-              <Link 
-                to="/admin" 
-                className="group flex flex-col items-center gap-0.5 rounded-xl border-2 border-brand-orange bg-brand-orange/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-brand-orange/20 shadow-lg shadow-brand-orange/20"
-              >
-                <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange" />
-                <span className="text-[8px] sm:text-[10px] font-black uppercase text-white tracking-widest">Admin Panel</span>
-              </Link>
-            )}
+          {/* Right: Admin Link */}
+          <div className="flex-1 flex justify-end">
+            <Link 
+              to="/admin" 
+              className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
+            >
+              <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange transition-transform group-hover:scale-110" />
+              <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
+            </Link>
           </div>
         </div>
       </header>
 
       <main className="mx-auto max-w-2xl space-y-8 px-6 pb-24 pt-10">
-        {/* Hero Carousel */}
+        {/* Hero / Dynamic Video Carousel */}
         <section className="relative overflow-hidden rounded-3xl bg-black shadow-2xl ring-1 ring-white/10">
           <div className="aspect-[9/16] w-full overflow-hidden relative">
             {featuredReplays.length > 0 ? (
@@ -269,15 +205,32 @@ function Home() {
             ) : (
               <div className="absolute inset-0 brand-gradient opacity-20" />
             )}
+            
+            {/* Overlay Gradient */}
             <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
+            
+            {/* Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-end p-8 text-center pb-12">
-              <h1 className="text-4xl font-black text-white drop-shadow-lg">
+              <h1 className="text-4xl font-black leading-tight tracking-tight text-white drop-shadow-lg">
                 Seus lances <span className="brand-text">em loop.</span>
               </h1>
-              <p className="mt-3 text-base text-white/80 font-medium max-w-[280px]">
+              <p className="mt-3 text-base text-white/80 leading-relaxed font-medium max-w-[280px]">
                 Selecione a arena, escolha a quadra e reviva cada jogada.
               </p>
+              
+              <button
+                onClick={toggleCheckIn}
+                className={`mt-8 flex w-full items-center justify-center gap-2 rounded-full px-6 py-5 text-base font-bold transition shadow-2xl ${
+                  checkInAt
+                    ? "bg-white/10 text-white backdrop-blur-md border border-white/20 hover:bg-white/20"
+                    : "brand-gradient brand-glow animate-pulse-glow text-white hover:scale-[1.02]"
+                }`}
+              >
+                {checkInAt ? <><LogOut className="h-5 w-5" /> Sair da quadra</> : <><LogIn className="h-5 w-5" /> Entrar em quadra</>}
+              </button>
             </div>
+
+            {/* Pagination Dots */}
             {featuredReplays.length > 1 && (
               <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
                 {featuredReplays.map((_, idx) => (
@@ -291,7 +244,7 @@ function Home() {
           </div>
         </section>
 
-        {/* Selectors */}
+        {/* Location selectors */}
         <section className="glass-card space-y-5 p-6 bg-white shadow-md border border-gray-200">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/80">
             <MapPin className="h-3.5 w-3.5" /> Localização
@@ -321,9 +274,9 @@ function Home() {
             <TimeInput label="De" value={startHour} onChange={setStartHour} />
             <TimeInput label="Até" value={endHour} onChange={setEndHour} />
           </div>
-          {(date || startHour || endHour) && (
+          {(date || startHour || endHour || checkInAt) && (
             <button
-              onClick={() => { setDate(""); setStartHour(""); setEndHour(""); }}
+              onClick={() => { setDate(""); setStartHour(""); setEndHour(""); setCheckInAt(null); }}
               className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-brand-orange hover:underline"
             >
               Limpar filtros
@@ -344,15 +297,8 @@ function Home() {
           {filtered.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="space-y-8">
-              <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
-                {filtered.map((r) => <ReplayCard key={r.id} replay={r} onReward={reward} />)}
-              </div>
-              
-              {/* Observer Target for Infinite Scroll */}
-              <div ref={observerTarget} className="h-10 flex justify-center items-center">
-                {loadingReplays && <Loader2 className="h-6 w-6 animate-spin text-brand-orange" />}
-              </div>
+            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+              {filtered.map((r) => <ReplayCard key={r.id} replay={r} onReward={reward} />)}
             </div>
           )}
         </section>
@@ -391,7 +337,7 @@ function TimeInput({ label, value, onChange }: { label: string; value: string; o
       >
         <option value="">--:00</option>
         {Array.from({ length: 24 }).map((_, h) => (
-          <option key={h} value={h}>{h.toString().padStart(2, "0")}:00</option>
+          <option key={h} value={h}>{String(h).padStart(2, "0")}:00</option>
         ))}
       </select>
     </div>
@@ -400,12 +346,16 @@ function TimeInput({ label, value, onChange }: { label: string; value: string; o
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center justify-center py-20 text-center glass-card bg-white/50">
-      <div className="mb-4 rounded-full bg-muted p-4">
-        <Play className="h-8 w-8 text-muted-foreground" />
+    <div className="glass-card flex flex-col items-center gap-6 px-6 py-16 text-center bg-white shadow-md border border-gray-200">
+      <div className="brand-gradient grid h-20 w-20 place-items-center rounded-full brand-glow shadow-lg transition-transform hover:scale-105">
+        <Play className="h-9 w-9 fill-white text-white" />
       </div>
-      <h3 className="text-lg font-bold text-gray-900">Nenhum lance encontrado</h3>
-      <p className="max-w-[260px] text-sm text-muted-foreground">Tente ajustar os filtros ou escolha outra quadra.</p>
+      <div className="max-w-[280px] space-y-2">
+        <h3 className="text-lg font-black text-gray-900">Aguardando o lance...</h3>
+        <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+          Aperte o botão na quadra e o seu replay aparecerá aqui em poucos segundos!
+        </p>
+      </div>
     </div>
   );
 }

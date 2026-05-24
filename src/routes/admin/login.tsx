@@ -7,14 +7,13 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Lock } from "lucide-react";
-import { useAuth } from "@/providers/AuthProvider";
+import logoUrl from "@/assets/looplance-logo.png";
 
 export const Route = createFileRoute("/admin/login")({
   component: AdminLogin,
 });
 
 function AdminLogin() {
-  const { refreshProfile } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -32,10 +31,20 @@ function AdminLogin() {
 
       if (authError) throw authError;
 
-      // Profile will be fetched by AuthProvider automatically
-      // We just refresh it to be sure and then move to /admin
-      await refreshProfile();
-      
+      // Check if user is super admin
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("is_super_admin")
+        .eq("id", authData.user.id)
+        .single();
+
+      if (profileError || !profileData?.is_super_admin) {
+        await supabase.auth.signOut();
+        toast.error("Acesso negado. Apenas super admins podem acessar esta área.");
+        setLoading(false);
+        return;
+      }
+
       toast.success("Login realizado com sucesso!");
       navigate({ to: "/admin" });
     } catch (error: any) {
@@ -46,6 +55,10 @@ function AdminLogin() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-black p-4">
+      <div className="mb-8">
+        <img src={logoUrl} alt="Looplance" className="h-32 w-auto" />
+      </div>
+      
       <Card className="w-full max-w-md bg-white rounded-3xl overflow-hidden shadow-2xl border-none">
         <div className="brand-gradient p-6 text-white text-center">
           <CardHeader className="p-0">
@@ -64,9 +77,8 @@ function AdminLogin() {
         <CardContent className="p-8">
           <form onSubmit={handleLogin} className="space-y-6">
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail</Label>
               <Input 
-                id="email"
                 type="email" 
                 value={email} 
                 onChange={(e) => setEmail(e.target.value)} 
@@ -77,9 +89,8 @@ function AdminLogin() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
+              <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
               <Input 
-                id="password"
                 type="password" 
                 value={password} 
                 onChange={(e) => setPassword(e.target.value)} 
@@ -97,7 +108,6 @@ function AdminLogin() {
               {loading ? "Entrando..." : "Acessar Painel"}
             </Button>
           </form>
-
         </CardContent>
       </Card>
       

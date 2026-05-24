@@ -4,12 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, UserPlus, Shield, Trash2, Mail, Users } from "lucide-react";
+import { Plus, RefreshCw, UserPlus, Shield, Trash2, Mail } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { useAuth } from "@/providers/AuthProvider";
 
 export const Route = createFileRoute("/admin/users")({
   component: AdminUsers,
@@ -18,16 +17,16 @@ export const Route = createFileRoute("/admin/users")({
 interface Profile {
   id: string;
   email: string;
-  role: 'super-admin' | 'arena-owner' | 'user';
+  is_super_admin: boolean;
   created_at: string;
 }
 
 function AdminUsers() {
-  const { user: currentUser } = useAuth();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   
+  // Form state for new admin
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [creating, setCreating] = useState(false);
@@ -36,7 +35,7 @@ function AdminUsers() {
     setLoading(true);
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, email, role, created_at")
+      .select("*")
       .order("created_at", { ascending: false });
 
     if (error) {
@@ -51,65 +50,13 @@ function AdminUsers() {
     fetchProfiles();
   }, []);
 
-  const isMainSuperAdmin = currentUser?.email === 'douglas@looplance.app';
-
-  const handleUpdateRole = async (profileId: string, newRole: 'super-admin' | 'arena-owner' | 'user') => {
-    if (!isMainSuperAdmin) {
-      toast.error("Apenas o Super Admin mestre pode gerenciar permissões.");
-      return;
-    }
-
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .update({ 
-          role: newRole
-        })
-        .eq("id", profileId);
-
-      if (error) throw error;
-
-      toast.success("Permissão atualizada com sucesso!");
-      fetchProfiles();
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao atualizar permissão");
-    }
-  };
-
-  const handleDeleteUser = async (profileId: string, email: string) => {
-    if (email === 'douglas@looplance.app') {
-      toast.error("O usuário mestre do sistema não pode ser removido.");
-      return;
-    }
-
-    if (!confirm(`Tem certeza que deseja remover o acesso de ${email}?`)) return;
-
-    try {
-      const { error } = await supabase
-        .from("profiles")
-        .delete()
-        .eq("id", profileId);
-
-      if (error) throw error;
-
-      toast.success("Usuário removido do painel admin.");
-      fetchProfiles();
-    } catch (error: any) {
-      toast.error(error.message || "Erro ao remover usuário");
-    }
-  };
-
   const handleCreateAdmin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email || !password) return;
     
-    if (!isMainSuperAdmin) {
-      toast.error("Você não tem permissão para criar novos Super Admins.");
-      return;
-    }
-    
     setCreating(true);
     try {
+      // Create auth user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -117,11 +64,14 @@ function AdminUsers() {
 
       if (authError) throw authError;
 
+      // The trigger 'on_auth_user_created' will handle profile creation.
+      // But we need to make sure 'is_super_admin' is set if the trigger didn't catch the email logic or for explicit setting.
+      // Note: By default the trigger makes anyone douglas@... a super admin.
+      // If we want this form to create ANY super admin, we need to update the profile.
+      
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ 
-          role: 'super-admin'
-        })
+        .update({ is_super_admin: true })
         .eq("id", authData.user?.id || "");
 
       if (updateError) throw updateError;
@@ -153,14 +103,12 @@ function AdminUsers() {
           <Button variant="outline" size="icon" onClick={fetchProfiles} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          {isMainSuperAdmin && (
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
-                  <UserPlus className="mr-2 h-5 w-5" /> Novo Admin
-                </Button>
-              </DialogTrigger>
-
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+                <UserPlus className="mr-2 h-5 w-5" /> Novo Admin
+              </Button>
+            </DialogTrigger>
             <DialogContent className="rounded-2xl border-none shadow-2xl overflow-hidden p-0">
                <div className="brand-gradient p-6 text-white">
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight">Criar Super Admin</DialogTitle>
@@ -172,11 +120,10 @@ function AdminUsers() {
               <form onSubmit={handleCreateAdmin}>
                 <div className="p-8 space-y-6">
                   <div className="grid gap-2">
-                    <Label htmlFor="admin-email" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail Corporativo</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">E-mail Corporativo</Label>
                     <div className="relative">
                       <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
                       <Input 
-                        id="admin-email"
                         type="email" 
                         value={email} 
                         onChange={(e) => setEmail(e.target.value)} 
@@ -187,9 +134,8 @@ function AdminUsers() {
                     </div>
                   </div>
                   <div className="grid gap-2">
-                    <Label htmlFor="admin-password" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha Provisória</Label>
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha Provisória</Label>
                     <Input 
-                      id="admin-password"
                       type="password" 
                       value={password} 
                       onChange={(e) => setPassword(e.target.value)} 
@@ -207,8 +153,7 @@ function AdminUsers() {
                 </DialogFooter>
               </form>
             </DialogContent>
-            </Dialog>
-          )}
+          </Dialog>
         </div>
       </div>
 
@@ -244,33 +189,13 @@ function AdminUsers() {
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6">
-                    <div className="flex flex-col gap-2">
-                      <div 
-                        className={`flex items-center gap-2 cursor-pointer ${!isMainSuperAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        onClick={() => handleUpdateRole(profile.id, profile.role === 'super-admin' ? 'user' : 'super-admin')}
-                      >
-                        {profile.role === 'super-admin' ? (
-                          <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">
-                            <Shield className="h-3 w-3 mr-1" /> Super Admin
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1 text-gray-400">Tornar Admin</Badge>
-                        )}
-                      </div>
-                      
-                      <div 
-                        className={`flex items-center gap-2 cursor-pointer ${!isMainSuperAdmin ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        onClick={() => handleUpdateRole(profile.id, profile.role === 'arena-owner' ? 'user' : 'arena-owner')}
-                      >
-                        {profile.role === 'arena-owner' ? (
-                          <Badge className="bg-blue-600 text-white border-none font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">
-                            <Users className="h-3 w-3 mr-1" /> Dono Arena
-                          </Badge>
-                        ) : (
-                          <Badge variant="outline" className="font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1 text-gray-400">Tornar Dono Arena</Badge>
-                        )}
-                      </div>
-                    </div>
+                    {profile.is_super_admin ? (
+                      <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">
+                        <Shield className="h-3 w-3 mr-1" /> Super Admin
+                      </Badge>
+                    ) : (
+                      <Badge variant="secondary" className="font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">Usuário Comum</Badge>
+                    )}
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <span className="text-xs font-bold text-gray-500">
@@ -282,9 +207,8 @@ function AdminUsers() {
                       <Button 
                         variant="ghost" 
                         size="icon" 
-                        onClick={() => handleDeleteUser(profile.id, profile.email)}
                         disabled={profile.email === 'douglas@looplance.app'}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 disabled:opacity-30"
+                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
