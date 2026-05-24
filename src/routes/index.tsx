@@ -71,38 +71,42 @@ function Home() {
 
   // Initial load
   useEffect(() => {
-    if (user) {
-      checkProfileCompleteness(user.id);
-      setIsLoadingProfile(true);
-      
-      console.log("Fetching super admin status for user:", user.id);
-      
-      supabase
-        .from("profiles")
-        .select("is_super_admin")
-        .eq("id", user.id)
-        .maybeSingle()
-        .then(({ data, error }) => {
-          if (error) {
-            console.error("Critical error fetching profile role:", error);
-            toast.error(`Erro ao verificar permissões: ${error.message}`);
-            return;
-          }
-          
-          console.log("Profile data received:", data);
-          setIsSuperAdmin(!!data?.is_super_admin);
-        })
-        .catch(err => {
-          console.error("Unexpected error in profile fetch:", err);
-          toast.error("Erro inesperado ao carregar perfil");
-        })
-        .finally(() => {
-          setIsLoadingProfile(false);
-        });
-    } else {
-      setIsSuperAdmin(false);
-      setIsLoadingProfile(false);
-    }
+    const fetchProfile = async () => {
+      if (!user) {
+        setIsSuperAdmin(false);
+        setIsLoadingProfile(false);
+        return;
+      }
+
+      try {
+        checkProfileCompleteness(user.id);
+        setIsLoadingProfile(true);
+        
+        console.log("Fetching super admin status for user:", user.id);
+        
+        const { data, error } = await supabase
+          .from("profiles")
+          .select("is_super_admin")
+          .eq("id", user.id)
+          .maybeSingle();
+
+        if (error) {
+          console.error("Critical error fetching profile role:", error);
+          toast.error(`Erro ao verificar permissões: ${error.message}`);
+          return;
+        }
+        
+        console.log("Profile data received:", data);
+        setIsSuperAdmin(!!data?.is_super_admin);
+      } catch (err) {
+        console.error("Unexpected error in profile fetch:", err);
+        toast.error("Erro inesperado ao carregar perfil");
+      } finally {
+        setIsLoadingProfile(false);
+      }
+    };
+
+    fetchProfile();
 
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
