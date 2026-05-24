@@ -43,7 +43,7 @@ function Home() {
   
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
-  const { user, profile, signOut, isLoading: authLoading, isProfileLoading } = useAuth();
+  const { user, profile, signOut, isLoading: authLoading, isSuperAdmin, isArenaOwner } = useAuth();
   
   // Debug log to check profile on every render (useful for troubleshooting)
   useEffect(() => {
@@ -56,9 +56,7 @@ function Home() {
     }
   }, [user, profile, authLoading]);
 
-  const isSuperAdmin = !!profile?.is_super_admin;
-  const isArenaOwner = !!profile?.is_arena_owner;
-  const isLoadingProfile = isProfileLoading;
+  const isLoadingProfile = authLoading;
   const navigate = useNavigate();
 
   const checkProfileCompleteness = async (userId: string) => {
@@ -123,13 +121,19 @@ function Home() {
     setQuadraId("");
   }, [arenaId]);
 
-  const fetchReplays = async () => {
+  const fetchReplays = async (page = 0) => {
+    console.log("Home: Fetching replays page", page);
     const { data } = await supabase
       .from("replays")
       .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
       .order("created_at", { ascending: false })
-      .limit(100);
-    setReplays((data ?? []) as Replay[]);
+      .range(page * 20, (page + 1) * 20 - 1);
+    
+    if (page === 0) {
+      setReplays((data ?? []) as Replay[]);
+    } else {
+      setReplays(prev => [...prev, ...(data ?? []) as Replay[]]);
+    }
   };
 
   // Realtime
