@@ -14,7 +14,7 @@ import appCss from "../styles.css?url";
 import { PWAInstallPrompt } from "@/components/PWAInstallPrompt";
 import { AuthProvider, useAuth } from "@/providers/AuthProvider";
 import { RouterContext } from "../router";
-import { Loader2 } from "lucide-react";
+import { Loader2, LayoutDashboard } from "lucide-react";
 
 function NotFoundComponent() {
   return (
