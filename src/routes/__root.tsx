@@ -79,6 +79,8 @@ export const Route = createRootRouteWithContext<RouterContext>()({
   beforeLoad: async ({ location }) => {
     const publicPaths = ["/", "/login", "/signup", "/admin/login", "/manifest.json", "/sw.js"];
     
+    console.log("Root: Checking path:", location.pathname);
+    
     // Check session
     const { data: { session } } = await supabase.auth.getSession();
     const user = session?.user;
@@ -90,6 +92,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 
     // Not a public path and no user? Redirect to login
     if (!user) {
+      console.log("Root: No user found, redirecting to login");
       throw redirect({ 
         to: "/login",
         search: {
@@ -101,6 +104,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
     // Check profile completeness for logged in users on protected routes
     if (location.pathname !== "/complete-profile") {
       try {
+        console.log("Root: Fetching profile for completeness check...");
         const { data: profile, error } = await supabase
           .from("profiles")
           .select("cpf, birth_date, is_super_admin")
@@ -108,23 +112,26 @@ export const Route = createRootRouteWithContext<RouterContext>()({
           .maybeSingle();
 
         if (error) {
-          console.error("Error fetching profile in beforeLoad:", error);
+          console.error("Root: Error fetching profile in beforeLoad:", error);
           return { user, session };
         }
 
+        console.log("Root: Profile data for check:", profile);
+
         // Se for Super Admin, não precisa completar o perfil para navegar
         if (profile?.is_super_admin) {
+          console.log("Root: User is Super Admin, skipping completeness check");
           return { user, session };
         }
 
         // If no profile found or missing required fields, redirect to complete-profile
         if (!profile || !profile.cpf || !profile.birth_date) {
-          console.log("Redirecionando para completar perfil...");
+          console.log("Root: Profile incomplete, redirecting to complete-profile");
           throw redirect({ to: "/complete-profile" });
         }
       } catch (err) {
         if (err && typeof err === 'object' && 'to' in err) throw err;
-        console.error("Profile check failed:", err);
+        console.error("Root: Profile check failed unexpectedly:", err);
       }
     }
 
