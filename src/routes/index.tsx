@@ -70,7 +70,7 @@ function Home() {
     try {
       const { data, error } = await supabase
         .from("replays")
-        .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+        .select("id, video_url, created_at, quadra_id")
         .order("created_at", { ascending: false })
         .range(pageNum * 20, (pageNum + 1) * 20 - 1);
       
@@ -101,7 +101,7 @@ function Home() {
     // Fetch featured
     supabase
       .from("replays")
-      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .select("id, video_url, created_at, quadra_id")
       .order("created_at", { ascending: false })
       .limit(3)
       .then(({ data }) => setFeaturedReplays((data ?? []) as Replay[]));
