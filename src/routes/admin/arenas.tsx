@@ -29,6 +29,11 @@ function Arenas() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingArena, setEditingArena] = useState<Arena | null>(null);
   const [name, setName] = useState("");
+  const [cidade, setCidade] = useState("");
+  const [telefone, setTelefone] = useState("");
+  const [endereco, setEndereco] = useState("");
+  const [fotoFile, setFotoFile] = useState<File | null>(null);
+  const [uploading, setUploading] = useState(false);
 
   const fetchArenas = async () => {
     setLoading(true);
