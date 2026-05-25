@@ -20,52 +20,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
-  beforeLoad: async ({ location }) => {
-    // Skip auth check for login page to avoid recursion
-    if (location.pathname === "/admin/login") return;
-
-    // Use getUser for more security as it fetches the user from the server
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      console.log("[ADMIN CHECK] No user found, redirecting to login");
-      throw redirect({
-        to: "/admin/login",
-      });
-    }
-
-    // Check if super admin
-    const { data: profile } = await supabase
-      .from("profiles")
-      .select("id, email, full_name, is_super_admin")
-      .eq("id", user.id)
-      .single();
-
-    console.log('[ADMIN CHECK]', {
-      user: user?.id,
-      profile,
-      isSuperAdmin: profile?.is_super_admin
-    });
-
-    if (!profile?.is_super_admin) {
-      console.log("[ADMIN CHECK] Not a super admin, redirecting to login");
-      // Sign out to clear any invalid sessions
-      await supabase.auth.signOut();
-      throw redirect({
-        to: "/admin/login",
-      });
-    }
-
-    return { profile };
-  },
-  pendingComponent: () => (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <div className="flex flex-col items-center gap-4">
-        <div className="h-12 w-12 rounded-2xl brand-gradient animate-pulse" />
-        <p className="text-white/50 text-xs font-black uppercase tracking-widest">Validando Acesso...</p>
-      </div>
-    </div>
-  ),
   component: AdminLayout,
 });
 
@@ -73,6 +27,81 @@ function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [profile, setProfile] = useState<any>(null);
+  
+  useEffect(() => {
+    const checkAuth = async () => {
+      // Skip check for login page
+      if (location.pathname === "/admin/login") {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        const user = session?.user;
+        
+        let profileData = null;
+        if (user) {
+          const { data } = await supabase
+            .from("profiles")
+            .select("id, email, full_name, is_super_admin")
+            .eq("id", user.id)
+            .single();
+          profileData = data;
+        }
+
+        console.log('[AUTH]', {
+          loadingAuth: false,
+          loadingProfile: false,
+          session,
+          profile: profileData,
+          isSuperAdmin: profileData?.is_super_admin
+        });
+
+        if (!user || !profileData?.is_super_admin) {
+          console.log("[AUTH] Unauthorized access, redirecting to login");
+          if (user) {
+            // Sign out if not super admin but logged in
+            await supabase.auth.signOut();
+          }
+          navigate({ to: "/admin/login" });
+        } else {
+          setProfile(profileData);
+        }
+      } catch (error) {
+        console.error("[AUTH] Error during auth check:", error);
+        navigate({ to: "/admin/login" });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [location.pathname, navigate]);
+
+  if (loading && location.pathname !== "/admin/login") {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <div className="h-12 w-12 rounded-2xl brand-gradient animate-pulse" />
+          <p className="text-white/50 text-xs font-black uppercase tracking-widest">Validando Acesso...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If we're on the login page, just render the outlet (the login form)
+  if (location.pathname === "/admin/login") {
+    return <Outlet />;
+  }
+
+  // If not loading and no profile (and not on login page), the useEffect will handle the redirect
+  if (!profile) return null;
+
   
   const handleLogout = async () => {
     await supabase.auth.signOut();
