@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
-import { Sparkles, MapPin, Calendar as CalIcon, Play, Trophy, LayoutDashboard } from "lucide-react";
+import { Sparkles, MapPin, Calendar as CalIcon, Play, LogOut, Trophy, LayoutDashboard } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
