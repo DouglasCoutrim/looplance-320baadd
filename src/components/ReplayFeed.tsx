@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { toast } from "sonner";
 import { Sparkles, MapPin, Calendar as CalIcon, Play, LogOut, Trophy, LayoutDashboard } from "lucide-react";
 import { Link } from "@tanstack/react-router";
@@ -30,6 +30,20 @@ export function ReplayFeed() {
   
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const [session, setSession] = useState<any>(null);
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Initial load
   useEffect(() => {
@@ -79,10 +93,15 @@ export function ReplayFeed() {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "replays" }, () => {
         fetchReplays();
         toast("🔥 Novo lance na quadra!");
+        
+        // Play sound only for logged in users
+        if (session && audioRef.current) {
+          audioRef.current.play().catch(e => console.error("Erro ao tocar áudio:", e));
+        }
       })
       .subscribe();
     return () => { supabase.removeChannel(ch); };
-  }, []);
+  }, [session]);
 
   const filtered = useMemo(() => {
     return replays.filter((r) => {
@@ -119,6 +138,7 @@ export function ReplayFeed() {
   return (
     <div className="relative min-h-screen bg-background text-foreground">
 
+      <audio ref={audioRef} src="/goal-sound.mp3" preload="auto" />
 
       {/* XP pop overlay */}
       <div className="pointer-events-none fixed right-6 top-24 z-50">
