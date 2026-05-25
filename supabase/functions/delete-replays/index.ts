@@ -19,13 +19,7 @@ serve(async (req) => {
     )
 
     const { replays } = await req.json() as { replays: { id: string, r2_key: string }[] }
-    
-    if (!replays || !replays.length) {
-      return new Response(JSON.stringify({ message: 'No replays provided' }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400,
-      })
-    }
+    console.log(`Deleting ${replays?.length} replays`);
 
     const s3Client = new S3Client({
       region: "auto",
