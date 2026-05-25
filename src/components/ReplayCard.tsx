@@ -88,10 +88,10 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
 
       <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md animate-in fade-in duration-300" />
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-[#160F2F]/95 backdrop-blur-md animate-in fade-in duration-300" />
           <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-[95vw] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-md animate-in zoom-in-95 duration-300">
             <div className="relative flex flex-col items-center">
-              <div className="relative aspect-[9/16] w-full max-h-[75vh] overflow-hidden rounded-3xl bg-black shadow-2xl ring-1 ring-white/10">
+              <div className="relative aspect-[9/16] w-full max-h-[75vh] overflow-hidden rounded-3xl bg-[#160F2F] shadow-2xl ring-1 ring-white/10">
                 <video
                   src={replay.video_url}
                   autoPlay

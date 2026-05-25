@@ -36,9 +36,10 @@
 
 :root {
   --radius: 1rem;
+  --system-navy: #160F2F;
   /* Clean light background */
   --background: oklch(0.96 0.01 250);
-  --foreground: oklch(0.2 0 0);
+  --foreground: var(--system-navy);
 
   /* Clean light card */
   --card: oklch(1 0 0);
