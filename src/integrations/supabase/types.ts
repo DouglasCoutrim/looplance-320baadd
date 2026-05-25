@@ -94,9 +94,11 @@ export type Database = {
       cameras: {
         Row: {
           active: boolean | null
+          aspect_ratio: string | null
           buffer_seconds: number | null
           created_at: string | null
           edge_device_id: string | null
+          final_overlay_url: string | null
           id: string
           input_board_id: string | null
           name: string
@@ -104,13 +106,18 @@ export type Database = {
           quadra_id: string | null
           replay_seconds: number | null
           rtsp_url: string | null
+          sponsor_logo_center: string | null
+          sponsor_logo_left: string | null
+          sponsor_logo_right: string | null
           trigger_button: number | null
         }
         Insert: {
           active?: boolean | null
+          aspect_ratio?: string | null
           buffer_seconds?: number | null
           created_at?: string | null
           edge_device_id?: string | null
+          final_overlay_url?: string | null
           id?: string
           input_board_id?: string | null
           name: string
@@ -118,13 +125,18 @@ export type Database = {
           quadra_id?: string | null
           replay_seconds?: number | null
           rtsp_url?: string | null
+          sponsor_logo_center?: string | null
+          sponsor_logo_left?: string | null
+          sponsor_logo_right?: string | null
           trigger_button?: number | null
         }
         Update: {
           active?: boolean | null
+          aspect_ratio?: string | null
           buffer_seconds?: number | null
           created_at?: string | null
           edge_device_id?: string | null
+          final_overlay_url?: string | null
           id?: string
           input_board_id?: string | null
           name?: string
@@ -132,6 +144,9 @@ export type Database = {
           quadra_id?: string | null
           replay_seconds?: number | null
           rtsp_url?: string | null
+          sponsor_logo_center?: string | null
+          sponsor_logo_left?: string | null
+          sponsor_logo_right?: string | null
           trigger_button?: number | null
         }
         Relationships: [
