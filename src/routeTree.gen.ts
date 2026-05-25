@@ -196,6 +196,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminArenasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/replays': {
+      id: '/admin/replays'
+      path: '/replays'
+      fullPath: '/admin/replays'
+      preLoaderRoute: typeof AdminReplaysRouteImport
+      parentRoute: typeof AdminRoute
+    }
   }
 }
 
