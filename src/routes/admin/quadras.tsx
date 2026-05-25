@@ -26,6 +26,7 @@ function Quadras() {
   const [arenas, setArenas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingQuadra, setEditingQuadra] = useState<Quadra | null>(null);
   
   const [name, setName] = useState("");
   const [arenaId, setArenaId] = useState("");
@@ -45,17 +46,49 @@ function Quadras() {
     fetchData();
   }, []);
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!name || !arenaId) {
       toast.error("Nome e Arena são obrigatórios");
       return;
     }
-    const { error } = await supabase.from("quadras").insert([{ nome: name, arena_id: arenaId }]);
-    if (error) toast.error("Erro ao criar quadra");
+
+    if (editingQuadra) {
+      const { error } = await supabase.from("quadras").update({ nome: name, arena_id: arenaId }).eq("id", editingQuadra.id);
+      if (error) toast.error("Erro ao atualizar quadra");
+      else {
+        toast.success("Quadra atualizada");
+        setIsDialogOpen(false);
+        setEditingQuadra(null);
+        setName("");
+        setArenaId("");
+        fetchData();
+      }
+    } else {
+      const { error } = await supabase.from("quadras").insert([{ nome: name, arena_id: arenaId }]);
+      if (error) toast.error("Erro ao criar quadra");
+      else {
+        toast.success("Quadra criada");
+        setIsDialogOpen(false);
+        setName("");
+        setArenaId("");
+        fetchData();
+      }
+    }
+  };
+
+  const openEditDialog = (quadra: Quadra) => {
+    setEditingQuadra(quadra);
+    setName(quadra.nome);
+    setArenaId(quadra.arena_id);
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta quadra?")) return;
+    const { error } = await supabase.from("quadras").delete().eq("id", id);
+    if (error) toast.error("Erro ao excluir quadra: " + error.message);
     else {
-      toast.success("Quadra criada");
-      setIsDialogOpen(false);
-      setName("");
+      toast.success("Quadra excluída");
       fetchData();
     }
   };
@@ -75,17 +108,24 @@ function Quadras() {
           <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-10 sm:h-12 w-10 sm:w-12 shadow-sm bg-white hover:bg-gray-50 shrink-0">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              setEditingQuadra(null);
+              setName("");
+              setArenaId("");
+            }
+          }}>
             <DialogTrigger asChild>
-              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
+              <Button onClick={() => { setEditingQuadra(null); setName(""); setArenaId(""); }} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
                 <Plus className="mr-2 h-5 w-5" /> Nova Quadra
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-2xl border-none shadow-2xl">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">Configurar Quadra</DialogTitle>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">{editingQuadra ? "Editar Quadra" : "Configurar Quadra"}</DialogTitle>
                 <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
-                  Vincule uma nova quadra ou pista a um complexo esportivo.
+                  {editingQuadra ? "Atualize os dados desta quadra." : "Vincule uma nova quadra ou pista a um complexo esportivo."}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-6">
@@ -107,7 +147,7 @@ function Quadras() {
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleCreate} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
+                <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -152,10 +192,20 @@ function Quadras() {
                   </TableCell>
                   <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
                     <div className="flex justify-end gap-1 sm:gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => openEditDialog(q)}
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors"
+                      >
                         <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDelete(q.id)}
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      >
                         <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
