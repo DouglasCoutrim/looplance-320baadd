@@ -14,6 +14,8 @@ import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
