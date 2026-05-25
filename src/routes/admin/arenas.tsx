@@ -201,7 +201,7 @@ function Arenas() {
                 <Plus className="mr-2 h-5 w-5" /> Nova Arena
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-2xl border-none shadow-2xl max-w-4xl w-[95vw] max-h-[90vh] overflow-y-auto">
+            <DialogContent className="rounded-2xl border-none shadow-2xl max-w-2xl w-[95vw] sm:w-full">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">{editingArena ? "Editar Arena" : "Adicionar Arena"}</DialogTitle>
                 <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
