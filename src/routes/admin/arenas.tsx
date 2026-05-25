@@ -120,7 +120,7 @@ function Arenas() {
         closeDialog();
         fetchArenas();
       }
-      } else {
+    } else {
         const { error } = await supabase.from("arenas").insert([arenaData]);
         if (error) toast.error("Erro ao criar arena");
         else {
@@ -369,7 +369,6 @@ function Arenas() {
                         </div>
                       </div>
                     </div>
-                  </div>
                 </div>
               </div>
               <DialogFooter>
