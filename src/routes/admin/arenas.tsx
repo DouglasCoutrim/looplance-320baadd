@@ -26,22 +26,11 @@ function Arenas() {
   const [name, setName] = useState("");
 
   const fetchArenas = async () => {
-    console.log('[ARENAS FETCH] Starting data fetch...');
     setLoading(true);
-    try {
-      const { data, error } = await supabase.from("arenas").select("*").order("nome");
-      if (error) {
-        console.error('[ARENAS FETCH ERROR]', error);
-        toast.error(`Erro ao buscar arenas: ${error.message}`);
-      } else {
-        console.log('[ARENAS FETCH SUCCESS] Count:', data?.length);
-        setArenas(data || []);
-      }
-    } catch (err) {
-      console.error('[ARENAS FETCH FATAL ERROR]', err);
-    } finally {
-      setLoading(false);
-    }
+    const { data, error } = await supabase.from("arenas").select("*").order("nome");
+    if (error) toast.error("Erro ao buscar arenas");
+    else setArenas(data || []);
+    setLoading(false);
   };
 
   useEffect(() => {

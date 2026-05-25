@@ -44,29 +44,18 @@ function Home() {
 
   // Initial load
   useEffect(() => {
-    console.log('[HOME INIT] Fetching initial data...');
-    supabase.from("arenas").select("*").order("nome")
-      .then(({ data, error }) => {
-        if (error) console.error('[HOME INIT ERROR] Arenas:', error);
-        else setArenas(data ?? []);
-      });
+    supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
     fetchFeatured();
   }, []);
 
   const fetchFeatured = async () => {
-    console.log('[HOME] Fetching featured replays...');
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("replays")
       .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
       .order("created_at", { ascending: false })
       .limit(3);
-    
-    if (error) console.error('[HOME ERROR] Featured:', error);
-    else {
-      console.log('[HOME SUCCESS] Featured count:', data?.length);
-      setFeaturedReplays((data ?? []) as Replay[]);
-    }
+    setFeaturedReplays((data ?? []) as Replay[]);
   };
 
   useEffect(() => {
@@ -86,18 +75,12 @@ function Home() {
   }, [arenaId]);
 
   const fetchReplays = async () => {
-    console.log('[HOME] Fetching replays feed...');
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from("replays")
       .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
       .order("created_at", { ascending: false })
       .limit(100);
-    
-    if (error) console.error('[HOME ERROR] Replays:', error);
-    else {
-      console.log('[HOME SUCCESS] Replays count:', data?.length);
-      setReplays((data ?? []) as Replay[]);
-    }
+    setReplays((data ?? []) as Replay[]);
   };
 
   // Realtime

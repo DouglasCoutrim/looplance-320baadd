@@ -124,34 +124,21 @@ function Cameras() {
   }, [formData.arena_id, devices]);
 
   const fetchData = async () => {
-    console.log('[CAMERAS FETCH] Starting data fetch...');
     setLoading(true);
-    try {
-      const [camerasRes, devicesRes, boardsRes, quadrasRes, arenasRes] = await Promise.all([
-        supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
-        supabase.from("edge_devices").select("id, name, arena_id").order("name"),
-        supabase.from("input_boards").select("id, name, edge_device_id").order("name"),
-        supabase.from("quadras").select("id, nome, arena_id, arenas(nome)").order("nome"),
-        supabase.from("arenas").select("id, nome").order("nome")
-      ]);
+    const [camerasRes, devicesRes, boardsRes, quadrasRes, arenasRes] = await Promise.all([
+      supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
+      supabase.from("edge_devices").select("id, name, arena_id").order("name"),
+      supabase.from("input_boards").select("id, name, edge_device_id").order("name"),
+      supabase.from("quadras").select("id, nome, arena_id, arenas(nome)").order("nome"),
+      supabase.from("arenas").select("id, nome").order("nome")
+    ]);
 
-      if (camerasRes.error) {
-        console.error('[CAMERAS FETCH ERROR] Cameras:', camerasRes.error);
-        toast.error(`Erro ao buscar câmeras: ${camerasRes.error.message}`);
-      } else {
-        setCameras(camerasRes.data || []);
-      }
-      
-      setDevices(devicesRes.data || []);
-      setBoards(boardsRes.data || []);
-      setQuadras(quadrasRes.data || []);
-      setArenas(arenasRes.data || []);
-      console.log('[CAMERAS FETCH SUCCESS] Data loaded');
-    } catch (err) {
-      console.error('[CAMERAS FETCH FATAL ERROR]', err);
-    } finally {
-      setLoading(false);
-    }
+    setCameras(camerasRes.data || []);
+    setDevices(devicesRes.data || []);
+    setBoards(boardsRes.data || []);
+    setQuadras(quadrasRes.data || []);
+    setArenas(arenasRes.data || []);
+    setLoading(false);
   };
 
   useEffect(() => {

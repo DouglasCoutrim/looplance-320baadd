@@ -29,30 +29,19 @@ function AdminHome() {
 
   useEffect(() => {
     const fetchStats = async () => {
-      console.log('[ADMIN STATS] Fetching dashboard stats...');
-      try {
-        const [devices, cameras, arenas, replays] = await Promise.all([
-          supabase.from("edge_devices").select("*", { count: "exact", head: true }),
-          supabase.from("cameras").select("*", { count: "exact", head: true }),
-          supabase.from("arenas").select("*", { count: "exact", head: true }),
-          supabase.from("replays").select("*", { count: "exact", head: true }),
-        ]);
+      const [devices, cameras, arenas, replays] = await Promise.all([
+        supabase.from("edge_devices").select("*", { count: "exact", head: true }),
+        supabase.from("cameras").select("*", { count: "exact", head: true }),
+        supabase.from("arenas").select("*", { count: "exact", head: true }),
+        supabase.from("replays").select("*", { count: "exact", head: true }),
+      ]);
 
-        if (devices.error) console.error('[ADMIN STATS ERROR] Devices:', devices.error);
-        if (cameras.error) console.error('[ADMIN STATS ERROR] Cameras:', cameras.error);
-        if (arenas.error) console.error('[ADMIN STATS ERROR] Arenas:', arenas.error);
-        if (replays.error) console.error('[ADMIN STATS ERROR] Replays:', replays.error);
-
-        setStats({
-          devices: devices.count || 0,
-          cameras: cameras.count || 0,
-          arenas: arenas.count || 0,
-          replays: replays.count || 0,
-        });
-        console.log('[ADMIN STATS SUCCESS]', { devices: devices.count, cameras: cameras.count });
-      } catch (err) {
-        console.error('[ADMIN STATS FATAL ERROR]', err);
-      }
+      setStats({
+        devices: devices.count || 0,
+        cameras: cameras.count || 0,
+        arenas: arenas.count || 0,
+        replays: replays.count || 0,
+      });
     };
     fetchStats();
   }, []);

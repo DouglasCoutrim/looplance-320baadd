@@ -31,32 +31,14 @@ function Quadras() {
   const [arenaId, setArenaId] = useState("");
 
   const fetchData = async () => {
-    console.log('[QUADRAS FETCH] Starting data fetch...');
     setLoading(true);
-    try {
-      const [qRes, aRes] = await Promise.all([
-        supabase.from("quadras").select("*, arenas(nome)").order("nome"),
-        supabase.from("arenas").select("id, nome").order("nome")
-      ]);
-
-      if (qRes.error) {
-        console.error('[QUADRAS FETCH ERROR] Quadras:', qRes.error);
-        toast.error(`Erro ao buscar quadras: ${qRes.error.message}`);
-      } else {
-        setQuadras(qRes.data || []);
-      }
-
-      if (aRes.error) {
-        console.error('[QUADRAS FETCH ERROR] Arenas:', aRes.error);
-      } else {
-        setArenas(aRes.data || []);
-      }
-      console.log('[QUADRAS FETCH SUCCESS] Data loaded');
-    } catch (err) {
-      console.error('[QUADRAS FETCH FATAL ERROR]', err);
-    } finally {
-      setLoading(false);
-    }
+    const [qRes, aRes] = await Promise.all([
+      supabase.from("quadras").select("*, arenas(nome)").order("nome"),
+      supabase.from("arenas").select("id, nome").order("nome")
+    ]);
+    setQuadras(qRes.data || []);
+    setArenas(aRes.data || []);
+    setLoading(false);
   };
 
   useEffect(() => {
