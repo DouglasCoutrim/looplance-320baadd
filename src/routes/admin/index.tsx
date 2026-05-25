@@ -14,6 +14,7 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { BarChart, Bar, ResponsiveContainer, Tooltip, Cell, XAxis, YAxis } from "recharts";
+import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/")({
   component: AdminHome,
@@ -26,25 +27,43 @@ function AdminHome() {
     arenas: 0,
     replays: 0,
   });
+  const [loading, setLoading] = useState(true);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const fetchStats = async () => {
-      const [devices, cameras, arenas, replays] = await Promise.all([
-        supabase.from("edge_devices").select("*", { count: "exact", head: true }),
-        supabase.from("cameras").select("*", { count: "exact", head: true }),
-        supabase.from("arenas").select("*", { count: "exact", head: true }),
-        supabase.from("replays").select("*", { count: "exact", head: true }),
-      ]);
+      try {
+        setLoading(true);
+        const [devices, cameras, arenas, replays] = await Promise.all([
+          supabase.from("edge_devices").select("*", { count: "exact", head: true }),
+          supabase.from("cameras").select("*", { count: "exact", head: true }),
+          supabase.from("arenas").select("*", { count: "exact", head: true }),
+          supabase.from("replays").select("*", { count: "exact", head: true }),
+        ]);
 
-      setStats({
-        devices: devices.count || 0,
-        cameras: cameras.count || 0,
-        arenas: arenas.count || 0,
-        replays: replays.count || 0,
-      });
+        if (devices.error) console.error("Error fetching devices count:", devices.error);
+        if (cameras.error) console.error("Error fetching cameras count:", cameras.error);
+        if (arenas.error) console.error("Error fetching arenas count:", arenas.error);
+        if (replays.error) console.error("Error fetching replays count:", replays.error);
+
+        setStats({
+          devices: devices.count || 0,
+          cameras: cameras.count || 0,
+          arenas: arenas.count || 0,
+          replays: replays.count || 0,
+        });
+      } catch (err) {
+        console.error("Failed to fetch dashboard stats:", err);
+        toast.error("Erro ao carregar estatísticas do dashboard");
+      } finally {
+        setLoading(false);
+      }
     };
     fetchStats();
   }, []);
+
+  if (!mounted) return null;
 
   const data = [
     { name: "Devices", value: stats.devices, color: "#f97316" },

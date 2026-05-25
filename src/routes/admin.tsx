@@ -22,7 +22,34 @@ export const Route = createFileRoute("/admin")({
 function AdminLayout() {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
   
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        window.location.href = "/";
+        return;
+      }
+
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_super_admin, is_arena_owner")
+        .eq("id", user.id)
+        .single();
+
+      if (!profile?.is_super_admin && !profile?.is_arena_owner) {
+        toast.error("Acesso restrito a administradores");
+        window.location.href = "/";
+        return;
+      }
+
+      setIsAdmin(true);
+    };
+
+    checkAdmin();
+  }, []);
+
   const navItems = [
     { to: "/admin", label: "Visão Geral", icon: LayoutDashboard },
     { to: "/admin/edge-devices", label: "Edge Devices", icon: HardDrive },
@@ -31,11 +58,22 @@ function AdminLayout() {
     { to: "/admin/arenas", label: "Arenas", icon: Tv },
     { to: "/admin/quadras", label: "Quadras", icon: Tv },
   ];
-
+  
   // Close mobile menu on route change
   useEffect(() => {
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
+
+  if (isAdmin === null) {
+    return (
+      <div className="min-h-screen bg-black flex items-center justify-center">
+        <div className="text-center">
+          <div className="h-12 w-12 border-4 border-brand-orange border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+          <p className="text-white font-black uppercase tracking-widest text-xs">Verificando Credenciais...</p>
+        </div>
+      </div>
+    );
+  }
 
   const NavLinks = ({ className = "" }: { className?: string }) => (
     <nav className={`space-y-1 ${className}`}>
