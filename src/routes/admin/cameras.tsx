@@ -66,6 +66,7 @@ function Cameras() {
   const [arenas, setArenas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingCamera, setEditingCamera] = useState<CameraType | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -147,46 +148,99 @@ function Cameras() {
     fetchData();
   }, []);
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!formData.name || !formData.quadra_id) {
       toast.error("Nome e Quadra são obrigatórios");
       return;
     }
 
-    const { error } = await supabase
-      .from("cameras")
-      .insert([{
-        name: formData.name,
-        rtsp_url: formData.rtsp_url,
-        quadra_id: formData.quadra_id,
-        edge_device_id: formData.edge_device_id || null,
-        input_board_id: formData.input_board_id || null,
-        trigger_button: parseInt(formData.trigger_button),
-        replay_seconds: parseInt(formData.replay_seconds),
-        active: formData.active,
-      }]);
+    const payload = {
+      name: formData.name,
+      rtsp_url: formData.rtsp_url,
+      quadra_id: formData.quadra_id,
+      edge_device_id: formData.edge_device_id || null,
+      input_board_id: formData.input_board_id || null,
+      trigger_button: parseInt(formData.trigger_button),
+      replay_seconds: parseInt(formData.replay_seconds),
+      active: formData.active,
+    };
 
-    if (error) {
-      toast.error("Erro ao criar câmera");
+    if (editingCamera) {
+      const { error } = await supabase
+        .from("cameras")
+        .update(payload)
+        .eq("id", editingCamera.id);
+
+      if (error) {
+        toast.error("Erro ao atualizar câmera");
+      } else {
+        toast.success("Câmera atualizada com sucesso");
+        closeDialog();
+        fetchData();
+      }
     } else {
-      toast.success("Câmera criada com sucesso");
-      setIsDialogOpen(false);
-      setFormData({
-        name: "",
-        rtsp_url: "",
-        arena_id: "",
-        quadra_id: "",
-        edge_device_id: "",
-        input_board_id: "",
-        trigger_button: "0",
-        replay_seconds: "15",
-        active: true,
-        brand: "custom",
-        username: "admin",
-        password: "",
-        ip: "",
-        port: "554",
-      });
+      const { error } = await supabase
+        .from("cameras")
+        .insert([payload]);
+
+      if (error) {
+        toast.error("Erro ao criar câmera");
+      } else {
+        toast.success("Câmera criada com sucesso");
+        closeDialog();
+        fetchData();
+      }
+    }
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setEditingCamera(null);
+    setFormData({
+      name: "",
+      rtsp_url: "",
+      arena_id: "",
+      quadra_id: "",
+      edge_device_id: "",
+      input_board_id: "",
+      trigger_button: "0",
+      replay_seconds: "15",
+      active: true,
+      brand: "custom",
+      username: "admin",
+      password: "",
+      ip: "",
+      port: "554",
+    });
+  };
+
+  const openEditDialog = (camera: CameraType) => {
+    setEditingCamera(camera);
+    setFormData({
+      name: camera.name,
+      rtsp_url: camera.rtsp_url || "",
+      arena_id: camera.quadras?.arena_id || "",
+      quadra_id: camera.quadra_id || "",
+      edge_device_id: camera.edge_device_id || "",
+      input_board_id: camera.input_board_id || "",
+      trigger_button: (camera.trigger_button || 0).toString(),
+      replay_seconds: (camera.replay_seconds || 15).toString(),
+      active: camera.active ?? true,
+      brand: "custom", // We don't store the brand, so keep it custom to see the URL
+      username: "",
+      password: "",
+      ip: "",
+      port: "554",
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta câmera?")) return;
+    const { error } = await supabase.from("cameras").delete().eq("id", id);
+    if (error) toast.error("Erro ao excluir câmera: " + error.message);
+    else {
+      toast.success("Câmera excluída");
       fetchData();
     }
   };
@@ -214,17 +268,20 @@ function Cameras() {
           <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            if (!open) closeDialog();
+            else setIsDialogOpen(true);
+          }}>
             <DialogTrigger asChild>
-              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+              <Button onClick={() => closeDialog()} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
                 <Plus className="mr-2 h-5 w-5" /> Nova Câmera
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl overflow-hidden p-0">
               <div className="brand-gradient p-6 text-white">
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight">Configurar Câmera</DialogTitle>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight">{editingCamera ? "Editar Câmera" : "Configurar Câmera"}</DialogTitle>
                 <DialogDescription className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">
-                  Mapeie fontes de vídeo RTSP e vincule a quadras e servidores edge.
+                  {editingCamera ? "Atualize as configurações desta fonte de vídeo." : "Mapeie fontes de vídeo RTSP e vincule a quadras e servidores edge."}
                 </DialogDescription>
               </div>
               
@@ -354,8 +411,10 @@ function Cameras() {
                 </div>
               </div>
               <DialogFooter className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
-                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="font-bold rounded-xl">Cancelar</Button>
-                <Button onClick={handleCreate} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">Salvar Configuração</Button>
+                 <Button variant="ghost" onClick={closeDialog} className="font-bold rounded-xl">Cancelar</Button>
+                <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">
+                  {editingCamera ? "Salvar Alterações" : "Salvar Configuração"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -417,10 +476,20 @@ function Cameras() {
                   </TableCell>
                   <TableCell className="text-right py-5 px-6">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
+                       <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => openEditDialog(camera)}
+                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5"
+                      >
                         <Edit2 className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDelete(camera.id)}
+                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
