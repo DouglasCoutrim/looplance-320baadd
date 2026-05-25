@@ -165,7 +165,7 @@ export function ReplayFeed() {
             <img 
               src={logoUrl} 
               alt="Looplance" 
-              className="h-20 sm:h-28 w-auto object-contain transition-transform hover:scale-105 z-50" 
+              className="h-32 sm:h-48 w-auto object-contain transition-transform hover:scale-105 z-50 pointer-events-none" 
             />
           </div>
 

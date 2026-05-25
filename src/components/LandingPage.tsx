@@ -14,7 +14,7 @@ export function LandingPage() {
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 pt-10 pb-24">
         {/* Navigation/Logo */}
         <header className="flex justify-center mb-16">
-          <img src={logoUrl} alt="Looplance" className="h-32 sm:h-44 w-auto object-contain animate-in fade-in zoom-in duration-700" />
+          <img src={logoUrl} alt="Looplance" className="h-44 sm:h-64 w-auto object-contain animate-in fade-in zoom-in duration-700" />
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
