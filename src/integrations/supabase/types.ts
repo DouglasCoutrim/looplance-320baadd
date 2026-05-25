@@ -390,6 +390,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_update_user_profile: {
+        Args: {
+          new_is_arena_owner: boolean
+          new_is_super_admin: boolean
+          new_role: string
+          user_id: string
+        }
+        Returns: undefined
+      }
       is_admin: { Args: { _uid: string }; Returns: boolean }
       is_arena_manager: { Args: { _uid: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
