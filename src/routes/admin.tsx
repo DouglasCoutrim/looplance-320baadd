@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useLocation } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { 
   Tv, 
   HardDrive, 
@@ -8,20 +8,62 @@ import {
   Settings,
   ArrowLeft,
   Menu,
-  X
+  X,
+  Lock
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/use-auth";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
 function AdminLayout() {
+  const { isAuthenticated, isSuperAdmin, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    console.log('[ADMIN LAYOUT] Auth state:', { isAuthenticated, isSuperAdmin, loading });
+    if (!loading && !isAuthenticated) {
+      console.log('[ADMIN LAYOUT] Not authenticated, redirecting to /');
+      navigate({ to: "/" });
+    }
+  }, [isAuthenticated, loading, navigate]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black gap-4 text-white">
+        <img src={logoUrl} alt="Loading..." className="h-32 w-auto animate-pulse" />
+        <div className="flex items-center gap-2">
+          <div className="h-4 w-4 border-2 border-brand-orange border-t-transparent rounded-full animate-spin" />
+          <span className="text-xs font-black uppercase tracking-widest opacity-50">Autenticando...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isSuperAdmin) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center bg-black p-6 text-center">
+        <div className="h-20 w-20 rounded-full bg-red-500/10 flex items-center justify-center text-red-500 mb-6">
+          <Lock className="h-10 w-10" />
+        </div>
+        <h1 className="text-3xl font-black text-white uppercase mb-2">Acesso Restrito</h1>
+        <p className="text-white/60 font-medium mb-8 max-w-md">
+          Esta área é exclusiva para super administradores da Looplance.
+        </p>
+        <Button asChild className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-14 rounded-2xl">
+          <Link to="/">Voltar para Início</Link>
+        </Button>
+      </div>
+    );
+  }
+
   
   const navItems = [
     { to: "/admin", label: "Visão Geral", icon: LayoutDashboard },

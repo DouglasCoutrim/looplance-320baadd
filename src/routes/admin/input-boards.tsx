@@ -45,19 +45,32 @@ function InputBoards() {
   const [deviceName, setDeviceName] = useState("");
 
   const fetchData = async () => {
+    console.log('[INPUT BOARDS FETCH] Starting data fetch...');
     setLoading(true);
-    const [boardsRes, devicesRes] = await Promise.all([
-      supabase.from("input_boards").select("*, edge_devices(name)").order("created_at", { ascending: false }),
-      supabase.from("edge_devices").select("id, name").order("name")
-    ]);
+    try {
+      const [boardsRes, devicesRes] = await Promise.all([
+        supabase.from("input_boards").select("*, edge_devices(name)").order("created_at", { ascending: false }),
+        supabase.from("edge_devices").select("id, name").order("name")
+      ]);
 
-    if (boardsRes.error) toast.error("Erro ao buscar placas");
-    else setBoards(boardsRes.data || []);
+      if (boardsRes.error) {
+        console.error('[INPUT BOARDS FETCH ERROR] Boards:', boardsRes.error);
+        toast.error(`Erro ao buscar placas: ${boardsRes.error.message}`);
+      } else {
+        setBoards(boardsRes.data || []);
+      }
 
-    if (devicesRes.error) toast.error("Erro ao buscar dispositivos");
-    else setDevices(devicesRes.data || []);
-
-    setLoading(false);
+      if (devicesRes.error) {
+        console.error('[INPUT BOARDS FETCH ERROR] Devices:', devicesRes.error);
+      } else {
+        setDevices(devicesRes.data || []);
+      }
+      console.log('[INPUT BOARDS FETCH SUCCESS] Data loaded');
+    } catch (err) {
+      console.error('[INPUT BOARDS FETCH FATAL ERROR]', err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
