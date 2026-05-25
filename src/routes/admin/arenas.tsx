@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import logoImg from "@/assets/looplance-logo.png";
 
 export const Route = createFileRoute("/admin/arenas")({
   component: Arenas,
@@ -349,7 +350,7 @@ function Arenas() {
                     <div className="w-[180px] aspect-[9/16] bg-black rounded-2xl overflow-hidden shadow-2xl border-4 border-gray-800 relative">
                       {/* Top Bar */}
                       <div className="absolute top-0 left-0 w-full h-[15%] bg-black/40 backdrop-blur-sm border-b border-white/10 flex items-center justify-center p-4">
-                        <img src="/src/assets/looplance-logo.png" className="h-6 object-contain brightness-0 invert" alt="Logo" />
+                        <img src={logoImg} className="h-6 object-contain brightness-0 invert" alt="Logo" />
                       </div>
 
                       {/* Content Simulator */}
