@@ -1,16 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, Camera, Video, Edit2, Trash2 } from "lucide-react";
+import { Plus, RefreshCw, Video, Edit2, Trash2, Layout, Upload, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { generateAndUploadOverlay } from "@/utils/overlayGenerator";
+import logoImg from "@/assets/looplance-logo.png";
+
 
 export const Route = createFileRoute("/admin/cameras")({
   component: Cameras,
@@ -53,10 +56,20 @@ interface CameraType {
   trigger_button: number | null;
   replay_seconds: number | null;
   active: boolean | null;
-  quadras?: { nome: string; arena_id: string; arenas?: { nome: string } | null } | null;
+  aspect_ratio: string | null;
+  video_width: number | null;
+  video_height: number | null;
+  video_x: number | null;
+  video_y: number | null;
+  sponsor_logo_left: string | null;
+  sponsor_logo_center: string | null;
+  sponsor_logo_right: string | null;
+  final_overlay_url: string | null;
+  quadras?: { nome: string; arena_id: string; arenas?: { nome: string; sponsor_logo_left: string | null; sponsor_logo_center: string | null; sponsor_logo_right: string | null } | null } | null;
   edge_devices?: { name: string } | null;
   input_boards?: { name: string } | null;
 }
+
 
 function Cameras() {
   const [cameras, setCameras] = useState<CameraType[]>([]);
@@ -79,6 +92,11 @@ function Cameras() {
     trigger_button: "0",
     replay_seconds: "15",
     active: true,
+    aspect_ratio: "16:9",
+    sponsor_logo_left: "",
+    sponsor_logo_center: "",
+    sponsor_logo_right: "",
+    final_overlay_url: "",
     // Helper fields
     brand: "custom",
     username: "admin",
@@ -86,6 +104,7 @@ function Cameras() {
     ip: "",
     port: "554",
   });
+
 
   const generateRtspUrl = () => {
     if (formData.brand === "custom") return;
@@ -129,12 +148,13 @@ function Cameras() {
   const fetchData = async () => {
     setLoading(true);
     const [camerasRes, devicesRes, boardsRes, quadrasRes, arenasRes] = await Promise.all([
-      supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
+      supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome, sponsor_logo_left, sponsor_logo_center, sponsor_logo_right)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
       supabase.from("edge_devices").select("id, name, arena_id").order("name"),
       supabase.from("input_boards").select("id, name, edge_device_id").order("name"),
       supabase.from("quadras").select("id, nome, arena_id, arenas(nome)").order("nome"),
       supabase.from("arenas").select("id, nome").order("nome")
     ]);
+
 
     setCameras(camerasRes.data || []);
     setDevices(devicesRes.data || []);
@@ -154,6 +174,7 @@ function Cameras() {
       return;
     }
 
+    const is16x9 = formData.aspect_ratio === "16:9";
     const payload = {
       name: formData.name,
       rtsp_url: formData.rtsp_url,
@@ -163,7 +184,16 @@ function Cameras() {
       trigger_button: parseInt(formData.trigger_button),
       replay_seconds: parseInt(formData.replay_seconds),
       active: formData.active,
+      aspect_ratio: formData.aspect_ratio,
+      sponsor_logo_left: formData.sponsor_logo_left || null,
+      sponsor_logo_center: formData.sponsor_logo_center || null,
+      sponsor_logo_right: formData.sponsor_logo_right || null,
+      video_width: is16x9 ? 916 : 1080,
+      video_height: is16x9 ? 827 : 1386,
+      video_x: is16x9 ? 502 : 0,
+      video_y: is16x9 ? 120 : 267,
     };
+
 
     if (editingCamera) {
       const { error } = await supabase
@@ -206,12 +236,18 @@ function Cameras() {
       trigger_button: "0",
       replay_seconds: "15",
       active: true,
+      aspect_ratio: "16:9",
+      sponsor_logo_left: "",
+      sponsor_logo_center: "",
+      sponsor_logo_right: "",
+      final_overlay_url: "",
       brand: "custom",
       username: "admin",
       password: "",
       ip: "",
       port: "554",
     });
+
   };
 
   const openEditDialog = (camera: CameraType) => {
@@ -226,7 +262,12 @@ function Cameras() {
       trigger_button: (camera.trigger_button || 0).toString(),
       replay_seconds: (camera.replay_seconds || 15).toString(),
       active: camera.active ?? true,
-      brand: "custom", // We don't store the brand, so keep it custom to see the URL
+      aspect_ratio: camera.aspect_ratio || "16:9",
+      sponsor_logo_left: camera.sponsor_logo_left || camera.quadras?.arenas?.sponsor_logo_left || "",
+      sponsor_logo_center: camera.sponsor_logo_center || camera.quadras?.arenas?.sponsor_logo_center || "",
+      sponsor_logo_right: camera.sponsor_logo_right || camera.quadras?.arenas?.sponsor_logo_right || "",
+      final_overlay_url: camera.final_overlay_url || "",
+      brand: "custom",
       username: "",
       password: "",
       ip: "",
@@ -234,6 +275,7 @@ function Cameras() {
     });
     setIsDialogOpen(true);
   };
+
 
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir esta câmera?")) return;
@@ -253,7 +295,67 @@ function Cameras() {
     ? quadras.filter(q => q.arena_id === formData.arena_id)
     : quadras;
 
+  const [generatingOverlay, setGeneratingOverlay] = useState(false);
+
+  const handleGenerateOverlay = async () => {
+    if (!editingCamera) {
+      toast.error("Salve a câmera antes de gerar o overlay");
+      return;
+    }
+
+    try {
+      setGeneratingOverlay(true);
+      const publicUrl = await generateAndUploadOverlay({
+        id: editingCamera.id,
+        aspect_ratio: formData.aspect_ratio,
+        sponsor_logo_left: formData.sponsor_logo_left,
+        sponsor_logo_center: formData.sponsor_logo_center,
+        sponsor_logo_right: formData.sponsor_logo_right,
+      });
+
+      const { error } = await supabase
+        .from("cameras")
+        .update({ final_overlay_url: publicUrl })
+        .eq("id", editingCamera.id);
+
+      if (error) throw error;
+
+      setFormData(prev => ({ ...prev, final_overlay_url: publicUrl }));
+      toast.success("Overlay gerado com sucesso!");
+      fetchData();
+    } catch (error: any) {
+      console.error("Error generating overlay:", error);
+      toast.error("Erro ao gerar overlay: " + error.message);
+    } finally {
+      setGeneratingOverlay(false);
+    }
+  };
+
+  const handleLogoUpload = async (file: File, side: 'left' | 'center' | 'right') => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${editingCamera?.id || 'temp'}-${side}-${Math.random()}.${fileExt}`;
+      const filePath = `sponsors/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("overlays")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("overlays")
+        .getPublicUrl(filePath);
+      
+      setFormData(prev => ({ ...prev, [`sponsor_logo_${side}`]: publicUrl }));
+      toast.success(`Logo ${side} atualizado`);
+    } catch (error: any) {
+      toast.error("Erro no upload: " + error.message);
+    }
+  };
+
   return (
+
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
@@ -385,6 +487,20 @@ function Cameras() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Aspect Ratio</Label>
+                    <Select value={formData.aspect_ratio} onValueChange={(v) => setFormData({...formData, aspect_ratio: v})}>
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                        <SelectValue placeholder="Selecione o formato" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                        <SelectItem value="16:9">16:9 (Horizontal)</SelectItem>
+                        <SelectItem value="9:16">9:16 (Vertical)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="grid gap-4 grid-cols-2">
                     <div className="grid gap-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Botão (Gatilho)</Label>
@@ -409,7 +525,119 @@ function Cameras() {
                     <Switch id="active" checked={formData.active} onCheckedChange={(v) => setFormData({...formData, active: v})} className="data-[state=checked]:bg-brand-orange" />
                   </div>
                 </div>
+
+                <div className="col-span-full border-t border-gray-100 mt-4 pt-6">
+                  <h3 className="text-lg font-black uppercase tracking-tight text-gray-900 flex items-center gap-2 mb-6">
+                    <Layout className="h-5 w-5 text-brand-orange" />
+                    Gerador de Overlay Dinâmico
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-8">
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-3 gap-4">
+                        {(['left', 'center', 'right'] as const).map((side) => (
+                          <div key={side} className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center capitalize">{side}</Label>
+                            <div 
+                              onClick={() => document.getElementById(`cam-sponsor-${side}`)?.click()}
+                              className="aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-brand-orange/50 hover:bg-brand-orange/5 transition-all group overflow-hidden relative"
+                            >
+                              {formData[`sponsor_logo_${side}` as keyof typeof formData] ? (
+                                <img src={formData[`sponsor_logo_${side}` as keyof typeof formData] as string} className="w-full h-full object-contain p-2" alt={`Sponsor ${side}`} />
+                              ) : (
+                                <Upload className="h-6 w-6 text-gray-300 group-hover:text-brand-orange transition-colors" />
+                              )}
+                              <input 
+                                id={`cam-sponsor-${side}`}
+                                type="file" 
+                                className="hidden" 
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleLogoUpload(file, side);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-3">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          <span>Canvas:</span>
+                          <span className="text-gray-900">{formData.aspect_ratio === '16:9' ? '1920x1080' : '1080x1920'}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          <span>Área Vídeo:</span>
+                          <span className="text-gray-900">{formData.aspect_ratio === '16:9' ? '916x827' : '1080x1386'}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          <span>Posição (X,Y):</span>
+                          <span className="text-gray-900">{formData.aspect_ratio === '16:9' ? '502, 120' : '0, 267'}</span>
+                        </div>
+                      </div>
+
+                      <Button 
+                        onClick={handleGenerateOverlay} 
+                        disabled={generatingOverlay || !editingCamera}
+                        className="w-full brand-gradient text-white font-black uppercase tracking-widest h-12 rounded-xl shadow-lg"
+                      >
+                        {generatingOverlay ? (
+                          <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                        ) : formData.final_overlay_url ? (
+                          <Check className="mr-2 h-5 w-5" />
+                        ) : (
+                          <Layout className="mr-2 h-5 w-5" />
+                        )}
+                        {generatingOverlay ? "Gerando..." : formData.final_overlay_url ? "Regerar Overlay" : "Gerar Overlay Final"}
+                      </Button>
+                      
+                      {!editingCamera && (
+                        <p className="text-[10px] text-red-500 font-bold uppercase text-center">
+                          * Salve a câmera primeiro para habilitar o gerador
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col items-center">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Preview em Tempo Real ({formData.aspect_ratio})</Label>
+                      <div className={`relative bg-black rounded-2xl overflow-hidden shadow-2xl border-4 border-gray-800 ${formData.aspect_ratio === '16:9' ? 'w-full aspect-[16/9]' : 'w-[180px] aspect-[9/16]'}`}>
+                        <div className={`absolute bg-gray-900/50 flex items-center justify-center border-2 border-brand-orange z-0 transition-all duration-300
+                          ${formData.aspect_ratio === '16:9' 
+                            ? 'left-[26%] top-[11%] w-[48%] h-[76%]' 
+                            : 'left-0 top-[14%] w-full h-[72%]'}`}
+                        >
+                          <span className="text-[10px] text-brand-orange font-black uppercase tracking-widest text-center px-2">
+                            Área do Vídeo<br/>
+                            {formData.aspect_ratio === '16:9' ? '916x827' : '1080x1386'}
+                          </span>
+                        </div>
+
+                        <div className={`absolute top-0 left-0 w-full flex items-center justify-center p-4 z-20 ${formData.aspect_ratio === '16:9' ? 'h-[15%]' : 'h-[15%] bg-black/40 backdrop-blur-sm'}`}>
+                          <img src={logoImg} className="h-6 object-contain brightness-0 invert" alt="Logo" />
+                        </div>
+
+                        <div className={`absolute bottom-0 left-0 w-full flex items-center justify-between px-3 gap-2 z-20
+                          ${formData.aspect_ratio === '16:9' ? 'h-[15%] bg-black/20' : 'h-[12%] brand-gradient'}`}
+                        >
+                          {(['left', 'center', 'right'] as const).map((side) => (
+                            <div key={side} className="flex-1 h-full flex items-center justify-center overflow-hidden py-1">
+                              {formData[`sponsor_logo_${side}` as keyof typeof formData] && (
+                                <img 
+                                  src={formData[`sponsor_logo_${side}` as keyof typeof formData] as string} 
+                                  className="max-h-full max-w-full object-contain" 
+                                  alt={`Sponsor ${side}`} 
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+
               <DialogFooter className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
                  <Button variant="ghost" onClick={closeDialog} className="font-bold rounded-xl">Cancelar</Button>
                 <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">

@@ -110,6 +110,10 @@ export type Database = {
           sponsor_logo_left: string | null
           sponsor_logo_right: string | null
           trigger_button: number | null
+          video_height: number | null
+          video_width: number | null
+          video_x: number | null
+          video_y: number | null
         }
         Insert: {
           active?: boolean | null
@@ -129,6 +133,10 @@ export type Database = {
           sponsor_logo_left?: string | null
           sponsor_logo_right?: string | null
           trigger_button?: number | null
+          video_height?: number | null
+          video_width?: number | null
+          video_x?: number | null
+          video_y?: number | null
         }
         Update: {
           active?: boolean | null
@@ -148,6 +156,10 @@ export type Database = {
           sponsor_logo_left?: string | null
           sponsor_logo_right?: string | null
           trigger_button?: number | null
+          video_height?: number | null
+          video_width?: number | null
+          video_x?: number | null
+          video_y?: number | null
         }
         Relationships: [
           {
