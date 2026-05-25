@@ -36,6 +36,7 @@ function InputBoards() {
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingBoard, setEditingBoard] = useState<InputBoard | null>(null);
   
   // Form state
   const [name, setName] = useState("");
@@ -64,28 +65,67 @@ function InputBoards() {
     fetchData();
   }, []);
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!name || !edgeDeviceId) {
       toast.error("Nome e Edge Device são obrigatórios");
       return;
     }
 
-    const { error } = await supabase
-      .from("input_boards")
-      .insert([{ 
-        name, 
-        edge_device_id: edgeDeviceId, 
-        vendor_id: vendorId, 
-        product_id: productId, 
-        device_name: deviceName 
-      }]);
+    const payload = { 
+      name, 
+      edge_device_id: edgeDeviceId, 
+      vendor_id: vendorId, 
+      product_id: productId, 
+      device_name: deviceName 
+    };
 
-    if (error) {
-      toast.error("Erro ao criar placa");
+    if (editingBoard) {
+      const { error } = await supabase
+        .from("input_boards")
+        .update(payload)
+        .eq("id", editingBoard.id);
+
+      if (error) {
+        toast.error("Erro ao atualizar placa");
+      } else {
+        toast.success("Placa atualizada com sucesso");
+        setIsDialogOpen(false);
+        setEditingBoard(null);
+        resetForm();
+        fetchData();
+      }
     } else {
-      toast.success("Placa criada com sucesso");
-      setIsDialogOpen(false);
-      resetForm();
+      const { error } = await supabase
+        .from("input_boards")
+        .insert([payload]);
+
+      if (error) {
+        toast.error("Erro ao criar placa");
+      } else {
+        toast.success("Placa criada com sucesso");
+        setIsDialogOpen(false);
+        resetForm();
+        fetchData();
+      }
+    }
+  };
+
+  const openEditDialog = (board: InputBoard) => {
+    setEditingBoard(board);
+    setName(board.name);
+    setEdgeDeviceId(board.edge_device_id || "");
+    setVendorId(board.vendor_id || "");
+    setProductId(board.product_id || "");
+    setDeviceName(board.device_name || "");
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm("Tem certeza que deseja excluir esta placa?")) return;
+    const { error } = await supabase.from("input_boards").delete().eq("id", id);
+    if (error) toast.error("Erro ao excluir placa: " + error.message);
+    else {
+      toast.success("Placa excluída");
       fetchData();
     }
   };
@@ -113,17 +153,23 @@ function InputBoards() {
           <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              setEditingBoard(null);
+              resetForm();
+            }
+          }}>
             <DialogTrigger asChild>
-              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+              <Button onClick={() => { setEditingBoard(null); resetForm(); }} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
                 <Plus className="mr-2 h-5 w-5" /> Nova Placa
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-2xl border-none shadow-2xl overflow-hidden p-0">
                <div className="brand-gradient p-6 text-white">
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight">Adicionar Interface USB</DialogTitle>
+                 <DialogTitle className="text-2xl font-black uppercase tracking-tight">{editingBoard ? "Editar Interface USB" : "Adicionar Interface USB"}</DialogTitle>
                 <DialogDescription className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">
-                  Configure uma nova interface USB Zero Delay para gatilhos de gravação.
+                  {editingBoard ? "Atualize as configurações desta interface USB." : "Configure uma nova interface USB Zero Delay para gatilhos de gravação."}
                 </DialogDescription>
               </div>
 
@@ -157,8 +203,10 @@ function InputBoards() {
                 </div>
               </div>
               <DialogFooter className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
-                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="font-bold rounded-xl">Cancelar</Button>
-                <Button onClick={handleCreate} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">Cadastrar Placa</Button>
+                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="font-bold rounded-xl">Cancelar</Button>
+                <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">
+                  {editingBoard ? "Salvar Alterações" : "Cadastrar Placa"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -209,10 +257,20 @@ function InputBoards() {
                   </TableCell>
                   <TableCell className="text-right py-5 px-6">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
+                       <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => openEditDialog(board)}
+                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5"
+                      >
                         <Edit2 className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => handleDelete(board.id)}
+                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
+                      >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>

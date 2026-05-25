@@ -34,6 +34,7 @@ function EdgeDevices() {
   const [arenas, setArenas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingDevice, setEditingDevice] = useState<EdgeDevice | null>(null);
   const [newName, setNewName] = useState("");
   const [newHostname, setNewHostname] = useState("");
   const [selectedArenaId, setSelectedArenaId] = useState("");
@@ -46,8 +47,10 @@ function EdgeDevices() {
     ]);
 
     if (devicesRes.error) {
-      toast.error("Erro ao buscar dispositivos");
+      console.error("Erro ao buscar dispositivos:", devicesRes.error);
+      toast.error("Erro ao buscar dispositivos: " + devicesRes.error.message);
     } else {
+      console.log("Dispositivos carregados:", devicesRes.data);
       setDevices(devicesRes.data || []);
     }
     
@@ -62,31 +65,62 @@ function EdgeDevices() {
     fetchData();
   }, []);
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!newName) {
       toast.error("Nome é obrigatório");
       return;
     }
 
-    const { error } = await supabase
-      .from("edge_devices")
-      .insert([{ 
-        name: newName, 
-        hostname: newHostname, 
-        status: "offline",
-        arena_id: selectedArenaId || null
-      }]);
+    if (editingDevice) {
+      const { error } = await supabase
+        .from("edge_devices")
+        .update({ 
+          name: newName, 
+          hostname: newHostname, 
+          arena_id: selectedArenaId || null
+        })
+        .eq("id", editingDevice.id);
 
-    if (error) {
-      toast.error("Erro ao criar dispositivo");
+      if (error) {
+        toast.error("Erro ao atualizar dispositivo");
+      } else {
+        toast.success("Dispositivo atualizado com sucesso");
+        setIsDialogOpen(false);
+        setEditingDevice(null);
+        setNewName("");
+        setNewHostname("");
+        setSelectedArenaId("");
+        fetchData();
+      }
     } else {
-      toast.success("Dispositivo criado com sucesso");
-      setIsDialogOpen(false);
-      setNewName("");
-      setNewHostname("");
-      setSelectedArenaId("");
-      fetchData();
+      const { error } = await supabase
+        .from("edge_devices")
+        .insert([{ 
+          name: newName, 
+          hostname: newHostname, 
+          status: "offline",
+          arena_id: selectedArenaId || null
+        }]);
+
+      if (error) {
+        toast.error("Erro ao criar dispositivo");
+      } else {
+        toast.success("Dispositivo criado com sucesso");
+        setIsDialogOpen(false);
+        setNewName("");
+        setNewHostname("");
+        setSelectedArenaId("");
+        fetchData();
+      }
     }
+  };
+
+  const openEditDialog = (device: EdgeDevice) => {
+    setEditingDevice(device);
+    setNewName(device.name);
+    setNewHostname(device.hostname || "");
+    setSelectedArenaId(device.arena_id || "");
+    setIsDialogOpen(true);
   };
 
   const handleDelete = async (id: string) => {
@@ -138,17 +172,25 @@ function EdgeDevices() {
           <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              setEditingDevice(null);
+              setNewName("");
+              setNewHostname("");
+              setSelectedArenaId("");
+            }
+          }}>
             <DialogTrigger asChild>
-              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+              <Button onClick={() => { setEditingDevice(null); setNewName(""); setNewHostname(""); setSelectedArenaId(""); }} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
                 <Plus className="mr-2 h-5 w-5" /> Novo Device
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-2xl border-none shadow-2xl">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">Provisionar Servidor</DialogTitle>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">{editingDevice ? "Editar Servidor" : "Provisionar Servidor"}</DialogTitle>
                 <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
-                  Configure um novo nó de processamento local (Edge) para sua rede.
+                  {editingDevice ? "Atualize as configurações deste servidor edge." : "Configure um novo nó de processamento local (Edge) para sua rede."}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-6">
@@ -176,7 +218,7 @@ function EdgeDevices() {
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleCreate} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Provisionar</Button>
+                <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">{editingDevice ? "Atualizar" : "Provisionar"}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -240,7 +282,12 @@ function EdgeDevices() {
                       >
                         Copiar Token
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => openEditDialog(device)}
+                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5"
+                      >
                         <Edit2 className="h-4 w-4" />
                       </Button>
                       <Button 
