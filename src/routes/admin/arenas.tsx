@@ -23,6 +23,7 @@ function Arenas() {
   const [arenas, setArenas] = useState<Arena[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingArena, setEditingArena] = useState<Arena | null>(null);
   const [name, setName] = useState("");
 
   const fetchArenas = async () => {
@@ -37,16 +38,35 @@ function Arenas() {
     fetchArenas();
   }, []);
 
-  const handleCreate = async () => {
+  const handleSave = async () => {
     if (!name) return;
-    const { error } = await supabase.from("arenas").insert([{ nome: name }]);
-    if (error) toast.error("Erro ao criar arena");
-    else {
-      toast.success("Arena criada");
-      setIsDialogOpen(false);
-      setName("");
-      fetchArenas();
+    
+    if (editingArena) {
+      const { error } = await supabase.from("arenas").update({ nome: name }).eq("id", editingArena.id);
+      if (error) toast.error("Erro ao atualizar arena");
+      else {
+        toast.success("Arena atualizada");
+        setIsDialogOpen(false);
+        setEditingArena(null);
+        setName("");
+        fetchArenas();
+      }
+    } else {
+      const { error } = await supabase.from("arenas").insert([{ nome: name }]);
+      if (error) toast.error("Erro ao criar arena");
+      else {
+        toast.success("Arena criada");
+        setIsDialogOpen(false);
+        setName("");
+        fetchArenas();
+      }
     }
+  };
+
+  const openEditDialog = (arena: Arena) => {
+    setEditingArena(arena);
+    setName(arena.nome);
+    setIsDialogOpen(true);
   };
   
   const handleDelete = async (id: string) => {
@@ -76,17 +96,23 @@ function Arenas() {
           <Button variant="outline" size="icon" onClick={fetchArenas} disabled={loading} className="rounded-xl border-gray-200 h-10 sm:h-12 w-10 sm:w-12 shadow-sm bg-white hover:bg-gray-50 shrink-0">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(open) => {
+            setIsDialogOpen(open);
+            if (!open) {
+              setEditingArena(null);
+              setName("");
+            }
+          }}>
             <DialogTrigger asChild>
-              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
+              <Button onClick={() => { setEditingArena(null); setName(""); }} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
                 <Plus className="mr-2 h-5 w-5" /> Nova Arena
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-2xl border-none shadow-2xl">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">Adicionar Arena</DialogTitle>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">{editingArena ? "Editar Arena" : "Adicionar Arena"}</DialogTitle>
                 <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
-                  Cadastre um novo complexo esportivo no sistema.
+                  {editingArena ? "Atualize os dados desta arena." : "Cadastre um novo complexo esportivo no sistema."}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-6">
@@ -97,7 +123,7 @@ function Arenas() {
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleCreate} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
+                <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -135,7 +161,12 @@ function Arenas() {
                   </TableCell>
                   <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
                     <div className="flex justify-end gap-1 sm:gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        onClick={() => openEditDialog(a)}
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors"
+                      >
                         <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                       <Button 
