@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useLocation, useNavigate, redirect } from "@tanstack/react-router";
 import { 
   Tv, 
   HardDrive, 
@@ -24,38 +24,39 @@ export const Route = createFileRoute("/admin")({
     // Skip auth check for login page to avoid recursion
     if (location.pathname === "/admin/login") return;
 
-    const { data: { session } } = await supabase.auth.getSession();
+    // Use getUser for more security as it fetches the user from the server
+    const { data: { user } } = await supabase.auth.getUser();
     
-    if (!session) {
-      throw new Error("unauthorized");
+    if (!user) {
+      console.log("[ADMIN CHECK] No user found, redirecting to login");
+      throw redirect({
+        to: "/admin/login",
+      });
     }
 
     // Check if super admin
     const { data: profile } = await supabase
       .from("profiles")
       .select("id, email, full_name, is_super_admin")
-      .eq("id", session.user.id)
+      .eq("id", user.id)
       .single();
 
-    console.log("[PROFILE]", profile);
-    console.log("[SUPER ADMIN]", profile?.is_super_admin);
+    console.log('[ADMIN CHECK]', {
+      user: user?.id,
+      profile,
+      isSuperAdmin: profile?.is_super_admin
+    });
 
-    const isSuperAdmin = profile?.is_super_admin === true;
-
-    if (!isSuperAdmin) {
-      throw new Error("forbidden");
+    if (!profile?.is_super_admin) {
+      console.log("[ADMIN CHECK] Not a super admin, redirecting to login");
+      // Sign out to clear any invalid sessions
+      await supabase.auth.signOut();
+      throw redirect({
+        to: "/admin/login",
+      });
     }
-  },
-  errorComponent: ({ error }: { error: any }) => {
-    const navigate = useNavigate();
-    
-    useEffect(() => {
-      if (error.message === "unauthorized" || error.message === "forbidden") {
-        navigate({ to: "/admin/login" });
-      }
-    }, [error, navigate]);
 
-    return null;
+    return { profile };
   },
   component: AdminLayout,
 });
