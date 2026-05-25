@@ -85,8 +85,10 @@ function Arenas() {
     
     if (editingArena) {
       const { error } = await supabase.from("arenas").update(arenaData).eq("id", editingArena.id);
-      if (error) toast.error("Erro ao atualizar arena");
-      else {
+      if (error) {
+        console.error("Erro ao atualizar arena:", error);
+        toast.error("Erro ao atualizar arena: " + error.message);
+      } else {
         toast.success("Arena atualizada");
         closeDialog();
         fetchArenas();
