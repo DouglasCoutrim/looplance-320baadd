@@ -12,9 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
-import { Route as AdminLoginRouteImport } from './routes/admin/login'
 import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-boards'
 import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-devices'
 import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
@@ -35,19 +33,9 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
-  getParentRoute: () => AdminRoute,
-} as any)
 const AdminQuadrasRoute = AdminQuadrasRouteImport.update({
   id: '/quadras',
   path: '/quadras',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminLoginRoute = AdminLoginRouteImport.update({
-  id: '/login',
-  path: '/login',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminInputBoardsRoute = AdminInputBoardsRouteImport.update({
@@ -78,9 +66,7 @@ export interface FileRoutesByFullPath {
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
-  '/admin/login': typeof AdminLoginRoute
   '/admin/quadras': typeof AdminQuadrasRoute
-  '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -89,9 +75,7 @@ export interface FileRoutesByTo {
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
-  '/admin/login': typeof AdminLoginRoute
   '/admin/quadras': typeof AdminQuadrasRoute
-  '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -102,9 +86,7 @@ export interface FileRoutesById {
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
-  '/admin/login': typeof AdminLoginRoute
   '/admin/quadras': typeof AdminQuadrasRoute
-  '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -116,9 +98,7 @@ export interface FileRouteTypes {
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
-    | '/admin/login'
     | '/admin/quadras'
-    | '/admin/users'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -127,9 +107,7 @@ export interface FileRouteTypes {
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
-    | '/admin/login'
     | '/admin/quadras'
-    | '/admin/users'
     | '/admin'
   id:
     | '__root__'
@@ -139,9 +117,7 @@ export interface FileRouteTypes {
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
-    | '/admin/login'
     | '/admin/quadras'
-    | '/admin/users'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -173,25 +149,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
-    }
     '/admin/quadras': {
       id: '/admin/quadras'
       path: '/quadras'
       fullPath: '/admin/quadras'
       preLoaderRoute: typeof AdminQuadrasRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/login': {
-      id: '/admin/login'
-      path: '/login'
-      fullPath: '/admin/login'
-      preLoaderRoute: typeof AdminLoginRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/input-boards': {
@@ -230,9 +192,7 @@ interface AdminRouteChildren {
   AdminCamerasRoute: typeof AdminCamerasRoute
   AdminEdgeDevicesRoute: typeof AdminEdgeDevicesRoute
   AdminInputBoardsRoute: typeof AdminInputBoardsRoute
-  AdminLoginRoute: typeof AdminLoginRoute
   AdminQuadrasRoute: typeof AdminQuadrasRoute
-  AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -241,9 +201,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCamerasRoute: AdminCamerasRoute,
   AdminEdgeDevicesRoute: AdminEdgeDevicesRoute,
   AdminInputBoardsRoute: AdminInputBoardsRoute,
-  AdminLoginRoute: AdminLoginRoute,
   AdminQuadrasRoute: AdminQuadrasRoute,
-  AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

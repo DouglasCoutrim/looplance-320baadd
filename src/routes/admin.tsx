@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useLocation, useNavigate, redirect } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useLocation } from "@tanstack/react-router";
 import { 
   Tv, 
   HardDrive, 
@@ -8,16 +8,12 @@ import {
   Settings,
   ArrowLeft,
   Menu,
-  X,
-  Users,
-  LogOut
+  X
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -25,89 +21,7 @@ export const Route = createFileRoute("/admin")({
 
 function AdminLayout() {
   const location = useLocation();
-  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [loading, setLoading] = useState(true);
-  const [profile, setProfile] = useState<any>(null);
-  
-  useEffect(() => {
-    const checkAuth = async () => {
-      // Skip check for login page
-      if (location.pathname === "/admin/login") {
-        setLoading(false);
-        return;
-      }
-
-      setLoading(true);
-      
-      try {
-        const { data: { session } } = await supabase.auth.getSession();
-        const user = session?.user;
-        
-        let profileData = null;
-        if (user) {
-          const { data } = await supabase
-            .from("profiles")
-            .select("id, email, full_name, is_super_admin")
-            .eq("id", user.id)
-            .single();
-          profileData = data;
-        }
-
-        console.log('[AUTH]', {
-          loadingAuth: false,
-          loadingProfile: false,
-          session,
-          profile: profileData,
-          isSuperAdmin: profileData?.is_super_admin
-        });
-
-        if (!user || !profileData?.is_super_admin) {
-          console.log("[AUTH] Unauthorized access, redirecting to login");
-          if (user) {
-            // Sign out if not super admin but logged in
-            await supabase.auth.signOut();
-          }
-          navigate({ to: "/admin/login" });
-        } else {
-          setProfile(profileData);
-        }
-      } catch (error) {
-        console.error("[AUTH] Error during auth check:", error);
-        navigate({ to: "/admin/login" });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [location.pathname, navigate]);
-
-  if (loading && location.pathname !== "/admin/login") {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="h-12 w-12 rounded-2xl brand-gradient animate-pulse" />
-          <p className="text-white/50 text-xs font-black uppercase tracking-widest">Validando Acesso...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If we're on the login page, just render the outlet (the login form)
-  if (location.pathname === "/admin/login") {
-    return <Outlet />;
-  }
-
-  // If not loading and no profile (and not on login page), the useEffect will handle the redirect
-  if (!profile) return null;
-
-  
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-    toast.success("Logoff realizado");
-    navigate({ to: "/admin/login" });
-  };
   
   const navItems = [
     { to: "/admin", label: "Visão Geral", icon: LayoutDashboard },
@@ -116,7 +30,6 @@ function AdminLayout() {
     { to: "/admin/cameras", label: "Cameras", icon: Camera },
     { to: "/admin/arenas", label: "Arenas", icon: Tv },
     { to: "/admin/quadras", label: "Quadras", icon: Tv },
-    { to: "/admin/users", label: "Admins", icon: Users },
   ];
 
   // Close mobile menu on route change
@@ -180,13 +93,6 @@ function AdminLayout() {
                       <ArrowLeft className="h-5 w-5" />
                       <span>Sair do Admin</span>
                     </Link>
-                    <button 
-                      onClick={handleLogout}
-                      className="w-full flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-red-500 hover:bg-red-50 transition-colors"
-                    >
-                      <LogOut className="h-5 w-5" />
-                      <span>Sair da Conta</span>
-                    </button>
                   </div>
                 </div>
               </SheetContent>
@@ -214,19 +120,11 @@ function AdminLayout() {
           </div>
 
           {/* Right: User/Settings */}
-          <div className="flex-1 flex justify-end gap-3">
+          <div className="flex-1 flex justify-end">
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-2 sm:px-3 py-1.5 backdrop-blur-md text-white/50">
               <Settings className="h-4 w-4" />
               <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">Config</span>
             </div>
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              onClick={handleLogout}
-              className="text-white/50 hover:text-red-500 hover:bg-red-500/10 rounded-full"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
           </div>
         </div>
       </header>
