@@ -208,46 +208,47 @@ function Arenas() {
                   {editingArena ? "Atualize os dados desta arena." : "Cadastre um novo complexo esportivo no sistema."}
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
-                <div className="space-y-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
-                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+              <div className="overflow-y-auto max-h-[70vh] px-1">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
+                  <div className="space-y-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
+                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="cidade" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cidade</Label>
+                      <Input id="cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Ex: São Paulo" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="telefone" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Telefone</Label>
+                      <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Ex: (11) 99999-9999" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                    </div>
                   </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="cidade" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cidade</Label>
-                    <Input id="cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Ex: São Paulo" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="telefone" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Telefone</Label>
-                    <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Ex: (11) 99999-9999" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
-                  </div>
-                </div>
-                
-                <div className="space-y-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="endereco" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Endereço Completo</Label>
-                    <Input id="endereco" value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua, número, bairro" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="foto" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Foto da Arena</Label>
-                    <div className="flex flex-col gap-4">
-                      {editingArena?.foto_url && !fotoFile && (
-                        <div className="h-20 w-32 rounded-lg overflow-hidden border border-gray-100">
-                          <img src={editingArena.foto_url} alt="Preview" className="h-full w-full object-cover" />
-                        </div>
-                      )}
-                      <Input 
-                        id="foto" 
-                        type="file" 
-                        accept="image/*"
-                        onChange={(e) => setFotoFile(e.target.files?.[0] || null)}
-                        className="rounded-xl border-gray-100 bg-gray-50 h-12 pt-2 focus:border-brand-orange focus:ring-brand-orange cursor-pointer" 
-                      />
+                  
+                  <div className="space-y-4">
+                    <div className="grid gap-2">
+                      <Label htmlFor="endereco" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Endereço Completo</Label>
+                      <Input id="endereco" value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua, número, bairro" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label htmlFor="foto" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Foto da Arena</Label>
+                      <div className="flex flex-col gap-4">
+                        {editingArena?.foto_url && !fotoFile && (
+                          <div className="h-20 w-32 rounded-lg overflow-hidden border border-gray-100">
+                            <img src={editingArena.foto_url} alt="Preview" className="h-full w-full object-cover" />
+                          </div>
+                        )}
+                        <Input 
+                          id="foto" 
+                          type="file" 
+                          accept="image/*"
+                          onChange={(e) => setFotoFile(e.target.files?.[0] || null)}
+                          className="rounded-xl border-gray-100 bg-gray-50 h-12 pt-2 focus:border-brand-orange focus:ring-brand-orange cursor-pointer" 
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
 
               <div className="border-t border-gray-100 mt-2 pt-6">
                 <h3 className="text-lg font-black uppercase tracking-tight text-gray-900 flex items-center gap-2 mb-6">
@@ -371,6 +372,7 @@ function Arenas() {
                         </div>
                       </div>
                     </div>
+                  </div>
                 </div>
               </div>
               <DialogFooter>
