@@ -54,27 +54,39 @@ export type Database = {
           cidade: string | null
           created_at: string
           endereco: string | null
+          final_overlay_url: string | null
           foto_url: string | null
           id: string
           nome: string
+          sponsor_logo_center: string | null
+          sponsor_logo_left: string | null
+          sponsor_logo_right: string | null
           telefone: string | null
         }
         Insert: {
           cidade?: string | null
           created_at?: string
           endereco?: string | null
+          final_overlay_url?: string | null
           foto_url?: string | null
           id?: string
           nome: string
+          sponsor_logo_center?: string | null
+          sponsor_logo_left?: string | null
+          sponsor_logo_right?: string | null
           telefone?: string | null
         }
         Update: {
           cidade?: string | null
           created_at?: string
           endereco?: string | null
+          final_overlay_url?: string | null
           foto_url?: string | null
           id?: string
           nome?: string
+          sponsor_logo_center?: string | null
+          sponsor_logo_left?: string | null
+          sponsor_logo_right?: string | null
           telefone?: string | null
         }
         Relationships: []
