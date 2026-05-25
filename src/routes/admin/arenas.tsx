@@ -158,22 +158,58 @@ function Arenas() {
                 <Plus className="mr-2 h-5 w-5" /> Nova Arena
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-2xl border-none shadow-2xl">
+            <DialogContent className="rounded-2xl border-none shadow-2xl max-w-2xl">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">{editingArena ? "Editar Arena" : "Adicionar Arena"}</DialogTitle>
                 <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
                   {editingArena ? "Atualize os dados desta arena." : "Cadastre um novo complexo esportivo no sistema."}
                 </DialogDescription>
               </DialogHeader>
-              <div className="grid gap-6 py-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
+                <div className="space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="cidade" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cidade</Label>
+                    <Input id="cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Ex: São Paulo" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="telefone" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Telefone</Label>
+                    <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Ex: (11) 99999-9999" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="endereco" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Endereço Completo</Label>
+                    <Input id="endereco" value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua, número, bairro" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="foto" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Foto da Arena</Label>
+                    <div className="flex flex-col gap-4">
+                      {editingArena?.foto_url && !fotoFile && (
+                        <div className="h-20 w-32 rounded-lg overflow-hidden border border-gray-100">
+                          <img src={editingArena.foto_url} alt="Preview" className="h-full w-full object-cover" />
+                        </div>
+                      )}
+                      <Input 
+                        id="foto" 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => setFotoFile(e.target.files?.[0] || null)}
+                        className="rounded-xl border-gray-100 bg-gray-50 h-12 pt-2 focus:border-brand-orange focus:ring-brand-orange cursor-pointer" 
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
+                <Button variant="ghost" onClick={closeDialog} className="rounded-xl font-bold">Cancelar</Button>
+                <Button onClick={handleSave} disabled={uploading} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
+                  {uploading ? "Salvando..." : "Salvar"}
+                </Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
