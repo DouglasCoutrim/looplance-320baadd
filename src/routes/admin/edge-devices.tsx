@@ -39,23 +39,33 @@ function EdgeDevices() {
   const [selectedArenaId, setSelectedArenaId] = useState("");
 
   const fetchData = async () => {
+    console.log('[EDGE FETCH] Starting data fetch...');
     setLoading(true);
-    const [devicesRes, arenasRes] = await Promise.all([
-      supabase.from("edge_devices").select("*, arenas(nome)").order("created_at", { ascending: false }),
-      supabase.from("arenas").select("id, nome").order("nome")
-    ]);
+    try {
+      const [devicesRes, arenasRes] = await Promise.all([
+        supabase.from("edge_devices").select("*, arenas(nome)").order("created_at", { ascending: false }),
+        supabase.from("arenas").select("id, nome").order("nome")
+      ]);
 
-    if (devicesRes.error) {
-      toast.error("Erro ao buscar dispositivos");
-    } else {
-      setDevices(devicesRes.data || []);
+      if (devicesRes.error) {
+        console.error('[EDGE FETCH ERROR] Devices:', devicesRes.error);
+        toast.error(`Erro ao buscar dispositivos: ${devicesRes.error.message}`);
+      } else {
+        console.log('[EDGE FETCH SUCCESS] Devices count:', devicesRes.data?.length);
+        setDevices(devicesRes.data || []);
+      }
+      
+      if (arenasRes.error) {
+        console.error('[EDGE FETCH ERROR] Arenas:', arenasRes.error);
+      } else {
+        setArenas(arenasRes.data || []);
+      }
+    } catch (err) {
+      console.error('[EDGE FETCH FATAL ERROR]:', err);
+      toast.error("Erro fatal ao conectar com o servidor");
+    } finally {
+      setLoading(false);
     }
-    
-    if (!arenasRes.error) {
-      setArenas(arenasRes.data || []);
-    }
-    
-    setLoading(false);
   };
 
   useEffect(() => {
