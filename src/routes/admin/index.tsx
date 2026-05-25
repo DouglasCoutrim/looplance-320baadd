@@ -184,6 +184,12 @@ function AdminHome() {
           </h3>
           
           <QuickAction 
+            to="/admin/users" 
+            title="Gerenciar Usuários" 
+            description="Administre contas e permissões" 
+            icon={<Users className="h-6 w-6" />}
+          />
+          <QuickAction 
             to="/admin/edge-devices" 
             title="Provisionar Servidor" 
             description="Adicione um novo nó Ubuntu Edge" 
