@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminReplaysRouteImport } from './routes/admin/replays'
 import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
 import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-boards'
@@ -32,6 +33,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminReplaysRoute = AdminReplaysRouteImport.update({
@@ -74,6 +80,7 @@ export interface FileRoutesByFullPath {
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/replays': typeof AdminReplaysRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRoutesByTo {
@@ -84,6 +91,7 @@ export interface FileRoutesByTo {
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/replays': typeof AdminReplaysRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
 }
 export interface FileRoutesById {
@@ -96,6 +104,7 @@ export interface FileRoutesById {
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/replays': typeof AdminReplaysRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
 }
 export interface FileRouteTypes {
@@ -109,6 +118,7 @@ export interface FileRouteTypes {
     | '/admin/input-boards'
     | '/admin/quadras'
     | '/admin/replays'
+    | '/admin/users'
     | '/admin/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/admin/input-boards'
     | '/admin/quadras'
     | '/admin/replays'
+    | '/admin/users'
     | '/admin'
   id:
     | '__root__'
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/admin/input-boards'
     | '/admin/quadras'
     | '/admin/replays'
+    | '/admin/users'
     | '/admin/'
   fileRoutesById: FileRoutesById
 }
@@ -159,6 +171,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/replays': {
@@ -213,6 +232,7 @@ interface AdminRouteChildren {
   AdminInputBoardsRoute: typeof AdminInputBoardsRoute
   AdminQuadrasRoute: typeof AdminQuadrasRoute
   AdminReplaysRoute: typeof AdminReplaysRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -223,6 +243,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminInputBoardsRoute: AdminInputBoardsRoute,
   AdminQuadrasRoute: AdminQuadrasRoute,
   AdminReplaysRoute: AdminReplaysRoute,
+  AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 

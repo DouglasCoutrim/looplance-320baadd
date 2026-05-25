@@ -9,7 +9,8 @@ import {
   ArrowLeft,
   Menu,
   X,
-  Play
+  Play,
+  Users
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
@@ -55,6 +56,7 @@ function AdminLayout() {
 
   const navItems = [
     { to: "/admin", label: "Visão Geral", icon: LayoutDashboard },
+    { to: "/admin/users", label: "Usuários", icon: Users },
     { to: "/admin/edge-devices", label: "Edge Devices", icon: HardDrive },
     { to: "/admin/input-boards", label: "Input Boards", icon: Usb },
     { to: "/admin/cameras", label: "Cameras", icon: Camera },
