@@ -134,9 +134,9 @@ export function ReplayFeed() {
         <div className="mx-auto flex h-full max-w-2xl items-center px-4 sm:px-6">
           {/* Left: XP Badge */}
           <div className="flex-1">
-            <div className="inline-flex items-center gap-1.5 sm:gap-2 rounded-full border border-white/20 bg-white/10 px-2.5 py-1 sm:px-3 sm:py-1.5 backdrop-blur-md">
-              <Trophy className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-orange" />
-              <span className="text-[10px] sm:text-xs font-bold text-white tracking-tight">{points} XP</span>
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2 py-1 backdrop-blur-md">
+              <Trophy className="h-3.5 w-3.5 text-brand-orange" />
+              <span className="text-[10px] font-bold text-white tracking-tight">{points} XP</span>
             </div>
           </div>
 
@@ -145,8 +145,7 @@ export function ReplayFeed() {
             <img 
               src={logoUrl} 
               alt="Looplance" 
-              className="h-28 sm:h-36 w-auto object-contain transition-transform hover:scale-105 z-50" 
-              style={{ marginTop: '4px' }}
+              className="h-20 sm:h-28 w-auto object-contain transition-transform hover:scale-105 z-50" 
             />
           </div>
 
@@ -154,17 +153,17 @@ export function ReplayFeed() {
           <div className="flex-1 flex justify-end gap-2">
             <Link 
               to="/admin" 
-              className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
+              className="group flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
             >
-              <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange transition-transform group-hover:scale-110" />
-              <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
+              <LayoutDashboard className="h-4 w-4 text-brand-orange transition-transform group-hover:scale-110" />
+              <span className="hidden sm:block text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
             </Link>
             <button
               onClick={handleLogout}
-              className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-red-500/20"
+              className="group flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-md transition hover:bg-red-500/20"
             >
-              <LogOut className="h-4 w-4 sm:h-5 sm:w-5 text-gray-400 group-hover:text-red-500" />
-              <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Sair</span>
+              <LogOut className="h-4 w-4 text-gray-400 group-hover:text-red-500" />
+              <span className="hidden sm:block text-[10px] font-black uppercase text-white/90 tracking-widest">Sair</span>
             </button>
           </div>
         </div>
