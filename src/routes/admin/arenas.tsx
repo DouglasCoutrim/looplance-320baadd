@@ -50,31 +50,75 @@ function Arenas() {
   const handleSave = async () => {
     if (!name) return;
     
+    let currentFotoUrl = editingArena?.foto_url || null;
+
+    if (fotoFile) {
+      setUploading(true);
+      const fileExt = fotoFile.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('arenas')
+        .upload(filePath, fotoFile);
+
+      if (uploadError) {
+        toast.error("Erro ao subir imagem: " + uploadError.message);
+        setUploading(false);
+        return;
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('arenas')
+        .getPublicUrl(filePath);
+      
+      currentFotoUrl = publicUrl;
+    }
+
+    const arenaData = {
+      nome: name,
+      cidade,
+      telefone,
+      endereco,
+      foto_url: currentFotoUrl
+    };
+    
     if (editingArena) {
-      const { error } = await supabase.from("arenas").update({ nome: name }).eq("id", editingArena.id);
+      const { error } = await supabase.from("arenas").update(arenaData).eq("id", editingArena.id);
       if (error) toast.error("Erro ao atualizar arena");
       else {
         toast.success("Arena atualizada");
-        setIsDialogOpen(false);
-        setEditingArena(null);
-        setName("");
+        closeDialog();
         fetchArenas();
       }
     } else {
-      const { error } = await supabase.from("arenas").insert([{ nome: name }]);
+      const { error } = await supabase.from("arenas").insert([arenaData]);
       if (error) toast.error("Erro ao criar arena");
       else {
         toast.success("Arena criada");
-        setIsDialogOpen(false);
-        setName("");
+        closeDialog();
         fetchArenas();
       }
     }
+    setUploading(false);
+  };
+
+  const closeDialog = () => {
+    setIsDialogOpen(false);
+    setEditingArena(null);
+    setName("");
+    setCidade("");
+    setTelefone("");
+    setEndereco("");
+    setFotoFile(null);
   };
 
   const openEditDialog = (arena: Arena) => {
     setEditingArena(arena);
     setName(arena.nome);
+    setCidade(arena.cidade || "");
+    setTelefone(arena.telefone || "");
+    setEndereco(arena.endereco || "");
     setIsDialogOpen(true);
   };
   
