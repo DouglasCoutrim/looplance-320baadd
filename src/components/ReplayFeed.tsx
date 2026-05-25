@@ -150,7 +150,7 @@ export function ReplayFeed() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-black shadow-xl h-16 sm:h-20">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#160F2F] shadow-xl h-16 sm:h-20">
         <div className="mx-auto flex h-full max-w-2xl items-center px-4 sm:px-6">
           {/* Left: XP Badge */}
           <div className="flex-1">
@@ -191,7 +191,7 @@ export function ReplayFeed() {
 
       <main className="mx-auto max-w-2xl space-y-8 px-6 pb-24 pt-10">
         {/* Hero / Dynamic Video Carousel */}
-        <section className="relative overflow-hidden rounded-3xl bg-black shadow-2xl ring-1 ring-white/10">
+        <section className="relative overflow-hidden rounded-3xl bg-[#160F2F] shadow-2xl ring-1 ring-white/10">
           <div className="aspect-[9/16] w-full overflow-hidden relative">
             {featuredReplays.length > 0 ? (
               featuredReplays.map((replay, idx) => (
@@ -214,7 +214,7 @@ export function ReplayFeed() {
             )}
             
             {/* Overlay Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#160F2F]/60 via-[#160F2F]/20 to-[#160F2F]/80" />
             
             {/* Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-end p-8 text-center pb-12">
