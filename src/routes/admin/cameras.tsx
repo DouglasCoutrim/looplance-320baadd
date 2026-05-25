@@ -1,16 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, Camera, Video, Edit2, Trash2 } from "lucide-react";
+import { Plus, RefreshCw, Video, Edit2, Trash2, Layout, Upload, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import { generateAndUploadOverlay } from "@/utils/overlayGenerator";
+import logoImg from "@/assets/looplance-logo.png";
+
 
 export const Route = createFileRoute("/admin/cameras")({
   component: Cameras,
@@ -53,10 +56,20 @@ interface CameraType {
   trigger_button: number | null;
   replay_seconds: number | null;
   active: boolean | null;
-  quadras?: { nome: string; arena_id: string; arenas?: { nome: string } | null } | null;
+  aspect_ratio: string | null;
+  video_width: number | null;
+  video_height: number | null;
+  video_x: number | null;
+  video_y: number | null;
+  sponsor_logo_left: string | null;
+  sponsor_logo_center: string | null;
+  sponsor_logo_right: string | null;
+  final_overlay_url: string | null;
+  quadras?: { nome: string; arena_id: string; arenas?: { nome: string; sponsor_logo_left: string | null; sponsor_logo_center: string | null; sponsor_logo_right: string | null } | null } | null;
   edge_devices?: { name: string } | null;
   input_boards?: { name: string } | null;
 }
+
 
 function Cameras() {
   const [cameras, setCameras] = useState<CameraType[]>([]);
@@ -79,6 +92,11 @@ function Cameras() {
     trigger_button: "0",
     replay_seconds: "15",
     active: true,
+    aspect_ratio: "16:9",
+    sponsor_logo_left: "",
+    sponsor_logo_center: "",
+    sponsor_logo_right: "",
+    final_overlay_url: "",
     // Helper fields
     brand: "custom",
     username: "admin",
@@ -86,6 +104,7 @@ function Cameras() {
     ip: "",
     port: "554",
   });
+
 
   const generateRtspUrl = () => {
     if (formData.brand === "custom") return;
@@ -129,12 +148,13 @@ function Cameras() {
   const fetchData = async () => {
     setLoading(true);
     const [camerasRes, devicesRes, boardsRes, quadrasRes, arenasRes] = await Promise.all([
-      supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
+      supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome, sponsor_logo_left, sponsor_logo_center, sponsor_logo_right)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
       supabase.from("edge_devices").select("id, name, arena_id").order("name"),
       supabase.from("input_boards").select("id, name, edge_device_id").order("name"),
       supabase.from("quadras").select("id, nome, arena_id, arenas(nome)").order("nome"),
       supabase.from("arenas").select("id, nome").order("nome")
     ]);
+
 
     setCameras(camerasRes.data || []);
     setDevices(devicesRes.data || []);
@@ -154,6 +174,7 @@ function Cameras() {
       return;
     }
 
+    const is16x9 = formData.aspect_ratio === "16:9";
     const payload = {
       name: formData.name,
       rtsp_url: formData.rtsp_url,
@@ -163,7 +184,16 @@ function Cameras() {
       trigger_button: parseInt(formData.trigger_button),
       replay_seconds: parseInt(formData.replay_seconds),
       active: formData.active,
+      aspect_ratio: formData.aspect_ratio,
+      sponsor_logo_left: formData.sponsor_logo_left || null,
+      sponsor_logo_center: formData.sponsor_logo_center || null,
+      sponsor_logo_right: formData.sponsor_logo_right || null,
+      video_width: is16x9 ? 916 : 1080,
+      video_height: is16x9 ? 827 : 1386,
+      video_x: is16x9 ? 502 : 0,
+      video_y: is16x9 ? 120 : 267,
     };
+
 
     if (editingCamera) {
       const { error } = await supabase
@@ -206,12 +236,18 @@ function Cameras() {
       trigger_button: "0",
       replay_seconds: "15",
       active: true,
+      aspect_ratio: "16:9",
+      sponsor_logo_left: "",
+      sponsor_logo_center: "",
+      sponsor_logo_right: "",
+      final_overlay_url: "",
       brand: "custom",
       username: "admin",
       password: "",
       ip: "",
       port: "554",
     });
+
   };
 
   const openEditDialog = (camera: CameraType) => {
@@ -226,7 +262,12 @@ function Cameras() {
       trigger_button: (camera.trigger_button || 0).toString(),
       replay_seconds: (camera.replay_seconds || 15).toString(),
       active: camera.active ?? true,
-      brand: "custom", // We don't store the brand, so keep it custom to see the URL
+      aspect_ratio: camera.aspect_ratio || "16:9",
+      sponsor_logo_left: camera.sponsor_logo_left || camera.quadras?.arenas?.sponsor_logo_left || "",
+      sponsor_logo_center: camera.sponsor_logo_center || camera.quadras?.arenas?.sponsor_logo_center || "",
+      sponsor_logo_right: camera.sponsor_logo_right || camera.quadras?.arenas?.sponsor_logo_right || "",
+      final_overlay_url: camera.final_overlay_url || "",
+      brand: "custom",
       username: "",
       password: "",
       ip: "",
@@ -234,6 +275,7 @@ function Cameras() {
     });
     setIsDialogOpen(true);
   };
+
 
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir esta câmera?")) return;
@@ -253,7 +295,67 @@ function Cameras() {
     ? quadras.filter(q => q.arena_id === formData.arena_id)
     : quadras;
 
+  const [generatingOverlay, setGeneratingOverlay] = useState(false);
+
+  const handleGenerateOverlay = async () => {
+    if (!editingCamera) {
+      toast.error("Salve a câmera antes de gerar o overlay");
+      return;
+    }
+
+    try {
+      setGeneratingOverlay(true);
+      const publicUrl = await generateAndUploadOverlay({
+        id: editingCamera.id,
+        aspect_ratio: formData.aspect_ratio,
+        sponsor_logo_left: formData.sponsor_logo_left,
+        sponsor_logo_center: formData.sponsor_logo_center,
+        sponsor_logo_right: formData.sponsor_logo_right,
+      });
+
+      const { error } = await supabase
+        .from("cameras")
+        .update({ final_overlay_url: publicUrl })
+        .eq("id", editingCamera.id);
+
+      if (error) throw error;
+
+      setFormData(prev => ({ ...prev, final_overlay_url: publicUrl }));
+      toast.success("Overlay gerado com sucesso!");
+      fetchData();
+    } catch (error: any) {
+      console.error("Error generating overlay:", error);
+      toast.error("Erro ao gerar overlay: " + error.message);
+    } finally {
+      setGeneratingOverlay(false);
+    }
+  };
+
+  const handleLogoUpload = async (file: File, side: 'left' | 'center' | 'right') => {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${editingCamera?.id || 'temp'}-${side}-${Math.random()}.${fileExt}`;
+      const filePath = `sponsors/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("overlays")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("overlays")
+        .getPublicUrl(filePath);
+      
+      setFormData(prev => ({ ...prev, [`sponsor_logo_${side}`]: publicUrl }));
+      toast.success(`Logo ${side} atualizado`);
+    } catch (error: any) {
+      toast.error("Erro no upload: " + error.message);
+    }
+  };
+
   return (
+
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
