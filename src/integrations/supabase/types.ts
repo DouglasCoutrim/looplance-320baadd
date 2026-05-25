@@ -296,6 +296,33 @@ export type Database = {
           },
         ]
       }
+      r2_deletion_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          id: string
+          r2_key: string
+          replay_id: string
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          r2_key: string
+          replay_id: string
+          status: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          id?: string
+          r2_key?: string
+          replay_id?: string
+          status?: string
+        }
+        Relationships: []
+      }
       replays: {
         Row: {
           created_at: string
