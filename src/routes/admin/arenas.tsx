@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw, MapPin, Edit2, Trash2 } from "lucide-react";
+import { Plus, RefreshCw, MapPin, Edit2, Trash2, Upload, Layout } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,10 @@ interface Arena {
   telefone: string | null;
   endereco: string | null;
   foto_url: string | null;
+  sponsor_logo_left: string | null;
+  sponsor_logo_center: string | null;
+  sponsor_logo_right: string | null;
+  final_overlay_url: string | null;
   created_at?: string;
 }
 
@@ -34,6 +38,13 @@ function Arenas() {
   const [endereco, setEndereco] = useState("");
   const [fotoFile, setFotoFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [sponsorLeft, setSponsorLeft] = useState<File | null>(null);
+  const [sponsorCenter, setSponsorCenter] = useState<File | null>(null);
+  const [sponsorRight, setSponsorRight] = useState<File | null>(null);
+  
+  const [previewLeft, setPreviewLeft] = useState<string | null>(null);
+  const [previewCenter, setPreviewCenter] = useState<string | null>(null);
+  const [previewRight, setPreviewRight] = useState<string | null>(null);
 
   const fetchArenas = async () => {
     setLoading(true);
@@ -50,38 +61,54 @@ function Arenas() {
   const handleSave = async () => {
     if (!name) return;
     
+    setUploading(true);
     let currentFotoUrl = editingArena?.foto_url || null;
+    let currentSponsorLeft = editingArena?.sponsor_logo_left || null;
+    let currentSponsorCenter = editingArena?.sponsor_logo_center || null;
+    let currentSponsorRight = editingArena?.sponsor_logo_right || null;
 
-    if (fotoFile) {
-      setUploading(true);
-      const fileExt = fotoFile.name.split('.').pop();
+    const uploadFile = async (file: File, bucket: string) => {
+      const fileExt = file.name.split('.').pop();
       const fileName = `${Math.random()}.${fileExt}`;
       const filePath = `${fileName}`;
 
       const { error: uploadError } = await supabase.storage
-        .from('arenas')
-        .upload(filePath, fotoFile);
+        .from(bucket)
+        .upload(filePath, file);
 
-      if (uploadError) {
-        toast.error("Erro ao subir imagem: " + uploadError.message);
-        setUploading(false);
-        return;
-      }
+      if (uploadError) throw uploadError;
 
       const { data: { publicUrl } } = supabase.storage
-        .from('arenas')
+        .from(bucket)
         .getPublicUrl(filePath);
       
-      currentFotoUrl = publicUrl;
-    }
-
-    const arenaData = {
-      nome: name,
-      cidade,
-      telefone,
-      endereco,
-      foto_url: currentFotoUrl
+      return publicUrl;
     };
+
+    try {
+      if (fotoFile) {
+        currentFotoUrl = await uploadFile(fotoFile, 'arenas');
+      }
+      if (sponsorLeft) {
+        currentSponsorLeft = await uploadFile(sponsorLeft, 'arenas');
+      }
+      if (sponsorCenter) {
+        currentSponsorCenter = await uploadFile(sponsorCenter, 'arenas');
+      }
+      if (sponsorRight) {
+        currentSponsorRight = await uploadFile(sponsorRight, 'arenas');
+      }
+
+      const arenaData = {
+        nome: name,
+        cidade,
+        telefone,
+        endereco,
+        foto_url: currentFotoUrl,
+        sponsor_logo_left: currentSponsorLeft,
+        sponsor_logo_center: currentSponsorCenter,
+        sponsor_logo_right: currentSponsorRight,
+      };
     
     if (editingArena) {
       const { error } = await supabase.from("arenas").update(arenaData).eq("id", editingArena.id);
@@ -101,8 +128,11 @@ function Arenas() {
         closeDialog();
         fetchArenas();
       }
+    } catch (error: any) {
+      toast.error("Erro ao salvar: " + error.message);
+    } finally {
+      setUploading(false);
     }
-    setUploading(false);
   };
 
   const closeDialog = () => {
@@ -113,6 +143,12 @@ function Arenas() {
     setTelefone("");
     setEndereco("");
     setFotoFile(null);
+    setSponsorLeft(null);
+    setSponsorCenter(null);
+    setSponsorRight(null);
+    setPreviewLeft(null);
+    setPreviewCenter(null);
+    setPreviewRight(null);
   };
 
   const openEditDialog = (arena: Arena) => {
@@ -121,6 +157,9 @@ function Arenas() {
     setCidade(arena.cidade || "");
     setTelefone(arena.telefone || "");
     setEndereco(arena.endereco || "");
+    setPreviewLeft(arena.sponsor_logo_left);
+    setPreviewCenter(arena.sponsor_logo_center);
+    setPreviewRight(arena.sponsor_logo_right);
     setIsDialogOpen(true);
   };
   
@@ -207,6 +246,130 @@ function Arenas() {
                   </div>
                 </div>
               </div>
+
+              <div className="border-t border-gray-100 mt-2 pt-6">
+                <h3 className="text-lg font-black uppercase tracking-tight text-gray-900 flex items-center gap-2 mb-6">
+                  <Layout className="h-5 w-5 text-brand-orange" />
+                  Patrocinadores da Grade
+                </h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center">Esquerda</Label>
+                        <div 
+                          onClick={() => document.getElementById('sponsor-left')?.click()}
+                          className="aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-brand-orange/50 hover:bg-brand-orange/5 transition-all group overflow-hidden relative"
+                        >
+                          {previewLeft ? (
+                            <img src={previewLeft} className="w-full h-full object-contain p-2" alt="Sponsor Left" />
+                          ) : (
+                            <Upload className="h-6 w-6 text-gray-300 group-hover:text-brand-orange transition-colors" />
+                          )}
+                          <input 
+                            id="sponsor-left" 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setSponsorLeft(file);
+                                setPreviewLeft(URL.createObjectURL(file));
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center">Centro</Label>
+                        <div 
+                          onClick={() => document.getElementById('sponsor-center')?.click()}
+                          className="aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-brand-orange/50 hover:bg-brand-orange/5 transition-all group overflow-hidden relative"
+                        >
+                          {previewCenter ? (
+                            <img src={previewCenter} className="w-full h-full object-contain p-2" alt="Sponsor Center" />
+                          ) : (
+                            <Upload className="h-6 w-6 text-gray-300 group-hover:text-brand-orange transition-colors" />
+                          )}
+                          <input 
+                            id="sponsor-center" 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setSponsorCenter(file);
+                                setPreviewCenter(URL.createObjectURL(file));
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center">Direita</Label>
+                        <div 
+                          onClick={() => document.getElementById('sponsor-right')?.click()}
+                          className="aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-brand-orange/50 hover:bg-brand-orange/5 transition-all group overflow-hidden relative"
+                        >
+                          {previewRight ? (
+                            <img src={previewRight} className="w-full h-full object-contain p-2" alt="Sponsor Right" />
+                          ) : (
+                            <Upload className="h-6 w-6 text-gray-300 group-hover:text-brand-orange transition-colors" />
+                          )}
+                          <input 
+                            id="sponsor-right" 
+                            type="file" 
+                            className="hidden" 
+                            accept="image/*"
+                            onChange={(e) => {
+                              const file = e.target.files?.[0];
+                              if (file) {
+                                setSponsorRight(file);
+                                setPreviewRight(URL.createObjectURL(file));
+                              }
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-medium italic">
+                      * Recomendado: Imagens em PNG com fundo transparente.
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col items-center">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Preview da Moldura (Mobile 9:16)</Label>
+                    <div className="w-[180px] aspect-[9/16] bg-black rounded-2xl overflow-hidden shadow-2xl border-4 border-gray-800 relative">
+                      {/* Top Bar */}
+                      <div className="absolute top-0 left-0 w-full h-[15%] bg-black/40 backdrop-blur-sm border-b border-white/10 flex items-center justify-center p-4">
+                        <img src="/src/assets/looplance-logo.png" className="h-6 object-contain brightness-0 invert" alt="Logo" />
+                      </div>
+
+                      {/* Content Simulator */}
+                      <div className="w-full h-full bg-gradient-to-b from-gray-900 to-black flex items-center justify-center">
+                        <span className="text-[10px] text-white/20 font-black uppercase tracking-widest">Vídeo Replay</span>
+                      </div>
+
+                      {/* Bottom Bar */}
+                      <div className="absolute bottom-0 left-0 w-full h-[12%] brand-gradient flex items-center justify-between px-3 gap-2">
+                        <div className="flex-1 h-full flex items-center justify-start overflow-hidden">
+                          {previewLeft && <img src={previewLeft} className="h-4 w-auto object-contain brightness-0 invert" alt="L" />}
+                        </div>
+                        <div className="flex-1 h-full flex items-center justify-center overflow-hidden">
+                          {previewCenter && <img src={previewCenter} className="h-4 w-auto object-contain brightness-0 invert" alt="C" />}
+                        </div>
+                        <div className="flex-1 h-full flex items-center justify-end overflow-hidden">
+                          {previewRight && <img src={previewRight} className="h-4 w-auto object-contain brightness-0 invert" alt="R" />}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={closeDialog} className="rounded-xl font-bold">Cancelar</Button>
                 <Button onClick={handleSave} disabled={uploading} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
