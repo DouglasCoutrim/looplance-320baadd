@@ -60,23 +60,34 @@ serve(async (req) => {
 
     for (const replay of replays) {
       try {
+        console.log(`Attempting to delete replay ${replay.id} with R2 key: ${replay.r2_key}`);
+        
         // 1. Delete from R2
         if (replay.r2_key) {
+          console.log(`Deleting from R2 bucket: ${bucketName}, key: ${replay.r2_key}`);
           const deleteCommand = new DeleteObjectCommand({
             Bucket: bucketName,
             Key: replay.r2_key,
           })
-          await s3Client.send(deleteCommand)
+          const r2Response = await s3Client.send(deleteCommand)
+          console.log(`R2 delete response for ${replay.id}:`, r2Response);
+        } else {
+          console.log(`No R2 key found for replay ${replay.id}, skipping R2 deletion.`);
         }
 
         // 2. Delete from Database
+        console.log(`Deleting from database: replays table, id: ${replay.id}`);
         const { error: dbError } = await supabaseClient
           .from('replays')
           .delete()
           .eq('id', replay.id)
 
-        if (dbError) throw dbError
+        if (dbError) {
+          console.error(`Database deletion error for ${replay.id}:`, dbError);
+          throw dbError;
+        }
 
+        console.log(`Successfully deleted replay ${replay.id}`);
         results.push({ id: replay.id, status: 'success' })
       } catch (err) {
         console.error(`Error deleting replay ${replay.id}:`, err)
