@@ -36,7 +36,7 @@
 
 :root {
   --radius: 1rem;
-  --system-navy: #160F2F;
+  --system-navy: #1A1C3A;
   /* Clean light background */
   --background: oklch(0.96 0.01 250);
   --foreground: var(--system-navy);
