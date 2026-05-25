@@ -20,6 +20,13 @@ function Home() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Capture redirect_quadra from URL
+    const params = new URLSearchParams(window.location.search);
+    const redirectQuadra = params.get("redirect_quadra");
+    if (redirectQuadra) {
+      localStorage.setItem("looplance_target_quadra", redirectQuadra);
+    }
+
     // Get initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);

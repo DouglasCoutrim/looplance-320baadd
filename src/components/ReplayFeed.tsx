@@ -47,6 +47,24 @@ export function ReplayFeed() {
 
   // Initial load
   useEffect(() => {
+    // Handle redirect_quadra from localStorage
+    const targetQuadra = localStorage.getItem("looplance_target_quadra");
+    if (targetQuadra) {
+      setQuadraId(targetQuadra);
+      localStorage.removeItem("looplance_target_quadra");
+      
+      // Also need to find and set the arenaId for this quadra to show it correctly in filters
+      supabase.from("quadras")
+        .select("arena_id")
+        .eq("id", targetQuadra)
+        .single()
+        .then(({ data }) => {
+          if (data?.arena_id) {
+            setArenaId(data.arena_id);
+          }
+        });
+    }
+
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
     fetchFeatured();

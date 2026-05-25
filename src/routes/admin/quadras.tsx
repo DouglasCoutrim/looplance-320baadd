@@ -3,7 +3,8 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv } from "lucide-react";
+import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv, QrCode } from "lucide-react";
+import { QuadraQRCode } from "@/components/QuadraQRCode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -192,6 +193,7 @@ function Quadras() {
                   </TableCell>
                   <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
                     <div className="flex justify-end gap-1 sm:gap-2">
+                      <QuadraQRCode quadraId={q.id} quadraNome={q.nome} />
                       <Button 
                         variant="ghost" 
                         size="icon" 
