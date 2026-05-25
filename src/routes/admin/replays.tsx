@@ -99,14 +99,18 @@ function ReplaysManagement() {
 
   const handleDeleteSelected = async () => {
     if (selectedReplayIds.length === 0) return;
-    if (!confirm(`Deseja excluir ${selectedReplayIds.length} replays permanentemente?`)) return;
+    if (!confirm(`Deseja excluir ${selectedReplayIds.length} replays permanentemente do site e do Cloudflare?`)) return;
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from("replays")
-        .delete()
-        .in("id", selectedReplayIds);
+      // Get R2 keys for selected replays
+      const replaysToDelete = replays
+        .filter(r => selectedReplayIds.includes(r.id))
+        .map(r => ({ id: r.id, r2_key: (r as any).r2_key }));
+
+      const { data, error } = await supabase.functions.invoke('delete-replays', {
+        body: { replays: replaysToDelete }
+      });
 
       if (error) throw error;
 
