@@ -38,8 +38,11 @@ function AdminLogin() {
         .eq("id", authData.user.id)
         .single();
 
-      console.log("[PROFILE]", profileData);
-      console.log("[SUPER ADMIN]", profileData?.is_super_admin);
+      console.log('[ADMIN CHECK]', {
+        user: authData.user?.id,
+        profile: profileData,
+        isSuperAdmin: profileData?.is_super_admin
+      });
 
       const isSuperAdmin = profileData?.is_super_admin === true;
 
