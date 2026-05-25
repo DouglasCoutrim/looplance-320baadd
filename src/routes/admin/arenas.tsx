@@ -16,6 +16,10 @@ export const Route = createFileRoute("/admin/arenas")({
 interface Arena {
   id: string;
   nome: string;
+  cidade: string | null;
+  telefone: string | null;
+  endereco: string | null;
+  foto_url: string | null;
   created_at?: string;
 }
 
