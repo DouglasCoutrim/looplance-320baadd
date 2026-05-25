@@ -116,9 +116,11 @@ function Cameras() {
       }
 
       // Auto-select edge device for this arena
-      const arenaEdge = devices.find(d => d.arena_id === formData.arena_id);
-      if (arenaEdge) {
-        setFormData(prev => ({ ...prev, edge_device_id: arenaEdge.id }));
+      if (devices.length > 0) {
+        const arenaEdge = devices.find(d => d.arena_id === formData.arena_id);
+        if (arenaEdge && !formData.edge_device_id) {
+          setFormData(prev => ({ ...prev, edge_device_id: arenaEdge.id }));
+        }
       }
     }
   }, [formData.arena_id, devices]);
@@ -282,7 +284,8 @@ function Cameras() {
                       setFormData(prev => ({
                         ...prev, 
                         arena_id: v,
-                        edge_device_id: arenaEdge ? arenaEdge.id : prev.edge_device_id
+                        quadra_id: "", // Reset quadra when arena changes
+                        edge_device_id: arenaEdge ? arenaEdge.id : ""
                       }));
                     }}>
                       <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">

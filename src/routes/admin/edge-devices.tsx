@@ -46,8 +46,10 @@ function EdgeDevices() {
     ]);
 
     if (devicesRes.error) {
-      toast.error("Erro ao buscar dispositivos");
+      console.error("Erro ao buscar dispositivos:", devicesRes.error);
+      toast.error("Erro ao buscar dispositivos: " + devicesRes.error.message);
     } else {
+      console.log("Dispositivos carregados:", devicesRes.data);
       setDevices(devicesRes.data || []);
     }
     
