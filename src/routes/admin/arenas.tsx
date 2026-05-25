@@ -120,13 +120,14 @@ function Arenas() {
         closeDialog();
         fetchArenas();
       }
-    } else {
-      const { error } = await supabase.from("arenas").insert([arenaData]);
-      if (error) toast.error("Erro ao criar arena");
-      else {
-        toast.success("Arena criada");
-        closeDialog();
-        fetchArenas();
+      } else {
+        const { error } = await supabase.from("arenas").insert([arenaData]);
+        if (error) toast.error("Erro ao criar arena");
+        else {
+          toast.success("Arena criada");
+          closeDialog();
+          fetchArenas();
+        }
       }
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
@@ -370,6 +371,7 @@ function Arenas() {
                     </div>
                   </div>
                 </div>
+              </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={closeDialog} className="rounded-xl font-bold">Cancelar</Button>
                 <Button onClick={handleSave} disabled={uploading} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
