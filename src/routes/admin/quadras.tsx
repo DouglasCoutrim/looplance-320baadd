@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Mail, Lock, Loader2, ArrowRight, QrCode } from "lucide-react";
+import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv, QrCode } from "lucide-react";
 import { QuadraQRCode } from "@/components/QuadraQRCode";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
