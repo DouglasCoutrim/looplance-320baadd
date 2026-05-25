@@ -236,12 +236,20 @@ function Arenas() {
                 <TableRow key={a.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
                   <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
                     <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-brand-orange/10 flex items-center justify-center text-brand-orange transition-colors group-hover:brand-gradient group-hover:text-white shrink-0">
-                        <MapPin className="h-5 w-5 sm:h-6 sm:w-6" />
+                      <div className="h-12 w-12 rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center bg-brand-orange/10 text-brand-orange shrink-0">
+                        {a.foto_url ? (
+                          <img src={a.foto_url} alt={a.nome} className="h-full w-full object-cover" />
+                        ) : (
+                          <MapPin className="h-6 w-6" />
+                        )}
                       </div>
                       <div className="min-w-0">
                         <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{a.nome}</span>
-                        <p className="text-[10px] font-medium text-muted-foreground truncate">ID: {a.id.slice(0, 8)}...</p>
+                        <div className="flex gap-2 items-center">
+                          <p className="text-[10px] font-medium text-muted-foreground truncate">{a.cidade || "Cidade não informada"}</p>
+                          {a.telefone && <span className="text-[10px] text-muted-foreground/40">•</span>}
+                          <p className="text-[10px] font-medium text-muted-foreground truncate">{a.telefone}</p>
+                        </div>
                       </div>
                     </div>
                   </TableCell>
