@@ -8,6 +8,8 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  console.log(`Request received: ${req.method}`);
+  
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -16,7 +18,14 @@ serve(async (req) => {
     const authHeader = req.headers.get('Authorization');
     console.log('Auth header present:', !!authHeader);
 
+    // Use service role key if available to bypass RLS for cleanup
     const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY') || '',
+    )
+
+    // Verify user identity if not using service role for everything
+    const userClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
@@ -26,9 +35,11 @@ serve(async (req) => {
       }
     )
 
-    // Check if user is admin
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser()
-    if (userError || !user) throw new Error('Unauthorized')
+    const { data: { user }, error: userError } = await userClient.auth.getUser()
+    if (userError || !user) {
+      console.error('User auth error:', userError);
+      throw new Error('Unauthorized');
+    }
 
     const { data: profile } = await supabaseClient
       .from('profiles')
@@ -36,11 +47,14 @@ serve(async (req) => {
       .eq('id', user.id)
       .single()
 
+    console.log('User profile:', profile);
+
     if (!profile?.is_super_admin && !profile?.is_arena_owner) {
       throw new Error('Forbidden')
     }
 
     const { replays } = await req.json() as { replays: { id: string, r2_key: string }[] }
+    console.log(`Replays to delete: ${replays?.length || 0}`);
     
     if (!replays || !replays.length) {
       return new Response(JSON.stringify({ message: 'No replays provided' }), {
@@ -63,34 +77,27 @@ serve(async (req) => {
 
     for (const replay of replays) {
       try {
-        console.log(`Attempting to delete replay ${replay.id} with R2 key: ${replay.r2_key}`);
+        console.log(`Processing deletion for ${replay.id}, key: ${replay.r2_key}`);
         
         // 1. Delete from R2
         if (replay.r2_key) {
-          console.log(`Deleting from R2 bucket: ${bucketName}, key: ${replay.r2_key}`);
           const deleteCommand = new DeleteObjectCommand({
             Bucket: bucketName,
             Key: replay.r2_key,
           })
-          const r2Response = await s3Client.send(deleteCommand)
-          console.log(`R2 delete response for ${replay.id}:`, r2Response);
-        } else {
-          console.log(`No R2 key found for replay ${replay.id}, skipping R2 deletion.`);
+          await s3Client.send(deleteCommand)
+          console.log(`Deleted from R2: ${replay.r2_key}`);
         }
 
         // 2. Delete from Database
-        console.log(`Deleting from database: replays table, id: ${replay.id}`);
         const { error: dbError } = await supabaseClient
           .from('replays')
           .delete()
           .eq('id', replay.id)
 
-        if (dbError) {
-          console.error(`Database deletion error for ${replay.id}:`, dbError);
-          throw dbError;
-        }
+        if (dbError) throw dbError
+        console.log(`Deleted from DB: ${replay.id}`);
 
-        console.log(`Successfully deleted replay ${replay.id}`);
         results.push({ id: replay.id, status: 'success' })
       } catch (err) {
         console.error(`Error deleting replay ${replay.id}:`, err)
@@ -103,6 +110,7 @@ serve(async (req) => {
       status: 200,
     })
   } catch (error) {
+    console.error('Function error:', error.message);
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
