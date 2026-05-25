@@ -17,6 +17,7 @@ import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-board
 import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-devices'
 import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
 import { Route as AdminArenasRouteImport } from './routes/admin/arenas'
+import { Route as AdminReplaysRouteImport } from './routes/admin/replays'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -58,11 +59,17 @@ const AdminArenasRoute = AdminArenasRouteImport.update({
   path: '/arenas',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminReplaysRoute = AdminReplaysRouteImport.update({
+  id: '/replays',
+  path: '/replays',
+  getParentRoute: () => AdminRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/arenas': typeof AdminArenasRoute
+  '/admin/replays': typeof AdminReplaysRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
@@ -72,6 +79,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/arenas': typeof AdminArenasRoute
+  '/admin/replays': typeof AdminReplaysRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
@@ -83,6 +91,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/arenas': typeof AdminArenasRoute
+  '/admin/replays': typeof AdminReplaysRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
@@ -95,6 +104,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admin/arenas'
+    | '/admin/replays'
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
@@ -104,6 +114,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin/arenas'
+    | '/admin/replays'
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
@@ -114,6 +125,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admin/arenas'
+    | '/admin/replays'
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
@@ -189,6 +201,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminArenasRoute: typeof AdminArenasRoute
+  AdminReplaysRoute: typeof AdminReplaysRoute
   AdminCamerasRoute: typeof AdminCamerasRoute
   AdminEdgeDevicesRoute: typeof AdminEdgeDevicesRoute
   AdminInputBoardsRoute: typeof AdminInputBoardsRoute
@@ -198,6 +211,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminArenasRoute: AdminArenasRoute,
+  AdminReplaysRoute: AdminReplaysRoute,
   AdminCamerasRoute: AdminCamerasRoute,
   AdminEdgeDevicesRoute: AdminEdgeDevicesRoute,
   AdminInputBoardsRoute: AdminInputBoardsRoute,
