@@ -487,6 +487,20 @@ function Cameras() {
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Aspect Ratio</Label>
+                    <Select value={formData.aspect_ratio} onValueChange={(v) => setFormData({...formData, aspect_ratio: v})}>
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                        <SelectValue placeholder="Selecione o formato" />
+                      </SelectTrigger>
+                      <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                        <SelectItem value="16:9">16:9 (Horizontal)</SelectItem>
+                        <SelectItem value="9:16">9:16 (Vertical)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
                   <div className="grid gap-4 grid-cols-2">
                     <div className="grid gap-2">
                       <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Botão (Gatilho)</Label>
@@ -511,7 +525,119 @@ function Cameras() {
                     <Switch id="active" checked={formData.active} onCheckedChange={(v) => setFormData({...formData, active: v})} className="data-[state=checked]:bg-brand-orange" />
                   </div>
                 </div>
+
+                <div className="col-span-full border-t border-gray-100 mt-4 pt-6">
+                  <h3 className="text-lg font-black uppercase tracking-tight text-gray-900 flex items-center gap-2 mb-6">
+                    <Layout className="h-5 w-5 text-brand-orange" />
+                    Gerador de Overlay Dinâmico
+                  </h3>
+                  
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 pb-8">
+                    <div className="space-y-6">
+                      <div className="grid grid-cols-3 gap-4">
+                        {(['left', 'center', 'right'] as const).map((side) => (
+                          <div key={side} className="space-y-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground block text-center capitalize">{side}</Label>
+                            <div 
+                              onClick={() => document.getElementById(`cam-sponsor-${side}`)?.click()}
+                              className="aspect-square rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 flex flex-col items-center justify-center cursor-pointer hover:border-brand-orange/50 hover:bg-brand-orange/5 transition-all group overflow-hidden relative"
+                            >
+                              {formData[`sponsor_logo_${side}` as keyof typeof formData] ? (
+                                <img src={formData[`sponsor_logo_${side}` as keyof typeof formData] as string} className="w-full h-full object-contain p-2" alt={`Sponsor ${side}`} />
+                              ) : (
+                                <Upload className="h-6 w-6 text-gray-300 group-hover:text-brand-orange transition-colors" />
+                              )}
+                              <input 
+                                id={`cam-sponsor-${side}`}
+                                type="file" 
+                                className="hidden" 
+                                accept="image/*"
+                                onChange={(e) => {
+                                  const file = e.target.files?.[0];
+                                  if (file) handleLogoUpload(file, side);
+                                }}
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="p-4 rounded-xl bg-gray-50 border border-gray-100 space-y-3">
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          <span>Canvas:</span>
+                          <span className="text-gray-900">{formData.aspect_ratio === '16:9' ? '1920x1080' : '1080x1920'}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          <span>Área Vídeo:</span>
+                          <span className="text-gray-900">{formData.aspect_ratio === '16:9' ? '916x827' : '1080x1386'}</span>
+                        </div>
+                        <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                          <span>Posição (X,Y):</span>
+                          <span className="text-gray-900">{formData.aspect_ratio === '16:9' ? '502, 120' : '0, 267'}</span>
+                        </div>
+                      </div>
+
+                      <Button 
+                        onClick={handleGenerateOverlay} 
+                        disabled={generatingOverlay || !editingCamera}
+                        className="w-full brand-gradient text-white font-black uppercase tracking-widest h-12 rounded-xl shadow-lg"
+                      >
+                        {generatingOverlay ? (
+                          <RefreshCw className="mr-2 h-5 w-5 animate-spin" />
+                        ) : formData.final_overlay_url ? (
+                          <Check className="mr-2 h-5 w-5" />
+                        ) : (
+                          <Layout className="mr-2 h-5 w-5" />
+                        )}
+                        {generatingOverlay ? "Gerando..." : formData.final_overlay_url ? "Regerar Overlay" : "Gerar Overlay Final"}
+                      </Button>
+                      
+                      {!editingCamera && (
+                        <p className="text-[10px] text-red-500 font-bold uppercase text-center">
+                          * Salve a câmera primeiro para habilitar o gerador
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="flex flex-col items-center">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-4">Preview em Tempo Real ({formData.aspect_ratio})</Label>
+                      <div className={`relative bg-black rounded-2xl overflow-hidden shadow-2xl border-4 border-gray-800 ${formData.aspect_ratio === '16:9' ? 'w-full aspect-[16/9]' : 'w-[180px] aspect-[9/16]'}`}>
+                        <div className={`absolute bg-gray-900/50 flex items-center justify-center border-2 border-brand-orange z-0 transition-all duration-300
+                          ${formData.aspect_ratio === '16:9' 
+                            ? 'left-[26%] top-[11%] w-[48%] h-[76%]' 
+                            : 'left-0 top-[14%] w-full h-[72%]'}`}
+                        >
+                          <span className="text-[10px] text-brand-orange font-black uppercase tracking-widest text-center px-2">
+                            Área do Vídeo<br/>
+                            {formData.aspect_ratio === '16:9' ? '916x827' : '1080x1386'}
+                          </span>
+                        </div>
+
+                        <div className={`absolute top-0 left-0 w-full flex items-center justify-center p-4 z-20 ${formData.aspect_ratio === '16:9' ? 'h-[15%]' : 'h-[15%] bg-black/40 backdrop-blur-sm'}`}>
+                          <img src={logoImg} className="h-6 object-contain brightness-0 invert" alt="Logo" />
+                        </div>
+
+                        <div className={`absolute bottom-0 left-0 w-full flex items-center justify-between px-3 gap-2 z-20
+                          ${formData.aspect_ratio === '16:9' ? 'h-[15%] bg-black/20' : 'h-[12%] brand-gradient'}`}
+                        >
+                          {(['left', 'center', 'right'] as const).map((side) => (
+                            <div key={side} className="flex-1 h-full flex items-center justify-center overflow-hidden py-1">
+                              {formData[`sponsor_logo_${side}` as keyof typeof formData] && (
+                                <img 
+                                  src={formData[`sponsor_logo_${side}` as keyof typeof formData] as string} 
+                                  className="max-h-full max-w-full object-contain" 
+                                  alt={`Sponsor ${side}`} 
+                                />
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+
               <DialogFooter className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
                  <Button variant="ghost" onClick={closeDialog} className="font-bold rounded-xl">Cancelar</Button>
                 <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">
