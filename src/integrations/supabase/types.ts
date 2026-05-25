@@ -51,19 +51,31 @@ export type Database = {
       }
       arenas: {
         Row: {
+          cidade: string | null
           created_at: string
+          endereco: string | null
+          foto_url: string | null
           id: string
           nome: string
+          telefone: string | null
         }
         Insert: {
+          cidade?: string | null
           created_at?: string
+          endereco?: string | null
+          foto_url?: string | null
           id?: string
           nome: string
+          telefone?: string | null
         }
         Update: {
+          cidade?: string | null
           created_at?: string
+          endereco?: string | null
+          foto_url?: string | null
           id?: string
           nome?: string
+          telefone?: string | null
         }
         Relationships: []
       }
