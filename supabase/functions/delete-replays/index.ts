@@ -13,13 +13,40 @@ serve(async (req) => {
   }
 
   try {
+    const authHeader = req.headers.get('Authorization');
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '',
     )
 
+    // User check
+    const userClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      { global: { headers: { Authorization: authHeader || '' } } }
+    )
+    const { data: { user } } = await userClient.auth.getUser()
+    if (!user) throw new Error('Unauthorized')
+
+    const { data: profile } = await supabaseClient
+      .from('profiles')
+      .select('is_super_admin, is_arena_owner')
+      .eq('id', user.id)
+      .single()
+
+    if (!profile?.is_super_admin && !profile?.is_arena_owner) {
+      throw new Error('Forbidden')
+    }
+
     const { replays } = await req.json() as { replays: { id: string, r2_key: string }[] }
-    console.log(`Deleting ${replays?.length} replays`);
+    
+    if (!replays || !replays.length) {
+      return new Response(JSON.stringify({ message: 'No replays provided' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 400,
+      })
+    }
 
     const s3Client = new S3Client({
       region: "auto",
