@@ -337,6 +337,7 @@ function Arenas() {
                           />
                         </div>
                       </div>
+                      </div>
                     </div>
                     <p className="text-[10px] text-muted-foreground font-medium italic">
                       * Recomendado: Imagens em PNG com fundo transparente.
