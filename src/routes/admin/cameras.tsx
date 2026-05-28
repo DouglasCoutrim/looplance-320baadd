@@ -638,6 +638,7 @@ function Cameras() {
                   </div>
                 </div>
               </div>
+            </div>
 
               <DialogFooter className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
                  <Button variant="ghost" onClick={closeDialog} className="font-bold rounded-xl">Cancelar</Button>
