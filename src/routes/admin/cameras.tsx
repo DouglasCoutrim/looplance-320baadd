@@ -379,15 +379,16 @@ function Cameras() {
                 <Plus className="mr-2 h-5 w-5" /> Nova Câmera
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl overflow-hidden p-0">
-              <div className="brand-gradient p-6 text-white">
+            <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] rounded-2xl border-none shadow-2xl overflow-hidden p-0 flex flex-col">
+              <div className="brand-gradient p-6 text-white shrink-0">
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight">{editingCamera ? "Editar Câmera" : "Configurar Câmera"}</DialogTitle>
                 <DialogDescription className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">
                   {editingCamera ? "Atualize as configurações desta fonte de vídeo." : "Mapeie fontes de vídeo RTSP e vincule a quadras e servidores edge."}
                 </DialogDescription>
               </div>
               
-              <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[70vh] overflow-y-auto">
+              <div className="p-8 flex-1 overflow-y-auto">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div className="grid gap-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome da Câmera</Label>
