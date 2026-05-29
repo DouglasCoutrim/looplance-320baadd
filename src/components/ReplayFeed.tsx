@@ -162,10 +162,10 @@ export function ReplayFeed() {
 
       <audio 
         ref={audioRef} 
-        src="/goal-sound.mp3" 
+        src="https://jurwopyuxmhvtwzjxynm.supabase.co/storage/v1/object/public/overlays//goal-sound.mp3" 
         preload="auto" 
         onError={() => {
-          console.warn("Arquivo /goal-sound.mp3 não encontrado. Silenciando notificações sonoras.");
+          console.warn("Arquivo goal-sound.mp3 não encontrado na URL fornecida. Silenciando notificações sonoras.");
           setIsAudioAvailable(false);
         }}
       />
