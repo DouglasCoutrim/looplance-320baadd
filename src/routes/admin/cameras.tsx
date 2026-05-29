@@ -81,6 +81,7 @@ function Cameras() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<CameraType | null>(null);
+  const [activePreviewCamera, setActivePreviewCamera] = useState<CameraType | null>(null);
 
   // Form state
   const [formData, setFormData] = useState({
