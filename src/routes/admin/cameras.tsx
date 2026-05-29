@@ -745,10 +745,12 @@ function Cameras() {
                     <div className="flex items-center gap-4">
                       <button 
                         onClick={() => setActivePreviewCamera(camera)}
-                        className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 transition-all hover:scale-110 active:scale-95 group-hover:brand-gradient group-hover:text-white group-hover:brand-glow group-hover:border-transparent border border-blue-500/20 shadow-sm"
+                        className="h-16 w-24 rounded-lg bg-gray-900 flex flex-col items-center justify-center text-blue-500 transition-all hover:scale-105 active:scale-95 border border-white/10 shadow-lg relative overflow-hidden group/thumb"
                         title="Visualizar Câmera Ao Vivo"
                       >
-                        <Video className="h-6 w-6" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent group-hover/thumb:from-blue-500/40 transition-colors" />
+                        <Video className="h-6 w-6 relative z-10" />
+                        <span className="text-[8px] font-black uppercase tracking-tighter mt-1 relative z-10 text-white/70">AO VIVO</span>
                       </button>
                       <div className="min-w-0">
                         <span className="font-black text-lg text-gray-900 uppercase tracking-tight block truncate">{camera.name}</span>
