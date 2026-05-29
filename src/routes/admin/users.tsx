@@ -107,12 +107,6 @@ function UsersManagement() {
   useEffect(() => {
     fetchData();
   }, []);
-  };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-
   const filteredUsers = users.filter(user => 
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
