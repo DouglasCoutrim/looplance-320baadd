@@ -383,8 +383,8 @@ function UsersManagement() {
                   </Select>
                 </div>
               )}
-              </div>
-            </div>
+          </div>
+          <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleUpdateProfile} className="brand-gradient text-white border-none">Salvar Alterações</Button>
           </DialogFooter>
