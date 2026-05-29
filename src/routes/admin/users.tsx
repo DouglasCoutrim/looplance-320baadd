@@ -162,6 +162,9 @@ function UsersManagement() {
     } catch (error: any) {
       console.error("Error updating profile:", error);
       toast.error("Erro ao atualizar perfil: " + error.message);
+    }
+  };
+
   const handleDeleteUser = async (userId: string) => {
     if (!confirm("Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.")) return;
 
