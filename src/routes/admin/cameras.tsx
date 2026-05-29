@@ -14,7 +14,44 @@ import { toast } from "sonner";
 import { generateAndUploadOverlay } from "@/utils/overlayGenerator";
 import logoImg from "@/assets/looplance-logo.png";
 import ReactPlayerType from "react-player";
+import Hls from "hls.js";
+
 const ReactPlayer = ReactPlayerType as any;
+
+const HLSPlayer = ({ url, playing, muted }: { url: string, playing: boolean, muted: boolean }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !url) return;
+
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (playing) {
+          video.play().catch(e => console.error("Error playing video:", e));
+        }
+      });
+      return () => hls.destroy();
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+      if (playing) {
+        video.play().catch(e => console.error("Error playing video:", e));
+      }
+    }
+  }, [url, playing]);
+
+  return (
+    <video
+      ref={videoRef}
+      muted={muted}
+      playsInline
+      className="w-full h-full object-contain"
+    />
+  );
+};
 
 
 export const Route = createFileRoute("/admin/cameras")({
@@ -83,7 +120,14 @@ function Cameras() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<CameraType | null>(null);
   const [activePreviewCamera, setActivePreviewCamera] = useState<CameraType | null>(null);
+  const [playerError, setPlayerError] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (activePreviewCamera) {
+      setPlayerError(false);
+    }
+  }, [activePreviewCamera]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -701,10 +745,12 @@ function Cameras() {
                     <div className="flex items-center gap-4">
                       <button 
                         onClick={() => setActivePreviewCamera(camera)}
-                        className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 transition-all hover:scale-110 active:scale-95 group-hover:brand-gradient group-hover:text-white group-hover:brand-glow group-hover:border-transparent border border-blue-500/20 shadow-sm"
+                        className="h-16 w-24 rounded-lg bg-gray-900 flex flex-col items-center justify-center text-blue-500 transition-all hover:scale-105 active:scale-95 border border-white/10 shadow-lg relative overflow-hidden group/thumb"
                         title="Visualizar Câmera Ao Vivo"
                       >
-                        <Video className="h-6 w-6" />
+                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent group-hover/thumb:from-blue-500/40 transition-colors" />
+                        <Video className="h-6 w-6 relative z-10" />
+                        <span className="text-[8px] font-black uppercase tracking-tighter mt-1 relative z-10 text-white/70">AO VIVO</span>
                       </button>
                       <div className="min-w-0">
                         <span className="font-black text-lg text-gray-900 uppercase tracking-tight block truncate">{camera.name}</span>
@@ -765,20 +811,33 @@ function Cameras() {
           <DialogTitle className="sr-only">Visualização ao Vivo - {activePreviewCamera?.name}</DialogTitle>
           <div className="relative aspect-video w-full bg-black flex items-center justify-center">
             {activePreviewCamera && (
-              <ReactPlayer
-                url={`https://live.izyia.com.br/${activePreviewCamera.id}/index.m3u8`}
-                playing={true}
-                muted={true}
-                controls={false}
-                width="100%"
-                height="100%"
-                style={{ position: 'absolute', top: 0, left: 0 }}
-                onError={(e: any) => {
-                  console.error("ReactPlayer Error:", e);
-                  toast.error("Erro ao carregar stream ao vivo");
-                }}
-              />
+              playerError ? (
+                <HLSPlayer 
+                  url={`https://live.izyia.com.br/${activePreviewCamera.id}/index.m3u8`} 
+                  playing={true} 
+                  muted={true} 
+                />
+              ) : (
+                <ReactPlayer
+                  url={`https://live.izyia.com.br/${activePreviewCamera.id}/index.m3u8`}
+                  playing={true}
+                  muted={true}
+                  controls={false}
+                  width="100%"
+                  height="100%"
+                  config={{ file: { forceHLS: true } }}
+                  style={{ position: 'absolute', top: 0, left: 0 }}
+                  onError={(e: any) => {
+                    console.error("ReactPlayer Error:", e);
+                    setPlayerError(true);
+                  }}
+                />
+              )
             )}
+            
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-black/60 px-2 py-1 rounded text-[10px] text-white/70">
+              ID: {activePreviewCamera?.id}
+            </div>
             
             <div className="absolute top-4 left-4 z-10">
               <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest px-3 py-1 flex items-center gap-2">
