@@ -383,6 +383,7 @@ function UsersManagement() {
                   </Select>
                 </div>
               )}
+            </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
