@@ -765,7 +765,7 @@ function Cameras() {
           <div className="relative aspect-video w-full bg-black flex items-center justify-center">
             {activePreviewCamera && (
               <ReactPlayer
-                url={`https://latest-components-derby-according.trycloudflare.com/${activePreviewCamera.id}/index.m3u8`}
+                url={`https://live.izyia.com.br/${activePreviewCamera.id}/index.m3u8`}
                 playing={true}
                 muted={true}
                 controls={false}
