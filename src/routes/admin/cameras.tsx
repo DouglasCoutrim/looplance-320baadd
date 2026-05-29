@@ -120,7 +120,14 @@ function Cameras() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<CameraType | null>(null);
   const [activePreviewCamera, setActivePreviewCamera] = useState<CameraType | null>(null);
+  const [playerError, setPlayerError] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
+
+  useEffect(() => {
+    if (activePreviewCamera) {
+      setPlayerError(false);
+    }
+  }, [activePreviewCamera]);
 
   // Form state
   const [formData, setFormData] = useState({
