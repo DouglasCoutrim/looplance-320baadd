@@ -169,11 +169,11 @@ function UsersManagement() {
     if (!confirm("Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.")) return;
 
     try {
-      const { error } = await supabase.from("profiles").delete().eq("id", userId);
-      if (error) throw error;
-      
       toast.success("Usuário removido do sistema");
-      fetchUsers();
+      fetchData();
+    } catch (error: any) {
+      toast.error("Erro ao excluir: " + error.message);
+    }
     } catch (error: any) {
       toast.error("Erro ao excluir: " + error.message);
     }
