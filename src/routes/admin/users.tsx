@@ -162,23 +162,19 @@ function UsersManagement() {
     } catch (error: any) {
       console.error("Error updating profile:", error);
       toast.error("Erro ao atualizar perfil: " + error.message);
-    }
-  };
-
   const handleDeleteUser = async (userId: string) => {
     if (!confirm("Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.")) return;
 
     try {
+      const { error } = await supabase.from("profiles").delete().eq("id", userId);
+      if (error) throw error;
+      
       toast.success("Usuário removido do sistema");
       fetchData();
     } catch (error: any) {
       toast.error("Erro ao excluir: " + error.message);
     }
-    } catch (error: any) {
-      toast.error("Erro ao excluir: " + error.message);
-    }
   };
-
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
