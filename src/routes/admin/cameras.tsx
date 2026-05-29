@@ -762,6 +762,7 @@ function Cameras() {
 
       <Dialog open={!!activePreviewCamera} onOpenChange={(open) => !open && setActivePreviewCamera(null)}>
         <DialogContent className="max-w-[90vw] md:max-w-4xl p-0 bg-black border-none overflow-hidden rounded-2xl shadow-2xl">
+          <DialogTitle className="sr-only">Visualização ao Vivo - {activePreviewCamera?.name}</DialogTitle>
           <div className="relative aspect-video w-full bg-black flex items-center justify-center">
             {activePreviewCamera && (
               <ReactPlayer
