@@ -736,6 +736,42 @@ function Cameras() {
           </TableBody>
         </Table>
       </div>
+
+      <Dialog open={!!activePreviewCamera} onOpenChange={(open) => !open && setActivePreviewCamera(null)}>
+        <DialogContent className="max-w-[90vw] md:max-w-4xl p-0 bg-black border-none overflow-hidden rounded-2xl shadow-2xl">
+          <div className="relative aspect-video w-full bg-black flex items-center justify-center">
+            {activePreviewCamera && (
+              <ReactPlayer
+                url={`https://latest-components-derby-according.trycloudflare.com/${activePreviewCamera.id}/index.m3u8`}
+                playing={true}
+                muted={true}
+                controls={false}
+                width="100%"
+                height="100%"
+                style={{ position: 'absolute', top: 0, left: 0 }}
+                onError={(e) => {
+                  console.error("ReactPlayer Error:", e);
+                  toast.error("Erro ao carregar stream ao vivo");
+                }}
+              />
+            )}
+            
+            <div className="absolute top-4 left-4 z-10">
+              <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest px-3 py-1 flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                AO VIVO: {activePreviewCamera?.name}
+              </Badge>
+            </div>
+
+            <button 
+              onClick={() => setActivePreviewCamera(null)}
+              className="absolute top-4 right-4 z-20 h-10 w-10 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/20"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
