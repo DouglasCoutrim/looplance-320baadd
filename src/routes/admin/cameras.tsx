@@ -14,7 +14,44 @@ import { toast } from "sonner";
 import { generateAndUploadOverlay } from "@/utils/overlayGenerator";
 import logoImg from "@/assets/looplance-logo.png";
 import ReactPlayerType from "react-player";
+import Hls from "hls.js";
+
 const ReactPlayer = ReactPlayerType as any;
+
+const HLSPlayer = ({ url, playing, muted }: { url: string, playing: boolean, muted: boolean }) => {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !url) return;
+
+    if (Hls.isSupported()) {
+      const hls = new Hls();
+      hls.loadSource(url);
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        if (playing) {
+          video.play().catch(e => console.error("Error playing video:", e));
+        }
+      });
+      return () => hls.destroy();
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = url;
+      if (playing) {
+        video.play().catch(e => console.error("Error playing video:", e));
+      }
+    }
+  }, [url, playing]);
+
+  return (
+    <video
+      ref={videoRef}
+      muted={muted}
+      playsInline
+      className="w-full h-full object-contain"
+    />
+  );
+};
 
 
 export const Route = createFileRoute("/admin/cameras")({
