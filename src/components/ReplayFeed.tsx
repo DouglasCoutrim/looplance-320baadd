@@ -161,6 +161,8 @@ export function ReplayFeed() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
+      <InstallPrompt />
+
 
       <audio 
         ref={audioRef} 
