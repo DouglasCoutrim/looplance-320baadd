@@ -5,6 +5,8 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
+import { InstallPrompt } from "@/components/InstallPrompt";
+
 
 interface Arena { id: string; nome: string }
 interface Quadra { id: string; nome: string; arena_id: string }
