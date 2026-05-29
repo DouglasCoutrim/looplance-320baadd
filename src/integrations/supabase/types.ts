@@ -293,6 +293,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          arena_id: string | null
           birth_date: string | null
           consent_accepted: boolean | null
           consent_timestamp: string | null
@@ -307,6 +308,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arena_id?: string | null
           birth_date?: string | null
           consent_accepted?: boolean | null
           consent_timestamp?: string | null
@@ -321,6 +323,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arena_id?: string | null
           birth_date?: string | null
           consent_accepted?: boolean | null
           consent_timestamp?: string | null
@@ -334,7 +337,15 @@ export type Database = {
           role?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_arena_id_fkey"
+            columns: ["arena_id"]
+            isOneToOne: false
+            referencedRelation: "arenas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quadras: {
         Row: {
@@ -448,15 +459,26 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_update_user_profile: {
-        Args: {
-          new_is_arena_owner: boolean
-          new_is_super_admin: boolean
-          new_role: string
-          user_id: string
-        }
-        Returns: undefined
-      }
+      admin_update_user_profile:
+        | {
+            Args: {
+              new_is_arena_owner: boolean
+              new_is_super_admin: boolean
+              new_role: string
+              user_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              new_arena_id?: string
+              new_is_arena_owner: boolean
+              new_is_super_admin: boolean
+              new_role: string
+              user_id: string
+            }
+            Returns: undefined
+          }
       is_admin: { Args: { _uid: string }; Returns: boolean }
       is_arena_manager: { Args: { _uid: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }

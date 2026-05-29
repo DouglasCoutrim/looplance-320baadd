@@ -83,6 +83,7 @@ function Cameras() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<CameraType | null>(null);
   const [activePreviewCamera, setActivePreviewCamera] = useState<CameraType | null>(null);
+  const [userProfile, setUserProfile] = useState<any>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -150,6 +151,21 @@ function Cameras() {
 
   const fetchData = async () => {
     setLoading(true);
+    
+    // Get current user profile
+    const { data: { user } } = await supabase.auth.getUser();
+    let currentProfile = null;
+    
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("id", user.id)
+        .single();
+      currentProfile = profile;
+      setUserProfile(profile);
+    }
+
     const [camerasRes, devicesRes, boardsRes, quadrasRes, arenasRes] = await Promise.all([
       supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome, sponsor_logo_left, sponsor_logo_center, sponsor_logo_right)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
       supabase.from("edge_devices").select("id, name, arena_id").order("name"),
@@ -158,8 +174,14 @@ function Cameras() {
       supabase.from("arenas").select("id, nome").order("nome")
     ]);
 
+    let filteredCameras = camerasRes.data || [];
+    
+    // Filter by arena owner if applicable
+    if (currentProfile && currentProfile.is_arena_owner && !currentProfile.is_super_admin && currentProfile.arena_id) {
+      filteredCameras = filteredCameras.filter(cam => cam.quadras?.arena_id === currentProfile.arena_id);
+    }
 
-    setCameras(camerasRes.data || []);
+    setCameras(filteredCameras);
     setDevices(devicesRes.data || []);
     setBoards(boardsRes.data || []);
     setQuadras(quadrasRes.data || []);
@@ -679,7 +701,7 @@ function Cameras() {
                     <div className="flex items-center gap-4">
                       <button 
                         onClick={() => setActivePreviewCamera(camera)}
-                        className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-all hover:scale-105 active:scale-95 group-hover:brand-gradient group-hover:text-white group-hover:brand-glow group-hover:border-transparent border border-blue-500/20"
+                        className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 transition-all hover:scale-110 active:scale-95 group-hover:brand-gradient group-hover:text-white group-hover:brand-glow group-hover:border-transparent border border-blue-500/20 shadow-sm"
                         title="Visualizar Câmera Ao Vivo"
                       >
                         <Video className="h-6 w-6" />
