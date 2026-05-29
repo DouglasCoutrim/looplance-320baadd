@@ -13,43 +13,55 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { generateAndUploadOverlay } from "@/utils/overlayGenerator";
 import logoImg from "@/assets/looplance-logo.png";
-import ReactPlayerType from "react-player";
 import Hls from "hls.js";
 
-const ReactPlayer = ReactPlayerType as any;
 
-const HLSPlayer = ({ url, playing, muted }: { url: string, playing: boolean, muted: boolean }) => {
+
+const HLSPlayer = ({ cameraId }: { cameraId: string }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const url = `https://live.izyia.com.br/${cameraId}/index.m3u8`;
 
   useEffect(() => {
     const video = videoRef.current;
-    if (!video || !url) return;
+    if (!video || !cameraId) return;
+
+    let hls: Hls | null = null;
 
     if (Hls.isSupported()) {
-      const hls = new Hls();
+      hls = new Hls();
       hls.loadSource(url);
       hls.attachMedia(video);
       hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        if (playing) {
-          video.play().catch(e => console.error("Error playing video:", e));
-        }
+        video.play().catch(e => console.error("Error playing video:", e));
       });
-      return () => hls.destroy();
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
-      if (playing) {
+      video.addEventListener('loadedmetadata', () => {
         video.play().catch(e => console.error("Error playing video:", e));
-      }
+      });
     }
-  }, [url, playing]);
+
+    return () => {
+      if (hls) {
+        hls.destroy();
+      }
+    };
+  }, [url, cameraId]);
 
   return (
-    <video
-      ref={videoRef}
-      muted={muted}
-      playsInline
-      className="w-full h-full object-contain"
-    />
+    <div className="space-y-4">
+      <video
+        ref={videoRef}
+        controls
+        autoPlay
+        muted
+        playsInline
+        className="w-full aspect-video rounded-xl bg-black shadow-2xl"
+      />
+      <p className="text-center text-xs font-mono text-muted-foreground bg-gray-100 py-1 rounded">
+        ID da Câmera: {cameraId}
+      </p>
+    </div>
   );
 };
 
