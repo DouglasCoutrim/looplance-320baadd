@@ -32,6 +32,7 @@ export function ReplayFeed() {
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [session, setSession] = useState<any>(null);
+  const [isAudioAvailable, setIsAudioAvailable] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -112,9 +113,12 @@ export function ReplayFeed() {
         fetchReplays();
         toast("🔥 Novo lance na quadra!");
         
-        // Play sound only for logged in users
-        if (session && audioRef.current) {
-          audioRef.current.play().catch(e => console.error("Erro ao tocar áudio:", e));
+        // Play sound only for logged in users and if available
+        if (session && audioRef.current && isAudioAvailable) {
+          audioRef.current.play().catch(e => {
+            console.error("Erro ao tocar áudio:", e);
+            setIsAudioAvailable(false);
+          });
         }
       })
       .subscribe();
@@ -156,7 +160,15 @@ export function ReplayFeed() {
   return (
     <div className="relative min-h-screen bg-background text-foreground">
 
-      <audio ref={audioRef} src="/goal-sound.mp3" preload="auto" />
+      <audio 
+        ref={audioRef} 
+        src="/goal-sound.mp3" 
+        preload="auto" 
+        onError={() => {
+          console.warn("Arquivo /goal-sound.mp3 não encontrado. Silenciando notificações sonoras.");
+          setIsAudioAvailable(false);
+        }}
+      />
 
       {/* XP pop overlay */}
       <div className="pointer-events-none fixed right-6 top-24 z-50">
