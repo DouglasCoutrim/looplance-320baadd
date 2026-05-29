@@ -119,7 +119,10 @@ interface CameraType {
   quadras?: { nome: string; arena_id: string; arenas?: { nome: string; sponsor_logo_left: string | null; sponsor_logo_center: string | null; sponsor_logo_right: string | null } | null } | null;
   edge_devices?: { name: string } | null;
   input_boards?: { name: string } | null;
+  streaming_status?: string | null;
+  streaming_error?: string | null;
 }
+
 
 
 function Cameras() {
@@ -290,18 +293,46 @@ function Cameras() {
         fetchData();
       }
     } else {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("cameras")
-        .insert([payload]);
+        .insert([payload])
+        .select()
+        .single();
 
       if (error) {
         toast.error("Erro ao criar câmera");
       } else {
         toast.success("Câmera criada com sucesso");
+        
+        // Notify about streaming registration
+        const registrationToastId = toast.loading("Cadastrando no servidor de streaming...");
+        
+        // Wait a few seconds to check the status (triggered by DB)
+        setTimeout(async () => {
+          const { data: updatedCamera, error: fetchError } = await supabase
+            .from("cameras")
+            .select("streaming_status, streaming_error")
+            .eq("id", data.id)
+            .single();
+            
+          if (!fetchError && updatedCamera) {
+            if (updatedCamera.streaming_status === 'error') {
+              toast.error(`Erro no streaming: ${updatedCamera.streaming_error}`, { id: registrationToastId });
+            } else if (updatedCamera.streaming_status === 'success') {
+              toast.success("Câmera cadastrada no servidor de streaming!", { id: registrationToastId });
+            } else {
+              toast.dismiss(registrationToastId);
+            }
+          } else {
+            toast.dismiss(registrationToastId);
+          }
+        }, 3000);
+
         closeDialog();
         fetchData();
       }
     }
+
   };
 
   const closeDialog = () => {
