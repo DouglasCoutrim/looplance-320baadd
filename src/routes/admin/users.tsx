@@ -286,7 +286,6 @@ function UsersManagement() {
                             });
                             setIsEditDialogOpen(true);
                           }}>
-                          }}>
                             <Settings2 className="h-4 w-4 mr-2" />
                             Editar Permissões
                           </DropdownMenuItem>
@@ -384,8 +383,8 @@ function UsersManagement() {
                   </Select>
                 </div>
               )}
+              </div>
             </div>
-          <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleUpdateProfile} className="brand-gradient text-white border-none">Salvar Alterações</Button>
           </DialogFooter>
