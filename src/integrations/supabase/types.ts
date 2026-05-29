@@ -394,27 +394,46 @@ export type Database = {
       }
       replays: {
         Row: {
+          arena_id: string | null
           created_at: string
+          duration_sec: number | null
+          edge_device_id: string | null
+          file_size_bytes: number | null
           id: string
           quadra_id: string
           r2_key: string | null
           video_url: string
         }
         Insert: {
+          arena_id?: string | null
           created_at?: string
+          duration_sec?: number | null
+          edge_device_id?: string | null
+          file_size_bytes?: number | null
           id?: string
           quadra_id: string
           r2_key?: string | null
           video_url: string
         }
         Update: {
+          arena_id?: string | null
           created_at?: string
+          duration_sec?: number | null
+          edge_device_id?: string | null
+          file_size_bytes?: number | null
           id?: string
           quadra_id?: string
           r2_key?: string | null
           video_url?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "replays_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "replays_quadra_id_fkey"
             columns: ["quadra_id"]
