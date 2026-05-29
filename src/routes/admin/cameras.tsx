@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, Video, Edit2, Trash2, Layout, Upload, Check } from "lucide-react";
+import { Plus, RefreshCw, Video, Edit2, Trash2, Layout, Upload, Check, X } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { generateAndUploadOverlay } from "@/utils/overlayGenerator";
 import logoImg from "@/assets/looplance-logo.png";
+import ReactPlayer from "react-player";
 
 
 export const Route = createFileRoute("/admin/cameras")({
