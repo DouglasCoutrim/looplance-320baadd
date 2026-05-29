@@ -809,20 +809,33 @@ function Cameras() {
           <DialogTitle className="sr-only">Visualização ao Vivo - {activePreviewCamera?.name}</DialogTitle>
           <div className="relative aspect-video w-full bg-black flex items-center justify-center">
             {activePreviewCamera && (
-              <ReactPlayer
-                url={`https://live.izyia.com.br/${activePreviewCamera.id}/index.m3u8`}
-                playing={true}
-                muted={true}
-                controls={false}
-                width="100%"
-                height="100%"
-                style={{ position: 'absolute', top: 0, left: 0 }}
-                onError={(e: any) => {
-                  console.error("ReactPlayer Error:", e);
-                  toast.error("Erro ao carregar stream ao vivo");
-                }}
-              />
+              playerError ? (
+                <HLSPlayer 
+                  url={`https://live.izyia.com.br/${activePreviewCamera.id}/index.m3u8`} 
+                  playing={true} 
+                  muted={true} 
+                />
+              ) : (
+                <ReactPlayer
+                  url={`https://live.izyia.com.br/${activePreviewCamera.id}/index.m3u8`}
+                  playing={true}
+                  muted={true}
+                  controls={false}
+                  width="100%"
+                  height="100%"
+                  config={{ file: { forceHLS: true } }}
+                  style={{ position: 'absolute', top: 0, left: 0 }}
+                  onError={(e: any) => {
+                    console.error("ReactPlayer Error:", e);
+                    setPlayerError(true);
+                  }}
+                />
+              )
             )}
+            
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-black/60 px-2 py-1 rounded text-[10px] text-white/70">
+              ID: {activePreviewCamera?.id}
+            </div>
             
             <div className="absolute top-4 left-4 z-10">
               <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest px-3 py-1 flex items-center gap-2">
