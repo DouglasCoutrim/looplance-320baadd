@@ -819,48 +819,30 @@ function Cameras() {
       </div>
 
       <Dialog open={!!activePreviewCamera} onOpenChange={(open) => !open && setActivePreviewCamera(null)}>
-        <DialogContent className="max-w-[90vw] md:max-w-4xl p-0 bg-black border-none overflow-hidden rounded-2xl shadow-2xl">
-          <DialogTitle className="sr-only">Visualização ao Vivo - {activePreviewCamera?.name}</DialogTitle>
-          <div className="relative aspect-video w-full bg-black flex items-center justify-center">
+        <DialogContent 
+          className="max-w-[95vw] md:max-w-4xl p-6 bg-white border-none overflow-hidden rounded-2xl shadow-2xl"
+          aria-describedby={undefined}
+        >
+          <DialogTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-3 mb-4">
+            <Video className="h-6 w-6 text-brand-orange" />
+            Visualização ao Vivo: {activePreviewCamera?.name}
+          </DialogTitle>
+          
+          <div className="relative w-full">
             {activePreviewCamera && (
-              playerError ? (
-                <HLSPlayer 
-                  url={`https://live.izyia.com.br/${activePreviewCamera.id}/index.m3u8`} 
-                  playing={true} 
-                  muted={true} 
-                />
-              ) : (
-                <ReactPlayer
-                  url={`https://live.izyia.com.br/${activePreviewCamera.id}/index.m3u8`}
-                  playing={true}
-                  muted={true}
-                  controls={false}
-                  width="100%"
-                  height="100%"
-                  config={{ file: { forceHLS: true } }}
-                  style={{ position: 'absolute', top: 0, left: 0 }}
-                  onError={(e: any) => {
-                    console.error("ReactPlayer Error:", e);
-                    setPlayerError(true);
-                  }}
-                />
-              )
+              <HLSPlayer cameraId={activePreviewCamera.id} />
             )}
             
-            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 bg-black/60 px-2 py-1 rounded text-[10px] text-white/70">
-              ID: {activePreviewCamera?.id}
-            </div>
-            
             <div className="absolute top-4 left-4 z-10">
-              <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest px-3 py-1 flex items-center gap-2">
+              <Badge className="bg-red-600 text-white border-none font-black uppercase tracking-widest px-3 py-1 flex items-center gap-2 shadow-lg">
                 <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                AO VIVO: {activePreviewCamera?.name}
+                AO VIVO
               </Badge>
             </div>
 
             <button 
               onClick={() => setActivePreviewCamera(null)}
-              className="absolute top-4 right-4 z-20 h-10 w-10 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/20"
+              className="absolute -top-12 -right-2 z-20 h-10 w-10 rounded-full bg-black/5 hover:bg-black/10 text-gray-500 flex items-center justify-center transition-all border border-gray-100 sm:hidden"
             >
               <X className="h-5 w-5" />
             </button>
