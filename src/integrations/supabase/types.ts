@@ -109,6 +109,8 @@ export type Database = {
           sponsor_logo_center: string | null
           sponsor_logo_left: string | null
           sponsor_logo_right: string | null
+          streaming_error: string | null
+          streaming_status: string | null
           trigger_button: number | null
           video_height: number | null
           video_width: number | null
@@ -132,6 +134,8 @@ export type Database = {
           sponsor_logo_center?: string | null
           sponsor_logo_left?: string | null
           sponsor_logo_right?: string | null
+          streaming_error?: string | null
+          streaming_status?: string | null
           trigger_button?: number | null
           video_height?: number | null
           video_width?: number | null
@@ -155,6 +159,8 @@ export type Database = {
           sponsor_logo_center?: string | null
           sponsor_logo_left?: string | null
           sponsor_logo_right?: string | null
+          streaming_error?: string | null
+          streaming_status?: string | null
           trigger_button?: number | null
           video_height?: number | null
           video_width?: number | null
