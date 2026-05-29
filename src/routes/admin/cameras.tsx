@@ -676,9 +676,13 @@ function Cameras() {
                 <TableRow key={camera.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white">
+                      <button 
+                        onClick={() => setActivePreviewCamera(camera)}
+                        className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-all hover:scale-105 active:scale-95 group-hover:brand-gradient group-hover:text-white group-hover:brand-glow group-hover:border-transparent border border-blue-500/20"
+                        title="Visualizar Câmera Ao Vivo"
+                      >
                         <Video className="h-6 w-6" />
-                      </div>
+                      </button>
                       <div className="min-w-0">
                         <span className="font-black text-lg text-gray-900 uppercase tracking-tight block truncate">{camera.name}</span>
                         <p className="text-[10px] font-bold text-muted-foreground font-mono truncate max-w-[200px]">{camera.rtsp_url}</p>
