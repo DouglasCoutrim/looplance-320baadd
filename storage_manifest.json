@@ -1,0 +1,11 @@
+{
+  "buckets": [
+    { "id": "arenas", "name": "arenas", "public": true },
+    { "id": "overlays", "name": "overlays", "public": true },
+    { "id": "son", "name": "son", "public": false }
+  ],
+  "objects_summary": [
+    { "bucket": "arenas", "count": 19, "example_files": ["0.5752771668004195.png", "0.7319316885718148.jpeg"] },
+    { "bucket": "overlays", "count": 10, "example_files": ["overlay_base_9x16.png", "generated/63f77bf2-cf0f-4b92-bf4d-10750b7e3750.png"] }
+  ]
+}
