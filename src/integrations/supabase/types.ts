@@ -485,6 +485,7 @@ export type Database = {
             }
             Returns: undefined
           }
+      fn_get_camera_for_replay: { Args: { p_quadra_id: string }; Returns: Json }
       is_admin: { Args: { _uid: string }; Returns: boolean }
       is_arena_manager: { Args: { _uid: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
