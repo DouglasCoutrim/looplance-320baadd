@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, Video, Edit2, Trash2, Layout, Upload, Check, X } from "lucide-react";
+import { Plus, RefreshCw, Video, Edit2, Trash2, Layout, Upload, Check } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,8 +13,6 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { generateAndUploadOverlay } from "@/utils/overlayGenerator";
 import logoImg from "@/assets/looplance-logo.png";
-import ReactPlayerType from "react-player";
-const ReactPlayer = ReactPlayerType as any;
 
 
 export const Route = createFileRoute("/admin/cameras")({
@@ -82,8 +80,6 @@ function Cameras() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<CameraType | null>(null);
-  const [activePreviewCamera, setActivePreviewCamera] = useState<CameraType | null>(null);
-  const [userProfile, setUserProfile] = useState<any>(null);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -151,21 +147,6 @@ function Cameras() {
 
   const fetchData = async () => {
     setLoading(true);
-    
-    // Get current user profile
-    const { data: { user } } = await supabase.auth.getUser();
-    let currentProfile = null;
-    
-    if (user) {
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user.id)
-        .single();
-      currentProfile = profile;
-      setUserProfile(profile);
-    }
-
     const [camerasRes, devicesRes, boardsRes, quadrasRes, arenasRes] = await Promise.all([
       supabase.from("cameras").select("*, quadras(nome, arena_id, arenas(nome, sponsor_logo_left, sponsor_logo_center, sponsor_logo_right)), edge_devices(name), input_boards(name)").order("created_at", { ascending: false }),
       supabase.from("edge_devices").select("id, name, arena_id").order("name"),
@@ -174,14 +155,8 @@ function Cameras() {
       supabase.from("arenas").select("id, nome").order("nome")
     ]);
 
-    let filteredCameras = camerasRes.data || [];
-    
-    // Filter by arena owner if applicable
-    if (currentProfile && currentProfile.is_arena_owner && !currentProfile.is_super_admin && currentProfile.arena_id) {
-      filteredCameras = filteredCameras.filter(cam => cam.quadras?.arena_id === currentProfile.arena_id);
-    }
 
-    setCameras(filteredCameras);
+    setCameras(camerasRes.data || []);
     setDevices(devicesRes.data || []);
     setBoards(boardsRes.data || []);
     setQuadras(quadrasRes.data || []);
@@ -699,13 +674,9 @@ function Cameras() {
                 <TableRow key={camera.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-4">
-                      <button 
-                        onClick={() => setActivePreviewCamera(camera)}
-                        className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 transition-all hover:scale-110 active:scale-95 group-hover:brand-gradient group-hover:text-white group-hover:brand-glow group-hover:border-transparent border border-blue-500/20 shadow-sm"
-                        title="Visualizar Câmera Ao Vivo"
-                      >
+                      <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white">
                         <Video className="h-6 w-6" />
-                      </button>
+                      </div>
                       <div className="min-w-0">
                         <span className="font-black text-lg text-gray-900 uppercase tracking-tight block truncate">{camera.name}</span>
                         <p className="text-[10px] font-bold text-muted-foreground font-mono truncate max-w-[200px]">{camera.rtsp_url}</p>
@@ -759,42 +730,6 @@ function Cameras() {
           </TableBody>
         </Table>
       </div>
-
-      <Dialog open={!!activePreviewCamera} onOpenChange={(open) => !open && setActivePreviewCamera(null)}>
-        <DialogContent className="max-w-[90vw] md:max-w-4xl p-0 bg-black border-none overflow-hidden rounded-2xl shadow-2xl">
-          <div className="relative aspect-video w-full bg-black flex items-center justify-center">
-            {activePreviewCamera && (
-              <ReactPlayer
-                url={`https://latest-components-derby-according.trycloudflare.com/${activePreviewCamera.id}/index.m3u8`}
-                playing={true}
-                muted={true}
-                controls={false}
-                width="100%"
-                height="100%"
-                style={{ position: 'absolute', top: 0, left: 0 }}
-                onError={(e: any) => {
-                  console.error("ReactPlayer Error:", e);
-                  toast.error("Erro ao carregar stream ao vivo");
-                }}
-              />
-            )}
-            
-            <div className="absolute top-4 left-4 z-10">
-              <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest px-3 py-1 flex items-center gap-2">
-                <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                AO VIVO: {activePreviewCamera?.name}
-              </Badge>
-            </div>
-
-            <button 
-              onClick={() => setActivePreviewCamera(null)}
-              className="absolute top-4 right-4 z-20 h-10 w-10 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/20"
-            >
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }

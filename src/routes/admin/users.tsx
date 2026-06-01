@@ -60,7 +60,6 @@ export const Route = createFileRoute("/admin/users")({
 
 function UsersManagement() {
   const [users, setUsers] = useState<any[]>([]);
-  const [arenas, setArenas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedUser, setSelectedUser] = useState<any>(null);
@@ -81,23 +80,21 @@ function UsersManagement() {
     fullName: "",
     role: "",
     isSuperAdmin: false,
-    isArenaOwner: false,
-    arenaId: ""
+    isArenaOwner: false
   });
 
-  const fetchData = async () => {
+  const fetchUsers = async () => {
     try {
       setLoading(true);
-      const [profilesRes, arenasRes] = await Promise.all([
-        supabase.from("profiles").select("*").order("created_at", { ascending: false }),
-        supabase.from("arenas").select("id, nome").order("nome")
-      ]);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("*")
+        .order("created_at", { ascending: false });
 
-      if (profilesRes.error) throw profilesRes.error;
-      setUsers(profilesRes.data || []);
-      setArenas(arenasRes.data || []);
+      if (error) throw error;
+      setUsers(data || []);
     } catch (error: any) {
-      console.error("Error fetching data:", error);
+      console.error("Error fetching users:", error);
       toast.error("Erro ao carregar usuários");
     } finally {
       setLoading(false);
@@ -105,8 +102,9 @@ function UsersManagement() {
   };
 
   useEffect(() => {
-    fetchData();
+    fetchUsers();
   }, []);
+
   const filteredUsers = users.filter(user => 
     user.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     user.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -150,15 +148,14 @@ function UsersManagement() {
         user_id: selectedUser.id,
         new_role: editUserForm.role,
         new_is_super_admin: editUserForm.isSuperAdmin,
-        new_is_arena_owner: editUserForm.isArenaOwner,
-        new_arena_id: editUserForm.arenaId || null
+        new_is_arena_owner: editUserForm.isArenaOwner
       });
 
       if (error) throw error;
 
       toast.success("Perfil atualizado com sucesso");
       setIsEditDialogOpen(false);
-      fetchData();
+      fetchUsers();
     } catch (error: any) {
       console.error("Error updating profile:", error);
       toast.error("Erro ao atualizar perfil: " + error.message);
@@ -173,11 +170,12 @@ function UsersManagement() {
       if (error) throw error;
       
       toast.success("Usuário removido do sistema");
-      fetchData();
+      fetchUsers();
     } catch (error: any) {
       toast.error("Erro ao excluir: " + error.message);
     }
   };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -274,8 +272,7 @@ function UsersManagement() {
                               fullName: user.full_name || "",
                               role: user.role || "user",
                               isSuperAdmin: user.is_super_admin || false,
-                              isArenaOwner: user.is_arena_owner || false,
-                              arenaId: user.arena_id || ""
+                              isArenaOwner: user.is_arena_owner || false
                             });
                             setIsEditDialogOpen(true);
                           }}>
@@ -346,36 +343,15 @@ function UsersManagement() {
               />
             </div>
 
-            <div className="flex flex-col gap-3 p-3 border rounded-xl bg-gray-50/50">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-sm font-bold">Dono de Arena</Label>
-                  <p className="text-[10px] text-muted-foreground">Pode gerenciar suas próprias quadras e replays.</p>
-                </div>
-                <Switch 
-                  checked={editUserForm.isArenaOwner}
-                  onCheckedChange={(v) => setEditUserForm(prev => ({ ...prev, isArenaOwner: v }))}
-                />
+            <div className="flex items-center justify-between p-3 border rounded-xl bg-gray-50/50">
+              <div className="space-y-0.5">
+                <Label className="text-sm font-bold">Dono de Arena</Label>
+                <p className="text-[10px] text-muted-foreground">Pode gerenciar suas próprias quadras e replays.</p>
               </div>
-              
-              {editUserForm.isArenaOwner && (
-                <div className="space-y-2 mt-2 pt-2 border-t border-gray-200">
-                  <Label className="text-[10px] font-black uppercase text-muted-foreground">Arena Vinculada</Label>
-                  <Select 
-                    value={editUserForm.arenaId} 
-                    onValueChange={(v) => setEditUserForm(prev => ({ ...prev, arenaId: v }))}
-                  >
-                    <SelectTrigger className="w-full bg-white h-10">
-                      <SelectValue placeholder="Selecione a arena" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {arenas.map(arena => (
-                        <SelectItem key={arena.id} value={arena.id}>{arena.nome}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+              <Switch 
+                checked={editUserForm.isArenaOwner}
+                onCheckedChange={(v) => setEditUserForm(prev => ({ ...prev, isArenaOwner: v }))}
+              />
             </div>
           </div>
           <DialogFooter>
