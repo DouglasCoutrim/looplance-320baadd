@@ -5,8 +5,6 @@ import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
-import { InstallPrompt } from "@/components/InstallPrompt";
-
 
 interface Arena { id: string; nome: string }
 interface Quadra { id: string; nome: string; arena_id: string }
@@ -34,7 +32,6 @@ export function ReplayFeed() {
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [session, setSession] = useState<any>(null);
-  const [isAudioAvailable, setIsAudioAvailable] = useState(true);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -115,12 +112,9 @@ export function ReplayFeed() {
         fetchReplays();
         toast("🔥 Novo lance na quadra!");
         
-        // Play sound only for logged in users and if available
-        if (session && audioRef.current && isAudioAvailable) {
-          audioRef.current.play().catch(e => {
-            console.error("Erro ao tocar áudio:", e);
-            setIsAudioAvailable(false);
-          });
+        // Play sound only for logged in users
+        if (session && audioRef.current) {
+          audioRef.current.play().catch(e => console.error("Erro ao tocar áudio:", e));
         }
       })
       .subscribe();
@@ -161,18 +155,8 @@ export function ReplayFeed() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
-      <InstallPrompt />
 
-
-      <audio 
-        ref={audioRef} 
-        src="https://jurwopyuxmhvtwzjxynm.supabase.co/storage/v1/object/public/overlays//goal-sound.mp3" 
-        preload="auto" 
-        onError={() => {
-          console.warn("Arquivo goal-sound.mp3 não encontrado na URL fornecida. Silenciando notificações sonoras.");
-          setIsAudioAvailable(false);
-        }}
-      />
+      <audio ref={audioRef} src="/goal-sound.mp3" preload="auto" />
 
       {/* XP pop overlay */}
       <div className="pointer-events-none fixed right-6 top-24 z-50">

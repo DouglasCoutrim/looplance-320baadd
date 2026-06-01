@@ -13,57 +13,8 @@ import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { generateAndUploadOverlay } from "@/utils/overlayGenerator";
 import logoImg from "@/assets/looplance-logo.png";
-import Hls from "hls.js";
-
-
-
-const HLSPlayer = ({ cameraId }: { cameraId: string }) => {
-  const videoRef = useRef<HTMLVideoElement>(null);
-  const url = `https://live.izyia.com.br/${cameraId}/index.m3u8`;
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !cameraId) return;
-
-    let hls: Hls | null = null;
-
-    if (Hls.isSupported()) {
-      hls = new Hls();
-      hls.loadSource(url);
-      hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video.play().catch(e => console.error("Error playing video:", e));
-      });
-    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = url;
-      video.addEventListener('loadedmetadata', () => {
-        video.play().catch(e => console.error("Error playing video:", e));
-      });
-    }
-
-    return () => {
-      if (hls) {
-        hls.destroy();
-      }
-    };
-  }, [url, cameraId]);
-
-  return (
-    <div className="space-y-4">
-      <video
-        ref={videoRef}
-        controls
-        autoPlay
-        muted
-        playsInline
-        className="w-full aspect-video rounded-xl bg-black shadow-2xl"
-      />
-      <p className="text-center text-xs font-mono text-muted-foreground bg-gray-100 py-1 rounded">
-        ID da Câmera: {cameraId}
-      </p>
-    </div>
-  );
-};
+import ReactPlayerType from "react-player";
+const ReactPlayer = ReactPlayerType as any;
 
 
 export const Route = createFileRoute("/admin/cameras")({
@@ -119,10 +70,7 @@ interface CameraType {
   quadras?: { nome: string; arena_id: string; arenas?: { nome: string; sponsor_logo_left: string | null; sponsor_logo_center: string | null; sponsor_logo_right: string | null } | null } | null;
   edge_devices?: { name: string } | null;
   input_boards?: { name: string } | null;
-  streaming_status?: string | null;
-  streaming_error?: string | null;
 }
-
 
 
 function Cameras() {
@@ -135,14 +83,7 @@ function Cameras() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingCamera, setEditingCamera] = useState<CameraType | null>(null);
   const [activePreviewCamera, setActivePreviewCamera] = useState<CameraType | null>(null);
-  const [playerError, setPlayerError] = useState(false);
   const [userProfile, setUserProfile] = useState<any>(null);
-
-  useEffect(() => {
-    if (activePreviewCamera) {
-      setPlayerError(false);
-    }
-  }, [activePreviewCamera]);
 
   // Form state
   const [formData, setFormData] = useState({
@@ -293,46 +234,18 @@ function Cameras() {
         fetchData();
       }
     } else {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from("cameras")
-        .insert([payload])
-        .select()
-        .single();
+        .insert([payload]);
 
       if (error) {
         toast.error("Erro ao criar câmera");
       } else {
         toast.success("Câmera criada com sucesso");
-        
-        // Notify about streaming registration
-        const registrationToastId = toast.loading("Cadastrando no servidor de streaming...");
-        
-        // Wait a few seconds to check the status (triggered by DB)
-        setTimeout(async () => {
-          const { data: updatedCamera, error: fetchError } = await supabase
-            .from("cameras")
-            .select("streaming_status, streaming_error")
-            .eq("id", data.id)
-            .single();
-            
-          if (!fetchError && updatedCamera) {
-            if (updatedCamera.streaming_status === 'error') {
-              toast.error(`Erro no streaming: ${updatedCamera.streaming_error}`, { id: registrationToastId });
-            } else if (updatedCamera.streaming_status === 'success') {
-              toast.success("Câmera cadastrada no servidor de streaming!", { id: registrationToastId });
-            } else {
-              toast.dismiss(registrationToastId);
-            }
-          } else {
-            toast.dismiss(registrationToastId);
-          }
-        }, 3000);
-
         closeDialog();
         fetchData();
       }
     }
-
   };
 
   const closeDialog = () => {
@@ -788,12 +701,10 @@ function Cameras() {
                     <div className="flex items-center gap-4">
                       <button 
                         onClick={() => setActivePreviewCamera(camera)}
-                        className="h-16 w-24 rounded-lg bg-gray-900 flex flex-col items-center justify-center text-blue-500 transition-all hover:scale-105 active:scale-95 border border-white/10 shadow-lg relative overflow-hidden group/thumb"
+                        className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center text-blue-500 transition-all hover:scale-110 active:scale-95 group-hover:brand-gradient group-hover:text-white group-hover:brand-glow group-hover:border-transparent border border-blue-500/20 shadow-sm"
                         title="Visualizar Câmera Ao Vivo"
                       >
-                        <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-transparent group-hover/thumb:from-blue-500/40 transition-colors" />
-                        <Video className="h-6 w-6 relative z-10" />
-                        <span className="text-[8px] font-black uppercase tracking-tighter mt-1 relative z-10 text-white/70">AO VIVO</span>
+                        <Video className="h-6 w-6" />
                       </button>
                       <div className="min-w-0">
                         <span className="font-black text-lg text-gray-900 uppercase tracking-tight block truncate">{camera.name}</span>
@@ -850,30 +761,34 @@ function Cameras() {
       </div>
 
       <Dialog open={!!activePreviewCamera} onOpenChange={(open) => !open && setActivePreviewCamera(null)}>
-        <DialogContent 
-          className="max-w-[95vw] md:max-w-4xl p-6 bg-white border-none overflow-hidden rounded-2xl shadow-2xl"
-          aria-describedby={undefined}
-        >
-          <DialogTitle className="text-xl font-black uppercase tracking-tight flex items-center gap-3 mb-4">
-            <Video className="h-6 w-6 text-brand-orange" />
-            Visualização ao Vivo: {activePreviewCamera?.name}
-          </DialogTitle>
-          
-          <div className="relative w-full">
+        <DialogContent className="max-w-[90vw] md:max-w-4xl p-0 bg-black border-none overflow-hidden rounded-2xl shadow-2xl">
+          <div className="relative aspect-video w-full bg-black flex items-center justify-center">
             {activePreviewCamera && (
-              <HLSPlayer cameraId={activePreviewCamera.id} />
+              <ReactPlayer
+                url={`https://latest-components-derby-according.trycloudflare.com/${activePreviewCamera.id}/index.m3u8`}
+                playing={true}
+                muted={true}
+                controls={false}
+                width="100%"
+                height="100%"
+                style={{ position: 'absolute', top: 0, left: 0 }}
+                onError={(e: any) => {
+                  console.error("ReactPlayer Error:", e);
+                  toast.error("Erro ao carregar stream ao vivo");
+                }}
+              />
             )}
             
             <div className="absolute top-4 left-4 z-10">
-              <Badge className="bg-red-600 text-white border-none font-black uppercase tracking-widest px-3 py-1 flex items-center gap-2 shadow-lg">
+              <Badge className="brand-gradient text-white border-none font-black uppercase tracking-widest px-3 py-1 flex items-center gap-2">
                 <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
-                AO VIVO
+                AO VIVO: {activePreviewCamera?.name}
               </Badge>
             </div>
 
             <button 
               onClick={() => setActivePreviewCamera(null)}
-              className="absolute -top-12 -right-2 z-20 h-10 w-10 rounded-full bg-black/5 hover:bg-black/10 text-gray-500 flex items-center justify-center transition-all border border-gray-100 sm:hidden"
+              className="absolute top-4 right-4 z-20 h-10 w-10 rounded-full bg-black/50 hover:bg-black/80 text-white flex items-center justify-center transition-all backdrop-blur-md border border-white/20"
             >
               <X className="h-5 w-5" />
             </button>

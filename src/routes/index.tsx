@@ -9,8 +9,8 @@ export const Route = createFileRoute("/")({
   component: Home,
   head: () => ({
     meta: [
-      { title: "Looplance Edge v1.0.1" },
-      { name: "description", content: "Gerenciamento de câmeras e streaming Looplance Edge." },
+      { title: "Looplance — Replays na palma da mão" },
+      { name: "description", content: "Veja, baixe e compartilhe seus melhores lances em tempo real direto da quadra." },
     ],
   }),
 });
@@ -47,7 +47,7 @@ function Home() {
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center space-y-4">
           <Loader2 className="h-12 w-12 text-brand-orange animate-spin mx-auto" />
-          <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">Carregando Looplance Edge v1.0.1...</p>
+          <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">Carregando Looplance...</p>
         </div>
       </div>
     );
