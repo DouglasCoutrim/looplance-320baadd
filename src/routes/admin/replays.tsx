@@ -18,7 +18,7 @@ export const Route = createFileRoute("/admin/replays")({
 interface Replay {
   id: string;
   video_url: string;
-  r2_key?: string;
+  r2_key?: string | null;
   created_at: string;
   quadra_id: string;
   quadras?: {
