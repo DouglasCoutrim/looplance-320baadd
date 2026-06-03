@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.106.1"
-import { S3Client, DeleteObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.1053.0"
+import { S3Client, DeleteObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.428.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -124,18 +124,24 @@ serve(async (req) => {
             console.log(`Replay ${replay.id} has no r2_key, skipping R2 deletion`);
         }
 
-        // 2. Delete from Database
-        const { error: dbError } = await supabaseClient
-          .from('replays')
-          .delete()
-          .eq('id', replay.id)
+        // 2. Delete from Database only if R2 deletion was successful or skipped
+        if (result.r2_status === 'success' || result.r2_status === 'skipped') {
+          const { error: dbError } = await supabaseClient
+            .from('replays')
+            .delete()
+            .eq('id', replay.id)
 
-        if (dbError) {
-          console.error(`Error deleting from DB for replay ${replay.id}:`, dbError)
-          result.db_status = 'error'
-          result.error = result.error ? `${result.error} | DB Error: ${dbError.message}` : `DB Error: ${dbError.message}`
+          if (dbError) {
+            console.error(`Error deleting from DB for replay ${replay.id}:`, dbError)
+            result.db_status = 'error'
+            result.error = result.error ? `${result.error} | DB Error: ${dbError.message}` : `DB Error: ${dbError.message}`
+          } else {
+            result.db_status = 'success'
+            console.log(`Successfully deleted replay ${replay.id} from DB`);
+          }
         } else {
-          result.db_status = 'success'
+          console.log(`Skipping DB deletion for replay ${replay.id} because R2 deletion failed`);
+          result.db_status = 'skipped'
         }
 
         results.push(result)
