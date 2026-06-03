@@ -109,6 +109,8 @@ export type Database = {
           sponsor_logo_center: string | null
           sponsor_logo_left: string | null
           sponsor_logo_right: string | null
+          streaming_error: string | null
+          streaming_status: string | null
           trigger_button: number | null
           video_height: number | null
           video_width: number | null
@@ -132,6 +134,8 @@ export type Database = {
           sponsor_logo_center?: string | null
           sponsor_logo_left?: string | null
           sponsor_logo_right?: string | null
+          streaming_error?: string | null
+          streaming_status?: string | null
           trigger_button?: number | null
           video_height?: number | null
           video_width?: number | null
@@ -155,6 +159,8 @@ export type Database = {
           sponsor_logo_center?: string | null
           sponsor_logo_left?: string | null
           sponsor_logo_right?: string | null
+          streaming_error?: string | null
+          streaming_status?: string | null
           trigger_button?: number | null
           video_height?: number | null
           video_width?: number | null
@@ -293,6 +299,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          arena_id: string | null
           birth_date: string | null
           consent_accepted: boolean | null
           consent_timestamp: string | null
@@ -307,6 +314,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arena_id?: string | null
           birth_date?: string | null
           consent_accepted?: boolean | null
           consent_timestamp?: string | null
@@ -321,6 +329,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arena_id?: string | null
           birth_date?: string | null
           consent_accepted?: boolean | null
           consent_timestamp?: string | null
@@ -334,7 +343,15 @@ export type Database = {
           role?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_arena_id_fkey"
+            columns: ["arena_id"]
+            isOneToOne: false
+            referencedRelation: "arenas"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quadras: {
         Row: {
@@ -394,27 +411,46 @@ export type Database = {
       }
       replays: {
         Row: {
+          arena_id: string | null
           created_at: string
+          duration_sec: number | null
+          edge_device_id: string | null
+          file_size_bytes: number | null
           id: string
           quadra_id: string
           r2_key: string | null
           video_url: string
         }
         Insert: {
+          arena_id?: string | null
           created_at?: string
+          duration_sec?: number | null
+          edge_device_id?: string | null
+          file_size_bytes?: number | null
           id?: string
           quadra_id: string
           r2_key?: string | null
           video_url: string
         }
         Update: {
+          arena_id?: string | null
           created_at?: string
+          duration_sec?: number | null
+          edge_device_id?: string | null
+          file_size_bytes?: number | null
           id?: string
           quadra_id?: string
           r2_key?: string | null
           video_url?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "replays_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "replays_quadra_id_fkey"
             columns: ["quadra_id"]
@@ -429,15 +465,27 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_update_user_profile: {
-        Args: {
-          new_is_arena_owner: boolean
-          new_is_super_admin: boolean
-          new_role: string
-          user_id: string
-        }
-        Returns: undefined
-      }
+      admin_update_user_profile:
+        | {
+            Args: {
+              new_is_arena_owner: boolean
+              new_is_super_admin: boolean
+              new_role: string
+              user_id: string
+            }
+            Returns: undefined
+          }
+        | {
+            Args: {
+              new_arena_id?: string
+              new_is_arena_owner: boolean
+              new_is_super_admin: boolean
+              new_role: string
+              user_id: string
+            }
+            Returns: undefined
+          }
+      fn_get_camera_for_replay: { Args: { p_quadra_id: string }; Returns: Json }
       is_admin: { Args: { _uid: string }; Returns: boolean }
       is_arena_manager: { Args: { _uid: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
