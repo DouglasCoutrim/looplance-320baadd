@@ -48,16 +48,21 @@ serve(async (req) => {
       })
     }
 
+    const endpoint = Deno.env.get('R2_ENDPOINT_URL') || '';
+    const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID') || '';
+    const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY') || '';
+    const bucketName = Deno.env.get('R2_BUCKET_NAME') || '';
+
     const s3Client = new S3Client({
       region: "auto",
-      endpoint: Deno.env.get('R2_ENDPOINT_URL') || '',
+      endpoint: endpoint,
+      forcePathStyle: true, // Changed to true for better compatibility with some R2 setups
       credentials: {
-        accessKeyId: Deno.env.get('R2_ACCESS_KEY_ID') || '',
-        secretAccessKey: Deno.env.get('R2_SECRET_ACCESS_KEY') || '',
+        accessKeyId: accessKeyId,
+        secretAccessKey: secretAccessKey,
       },
     })
 
-    const bucketName = Deno.env.get('R2_BUCKET_NAME') || ''
     const results = []
 
     for (const replay of replays) {
@@ -80,7 +85,7 @@ serve(async (req) => {
           }
         }
 
-        // 2. Delete from Database (Always attempt if R2 didn't throw a fatal error)
+        // 2. Delete from Database
         const { error: dbError } = await supabaseClient
           .from('replays')
           .delete()
