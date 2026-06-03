@@ -104,7 +104,7 @@ serve(async (req) => {
     const s3Client = new S3Client({
       region: "auto",
       endpoint: cleanEndpoint,
-      forcePathStyle: false, // R2 generally works better with virtual-hosted style (false)
+      forcePathStyle: false, 
       credentials: {
         accessKeyId: accessKeyId,
         secretAccessKey: secretAccessKey,
@@ -112,7 +112,7 @@ serve(async (req) => {
     })
 
     const results = []
-    console.log(`Processing deletion for ${replays.length} replays. R2 Bucket: ${bucketName}`);
+    console.log(`Processing deletion for ${replays.length} replays. R2 Bucket: ${bucketName}. Endpoint: ${cleanEndpoint}`);
 
     for (const replay of replays) {
       const result = { id: replay.id, r2_status: 'skipped', db_status: 'pending', error: null };
