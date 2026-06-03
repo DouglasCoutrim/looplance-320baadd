@@ -48,27 +48,41 @@ serve(async (req) => {
       })
     }
 
+    const endpoint = Deno.env.get('R2_ENDPOINT_URL') || '';
+    const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID') || '';
+    const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY') || '';
+    const bucketName = Deno.env.get('R2_BUCKET_NAME') || '';
+
     const s3Client = new S3Client({
       region: "auto",
-      endpoint: Deno.env.get('R2_ENDPOINT_URL') || '',
+      endpoint: endpoint,
+      forcePathStyle: true, // Changed to true for better compatibility with some R2 setups
       credentials: {
-        accessKeyId: Deno.env.get('R2_ACCESS_KEY_ID') || '',
-        secretAccessKey: Deno.env.get('R2_SECRET_ACCESS_KEY') || '',
+        accessKeyId: accessKeyId,
+        secretAccessKey: secretAccessKey,
       },
     })
 
-    const bucketName = Deno.env.get('R2_BUCKET_NAME') || ''
     const results = []
 
     for (const replay of replays) {
+      const result = { id: replay.id, r2_status: 'skipped', db_status: 'pending', error: null };
+      
       try {
         // 1. Delete from R2
         if (replay.r2_key) {
-          const deleteCommand = new DeleteObjectCommand({
-            Bucket: bucketName,
-            Key: replay.r2_key,
-          })
-          await s3Client.send(deleteCommand)
+          try {
+            const deleteCommand = new DeleteObjectCommand({
+              Bucket: bucketName,
+              Key: replay.r2_key,
+            })
+            await s3Client.send(deleteCommand)
+            result.r2_status = 'success'
+          } catch (r2Err) {
+            console.error(`Error deleting from R2 for replay ${replay.id}:`, r2Err)
+            result.r2_status = 'error'
+            result.error = `R2 Error: ${r2Err.message}`
+          }
         }
 
         // 2. Delete from Database
@@ -77,12 +91,18 @@ serve(async (req) => {
           .delete()
           .eq('id', replay.id)
 
-        if (dbError) throw dbError
+        if (dbError) {
+          console.error(`Error deleting from DB for replay ${replay.id}:`, dbError)
+          result.db_status = 'error'
+          result.error = result.error ? `${result.error} | DB Error: ${dbError.message}` : `DB Error: ${dbError.message}`
+        } else {
+          result.db_status = 'success'
+        }
 
-        results.push({ id: replay.id, status: 'success' })
+        results.push(result)
       } catch (err) {
-        console.error(`Error deleting replay ${replay.id}:`, err)
-        results.push({ id: replay.id, status: 'error', error: err.message })
+        console.error(`Unexpected error for replay ${replay.id}:`, err)
+        results.push({ ...result, error: `Unexpected: ${err.message}` })
       }
     }
 
@@ -91,6 +111,7 @@ serve(async (req) => {
       status: 200,
     })
   } catch (error) {
+    console.error('Fatal error in delete-replays function:', error)
     return new Response(JSON.stringify({ error: error.message }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 400,
