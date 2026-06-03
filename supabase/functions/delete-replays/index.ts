@@ -24,13 +24,15 @@ serve(async (req) => {
     let isAuthorized = false;
     
     if (authHeader) {
+      console.log('Checking auth header...');
       const userClient = createClient(
         Deno.env.get('SUPABASE_URL') ?? '',
         Deno.env.get('SUPABASE_ANON_KEY') ?? '',
         { global: { headers: { Authorization: authHeader || '' } } }
       )
-      const { data: { user } } = await userClient.auth.getUser()
+      const { data: { user }, error: userError } = await userClient.auth.getUser()
       if (user) {
+        console.log('User found:', user.id);
         const { data: profile } = await supabaseClient
           .from('profiles')
           .select('is_super_admin, is_arena_owner')
@@ -39,17 +41,25 @@ serve(async (req) => {
         
         if (profile?.is_super_admin || profile?.is_arena_owner) {
           isAuthorized = true;
+          console.log('User is authorized via profile');
+        } else {
+          console.log('User not authorized via profile:', profile);
         }
+      } else {
+        console.log('No user found or error:', userError);
       }
       
-      // Allow service role (agent calls usually include this or session token)
       const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
       if (serviceRoleKey && authHeader.includes(serviceRoleKey)) {
         isAuthorized = true;
+        console.log('Authorized via service role key');
       }
+    } else {
+      console.log('No auth header provided');
     }
 
     if (!isAuthorized) {
+      console.error('Unauthorized access attempt');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 401,
