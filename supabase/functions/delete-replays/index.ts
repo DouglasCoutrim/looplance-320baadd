@@ -95,11 +95,16 @@ serve(async (req) => {
 
     // Ensure endpoint doesn't have trailing slash
     const cleanEndpoint = endpoint.replace(/\/$/, '');
-
+    
+    // For R2, the endpoint in S3Client should NOT include the bucket name.
+    // Usually R2 endpoints look like https://<account-id>.r2.cloudflarestorage.com
+    // If cleanEndpoint already includes the bucket name, we might need to remove it or adjust.
+    // The logs show host: b128c9ffbc93d854505da6d15914ffbc.r2.cloudflarestorage.com
+    
     const s3Client = new S3Client({
-      region: "us-east-1",
+      region: "auto",
       endpoint: cleanEndpoint,
-      forcePathStyle: true,
+      forcePathStyle: false, // R2 generally works better with virtual-hosted style (false)
       credentials: {
         accessKeyId: accessKeyId,
         secretAccessKey: secretAccessKey,
