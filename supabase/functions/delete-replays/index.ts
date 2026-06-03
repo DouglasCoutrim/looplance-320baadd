@@ -97,7 +97,7 @@ serve(async (req) => {
     const cleanEndpoint = endpoint.replace(/\/$/, '');
 
     const s3Client = new S3Client({
-      region: "auto",
+      region: "us-east-1",
       endpoint: cleanEndpoint,
       forcePathStyle: true,
       credentials: {
