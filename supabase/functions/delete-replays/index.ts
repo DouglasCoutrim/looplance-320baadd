@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.106.1"
-import { S3Client, DeleteObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.1053.0"
+import { S3Client, DeleteObjectCommand } from "https://esm.sh/@aws-sdk/client-s3@3.428.0"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -75,22 +75,30 @@ serve(async (req) => {
       })
     }
 
-    const endpoint = Deno.env.get('R2_ENDPOINT_URL') || '';
-    const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID') || '';
-    const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY') || '';
-    const bucketName = Deno.env.get('R2_BUCKET_NAME') || '';
+    const endpoint = (Deno.env.get('R2_ENDPOINT_URL') || '').trim();
+    const accessKeyId = (Deno.env.get('R2_ACCESS_KEY_ID') || '').trim();
+    const secretAccessKey = (Deno.env.get('R2_SECRET_ACCESS_KEY') || '').trim();
+    const bucketName = (Deno.env.get('R2_BUCKET_NAME') || '').trim();
 
     if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName) {
-      console.error('Missing R2 environment variables');
+      console.error('Missing R2 environment variables:', { 
+        hasEndpoint: !!endpoint, 
+        hasAccessKey: !!accessKeyId, 
+        hasSecretKey: !!secretAccessKey, 
+        hasBucket: !!bucketName 
+      });
       return new Response(JSON.stringify({ error: 'Internal Server Error', details: 'Missing storage configuration' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
       })
     }
 
+    // Ensure endpoint doesn't have trailing slash
+    const cleanEndpoint = endpoint.replace(/\/$/, '');
+
     const s3Client = new S3Client({
-      region: "auto",
-      endpoint: endpoint,
+      region: "us-east-1",
+      endpoint: cleanEndpoint,
       forcePathStyle: true,
       credentials: {
         accessKeyId: accessKeyId,
@@ -108,10 +116,11 @@ serve(async (req) => {
         // 1. Delete from R2
         if (replay.r2_key) {
           try {
-            console.log(`Deleting from R2: ${replay.r2_key}`);
+            const cleanKey = replay.r2_key.startsWith('/') ? replay.r2_key.substring(1) : replay.r2_key;
+            console.log(`Deleting from R2: ${cleanKey} in bucket ${bucketName}`);
             const deleteCommand = new DeleteObjectCommand({
               Bucket: bucketName,
-              Key: replay.r2_key,
+              Key: cleanKey,
             })
             await s3Client.send(deleteCommand)
             result.r2_status = 'success'
@@ -124,18 +133,24 @@ serve(async (req) => {
             console.log(`Replay ${replay.id} has no r2_key, skipping R2 deletion`);
         }
 
-        // 2. Delete from Database
-        const { error: dbError } = await supabaseClient
-          .from('replays')
-          .delete()
-          .eq('id', replay.id)
+        // 2. Delete from Database only if R2 deletion was successful or skipped
+        if (result.r2_status === 'success' || result.r2_status === 'skipped') {
+          const { error: dbError } = await supabaseClient
+            .from('replays')
+            .delete()
+            .eq('id', replay.id)
 
-        if (dbError) {
-          console.error(`Error deleting from DB for replay ${replay.id}:`, dbError)
-          result.db_status = 'error'
-          result.error = result.error ? `${result.error} | DB Error: ${dbError.message}` : `DB Error: ${dbError.message}`
+          if (dbError) {
+            console.error(`Error deleting from DB for replay ${replay.id}:`, dbError)
+            result.db_status = 'error'
+            result.error = result.error ? `${result.error} | DB Error: ${dbError.message}` : `DB Error: ${dbError.message}`
+          } else {
+            result.db_status = 'success'
+            console.log(`Successfully deleted replay ${replay.id} from DB`);
+          }
         } else {
-          result.db_status = 'success'
+          console.log(`Skipping DB deletion for replay ${replay.id} because R2 deletion failed`);
+          result.db_status = 'skipped'
         }
 
         results.push(result)
