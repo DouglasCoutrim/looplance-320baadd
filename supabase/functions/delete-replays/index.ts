@@ -58,11 +58,6 @@ serve(async (req) => {
       console.log('No auth header provided');
     }
 
-    // For testing/debugging, if we don't have auth but we have the environment variables, we might be in a local test
-    // However, in production we NEED auth. 
-    // Let's add a temporary override for our manual test if we can detect it.
-    // Actually, let's just make sure the logs are visible.
-
     if (!isAuthorized) {
       console.error('Unauthorized access attempt - Final Check Failed');
       return new Response(JSON.stringify({ error: 'Unauthorized', details: 'Auth check failed' }), {
@@ -84,6 +79,14 @@ serve(async (req) => {
     const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID') || '';
     const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY') || '';
     const bucketName = Deno.env.get('R2_BUCKET_NAME') || '';
+
+    if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName) {
+      console.error('Missing R2 environment variables');
+      return new Response(JSON.stringify({ error: 'Internal Server Error', details: 'Missing storage configuration' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
+    }
 
     const s3Client = new S3Client({
       region: "auto",
@@ -117,6 +120,8 @@ serve(async (req) => {
             result.r2_status = 'error'
             result.error = `R2 Error: ${r2Err.message}`
           }
+        } else {
+            console.log(`Replay ${replay.id} has no r2_key, skipping R2 deletion`);
         }
 
         // 2. Delete from Database
