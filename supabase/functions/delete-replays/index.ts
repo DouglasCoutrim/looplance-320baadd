@@ -95,11 +95,16 @@ serve(async (req) => {
 
     // Ensure endpoint doesn't have trailing slash
     const cleanEndpoint = endpoint.replace(/\/$/, '');
-
+    
+    // For R2, the endpoint in S3Client should NOT include the bucket name.
+    // Usually R2 endpoints look like https://<account-id>.r2.cloudflarestorage.com
+    // If cleanEndpoint already includes the bucket name, we might need to remove it or adjust.
+    // The logs show host: b128c9ffbc93d854505da6d15914ffbc.r2.cloudflarestorage.com
+    
     const s3Client = new S3Client({
-      region: "us-east-1",
+      region: "auto",
       endpoint: cleanEndpoint,
-      forcePathStyle: true,
+      forcePathStyle: false, 
       credentials: {
         accessKeyId: accessKeyId,
         secretAccessKey: secretAccessKey,
@@ -107,7 +112,7 @@ serve(async (req) => {
     })
 
     const results = []
-    console.log(`Processing deletion for ${replays.length} replays. R2 Bucket: ${bucketName}`);
+    console.log(`Processing deletion for ${replays.length} replays. R2 Bucket: ${bucketName}. Endpoint: ${cleanEndpoint}`);
 
     for (const replay of replays) {
       const result = { id: replay.id, r2_status: 'skipped', db_status: 'pending', error: null };
@@ -116,8 +121,14 @@ serve(async (req) => {
         // 1. Delete from R2
         if (replay.r2_key) {
           try {
-            const cleanKey = replay.r2_key.startsWith('/') ? replay.r2_key.substring(1) : replay.r2_key;
-            console.log(`Deleting from R2: ${cleanKey} in bucket ${bucketName}`);
+            // Remove any leading slash or bucket name from the key
+            let cleanKey = replay.r2_key;
+            if (cleanKey.startsWith('/')) cleanKey = cleanKey.substring(1);
+            if (cleanKey.startsWith(bucketName + '/')) {
+                cleanKey = cleanKey.substring(bucketName.length + 1);
+            }
+            
+            console.log(`Deleting from R2. Bucket: ${bucketName}, Key: ${cleanKey}`);
             const deleteCommand = new DeleteObjectCommand({
               Bucket: bucketName,
               Key: cleanKey,
@@ -127,7 +138,7 @@ serve(async (req) => {
           } catch (r2Err) {
             console.error(`Error deleting from R2 for replay ${replay.id}:`, r2Err)
             result.r2_status = 'error'
-            result.error = `R2 Error: ${r2Err.message}`
+            result.error = `R2 Error: ${r2Err.name} - ${r2Err.message}`
           }
         } else {
             console.log(`Replay ${replay.id} has no r2_key, skipping R2 deletion`);
