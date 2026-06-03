@@ -81,16 +81,24 @@ serve(async (req) => {
     const bucketName = Deno.env.get('R2_BUCKET_NAME') || '';
 
     if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName) {
-      console.error('Missing R2 environment variables');
+      console.error('Missing R2 environment variables:', { 
+        hasEndpoint: !!endpoint, 
+        hasAccessKey: !!accessKeyId, 
+        hasSecretKey: !!secretAccessKey, 
+        hasBucket: !!bucketName 
+      });
       return new Response(JSON.stringify({ error: 'Internal Server Error', details: 'Missing storage configuration' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 500,
       })
     }
 
+    // Ensure endpoint doesn't have trailing slash
+    const cleanEndpoint = endpoint.replace(/\/$/, '');
+
     const s3Client = new S3Client({
       region: "auto",
-      endpoint: endpoint,
+      endpoint: cleanEndpoint,
       forcePathStyle: true,
       credentials: {
         accessKeyId: accessKeyId,
@@ -108,10 +116,11 @@ serve(async (req) => {
         // 1. Delete from R2
         if (replay.r2_key) {
           try {
-            console.log(`Deleting from R2: ${replay.r2_key}`);
+            const cleanKey = replay.r2_key.startsWith('/') ? replay.r2_key.substring(1) : replay.r2_key;
+            console.log(`Deleting from R2: ${cleanKey} in bucket ${bucketName}`);
             const deleteCommand = new DeleteObjectCommand({
               Bucket: bucketName,
-              Key: replay.r2_key,
+              Key: cleanKey,
             })
             await s3Client.send(deleteCommand)
             result.r2_status = 'success'
