@@ -75,10 +75,10 @@ serve(async (req) => {
       })
     }
 
-    const endpoint = Deno.env.get('R2_ENDPOINT_URL') || '';
-    const accessKeyId = Deno.env.get('R2_ACCESS_KEY_ID') || '';
-    const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY') || '';
-    const bucketName = Deno.env.get('R2_BUCKET_NAME') || '';
+    const endpoint = (Deno.env.get('R2_ENDPOINT_URL') || '').trim();
+    const accessKeyId = (Deno.env.get('R2_ACCESS_KEY_ID') || '').trim();
+    const secretAccessKey = (Deno.env.get('R2_SECRET_ACCESS_KEY') || '').trim();
+    const bucketName = (Deno.env.get('R2_BUCKET_NAME') || '').trim();
 
     if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName) {
       console.error('Missing R2 environment variables:', { 
