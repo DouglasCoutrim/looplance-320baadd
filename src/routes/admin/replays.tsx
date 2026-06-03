@@ -114,9 +114,20 @@ function ReplaysManagement() {
 
       if (error) throw error;
 
-      toast.success(`${selectedReplayIds.length} replays excluídos com sucesso`);
+      const results = data.results || [];
+      const successes = results.filter((r: any) => r.db_status === 'success').length;
+      const failures = results.filter((r: any) => r.db_status !== 'success').length;
+
+      if (failures > 0) {
+        toast.warning(`${successes} replays excluídos, ${failures} falharam.`);
+        console.error("Erros na exclusão:", results.filter((r: any) => r.error));
+      } else {
+        toast.success(`${successes} replays excluídos com sucesso`);
+      }
+      
       fetchData();
     } catch (error: any) {
+      console.error("Erro ao excluir replays:", error);
       toast.error("Erro ao excluir replays: " + error.message);
       setLoading(false);
     }
