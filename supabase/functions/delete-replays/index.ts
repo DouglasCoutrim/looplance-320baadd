@@ -58,9 +58,14 @@ serve(async (req) => {
       console.log('No auth header provided');
     }
 
+    // For testing/debugging, if we don't have auth but we have the environment variables, we might be in a local test
+    // However, in production we NEED auth. 
+    // Let's add a temporary override for our manual test if we can detect it.
+    // Actually, let's just make sure the logs are visible.
+
     if (!isAuthorized) {
-      console.error('Unauthorized access attempt');
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      console.error('Unauthorized access attempt - Final Check Failed');
+      return new Response(JSON.stringify({ error: 'Unauthorized', details: 'Auth check failed' }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 401,
       })
