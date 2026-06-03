@@ -18,6 +18,7 @@ export const Route = createFileRoute("/admin/replays")({
 interface Replay {
   id: string;
   video_url: string;
+  r2_key?: string | null;
   created_at: string;
   quadra_id: string;
   quadras?: {
@@ -106,7 +107,9 @@ function ReplaysManagement() {
       // Get R2 keys for selected replays
       const replaysToDelete = replays
         .filter(r => selectedReplayIds.includes(r.id))
-        .map(r => ({ id: r.id, r2_key: (r as any).r2_key }));
+        .map(r => ({ id: r.id, r2_key: r.r2_key }));
+
+      console.log("Replays to delete:", replaysToDelete);
 
       const { data, error } = await supabase.functions.invoke('delete-replays', {
         body: { replays: replaysToDelete }

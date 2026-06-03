@@ -13,30 +13,57 @@ serve(async (req) => {
   }
 
   try {
-    const authHeader = req.headers.get('Authorization');
-
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '',
     )
 
-    // User check
-    const userClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      { global: { headers: { Authorization: authHeader || '' } } }
-    )
-    const { data: { user } } = await userClient.auth.getUser()
-    if (!user) throw new Error('Unauthorized')
+    const authHeader = req.headers.get('Authorization');
+    
+    // Authorization check
+    let isAuthorized = false;
+    
+    if (authHeader) {
+      console.log('Checking auth header...');
+      const userClient = createClient(
+        Deno.env.get('SUPABASE_URL') ?? '',
+        Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+        { global: { headers: { Authorization: authHeader || '' } } }
+      )
+      const { data: { user }, error: userError } = await userClient.auth.getUser()
+      if (user) {
+        console.log('User found:', user.id);
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('is_super_admin, is_arena_owner')
+          .eq('id', user.id)
+          .single()
+        
+        if (profile?.is_super_admin || profile?.is_arena_owner) {
+          isAuthorized = true;
+          console.log('User is authorized via profile');
+        } else {
+          console.log('User not authorized via profile:', profile);
+        }
+      } else {
+        console.log('No user found or error:', userError);
+      }
+      
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+      if (serviceRoleKey && authHeader.includes(serviceRoleKey)) {
+        isAuthorized = true;
+        console.log('Authorized via service role key');
+      }
+    } else {
+      console.log('No auth header provided');
+    }
 
-    const { data: profile } = await supabaseClient
-      .from('profiles')
-      .select('is_super_admin, is_arena_owner')
-      .eq('id', user.id)
-      .single()
-
-    if (!profile?.is_super_admin && !profile?.is_arena_owner) {
-      throw new Error('Forbidden')
+    if (!isAuthorized) {
+      console.error('Unauthorized access attempt - Final Check Failed');
+      return new Response(JSON.stringify({ error: 'Unauthorized', details: 'Auth check failed' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 401,
+      })
     }
 
     const { replays } = await req.json() as { replays: { id: string, r2_key: string }[] }
@@ -53,10 +80,18 @@ serve(async (req) => {
     const secretAccessKey = Deno.env.get('R2_SECRET_ACCESS_KEY') || '';
     const bucketName = Deno.env.get('R2_BUCKET_NAME') || '';
 
+    if (!endpoint || !accessKeyId || !secretAccessKey || !bucketName) {
+      console.error('Missing R2 environment variables');
+      return new Response(JSON.stringify({ error: 'Internal Server Error', details: 'Missing storage configuration' }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500,
+      })
+    }
+
     const s3Client = new S3Client({
       region: "auto",
       endpoint: endpoint,
-      forcePathStyle: true, // Changed to true for better compatibility with some R2 setups
+      forcePathStyle: true,
       credentials: {
         accessKeyId: accessKeyId,
         secretAccessKey: secretAccessKey,
@@ -64,6 +99,7 @@ serve(async (req) => {
     })
 
     const results = []
+    console.log(`Processing deletion for ${replays.length} replays. R2 Bucket: ${bucketName}`);
 
     for (const replay of replays) {
       const result = { id: replay.id, r2_status: 'skipped', db_status: 'pending', error: null };
@@ -72,6 +108,7 @@ serve(async (req) => {
         // 1. Delete from R2
         if (replay.r2_key) {
           try {
+            console.log(`Deleting from R2: ${replay.r2_key}`);
             const deleteCommand = new DeleteObjectCommand({
               Bucket: bucketName,
               Key: replay.r2_key,
@@ -83,6 +120,8 @@ serve(async (req) => {
             result.r2_status = 'error'
             result.error = `R2 Error: ${r2Err.message}`
           }
+        } else {
+            console.log(`Replay ${replay.id} has no r2_key, skipping R2 deletion`);
         }
 
         // 2. Delete from Database
