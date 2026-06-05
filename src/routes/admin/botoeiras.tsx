@@ -1,6 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { Database } from "@/integrations/supabase/types";
+
+type Botoeira = Database['public']['Tables']['botoeiras']['Row'];
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { 
@@ -33,15 +36,6 @@ export const Route = createFileRoute("/admin/botoeiras" as any)({
   component: BotoeirasPage,
 });
 
-interface Botoeira {
-  id: string;
-  botoeira_id: string;
-  ip_local: string;
-  local_key: string;
-  camera_id: string;
-  created_at: string;
-}
-
 function BotoeirasPage() {
   const [botoeiras, setBotoeiras] = useState<Botoeira[]>([]);
   const [loading, setLoading] = useState(true);
@@ -59,7 +53,7 @@ function BotoeirasPage() {
   const fetchData = async () => {
     setLoading(true);
     const { data, error } = await supabase
-      .from("botoeiras" as any)
+      .from("botoeiras")
       .select("*")
       .order("created_at", { ascending: false });
 
@@ -100,7 +94,7 @@ function BotoeirasPage() {
     };
 
     if (editingBotoeira) {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("botoeiras")
         .update(payload)
         .eq("id", editingBotoeira.id);
@@ -113,7 +107,7 @@ function BotoeirasPage() {
         fetchData();
       }
     } else {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from("botoeiras")
         .insert([payload]);
 
@@ -131,7 +125,7 @@ function BotoeirasPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Tem certeza que deseja excluir esta botoeira?")) return;
     
-    const { error } = await (supabase as any)
+    const { error } = await supabase
       .from("botoeiras")
       .delete()
       .eq("id", id);
