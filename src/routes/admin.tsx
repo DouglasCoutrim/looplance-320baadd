@@ -10,7 +10,8 @@ import {
   Menu,
   X,
   Play,
-  Users
+  Users,
+  Radio
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
@@ -59,6 +60,7 @@ function AdminLayout() {
     { to: "/admin/users", label: "Usuários", icon: Users },
     { to: "/admin/edge-devices", label: "Edge Devices", icon: HardDrive },
     { to: "/admin/input-boards", label: "Input Boards", icon: Usb },
+    { to: "/admin/botoeiras", label: "Botoeiras IoT", icon: Radio },
     { to: "/admin/cameras", label: "Cameras", icon: Camera },
     { to: "/admin/arenas", label: "Arenas", icon: Tv },
     { to: "/admin/quadras", label: "Quadras", icon: Tv },
