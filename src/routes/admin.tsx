@@ -10,7 +10,8 @@ import {
   Menu,
   X,
   Play,
-  Users
+  Users,
+  Radio
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
