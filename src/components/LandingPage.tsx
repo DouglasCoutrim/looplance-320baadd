@@ -90,13 +90,13 @@ export function LandingPage() {
                </div>
 
                {/* Floating Notification */}
-               <div className="absolute bottom-12 right-2 left-8 bg-[#1A1A1A] border border-white/10 p-3 rounded-2xl shadow-2xl backdrop-blur-xl animate-float">
-                 <div className="flex items-center gap-3">
-                   <div className="h-8 w-8 rounded-lg bg-[#F97316]/10 flex items-center justify-center text-[#F97316]">
+               <div className="absolute bottom-14 -right-4 bg-[#1A1A1A] border border-white/10 p-3 rounded-2xl shadow-2xl backdrop-blur-xl animate-float z-10 w-[160px]">
+                 <div className="flex items-center gap-2">
+                   <div className="h-8 w-8 shrink-0 rounded-lg bg-[#F97316]/10 flex items-center justify-center text-[#F97316]">
                      <Play className="h-4 w-4 fill-[#F97316]" />
                    </div>
                    <div className="text-left">
-                     <p className="text-[11px] font-bold text-white leading-none">Replay Pronto!</p>
+                     <p className="text-[11px] font-bold text-white leading-none mb-1">Replay Pronto!</p>
                      <p className="text-[10px] font-medium text-[#F97316]">Assistir agora</p>
                    </div>
                  </div>
