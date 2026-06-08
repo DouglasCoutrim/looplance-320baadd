@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import logoUrl from "@/assets/looplance-logo.png";
+import logoUrl from "@/assets/logo-looplance.svg";
 import { LoginForm } from "./LoginForm";
 import { 
   Play, 

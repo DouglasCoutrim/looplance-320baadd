@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Mail, Lock, Loader2, Eye, EyeOff } from "lucide-react";
-import logoUrl from "@/assets/looplance-logo.png";
+import logoUrl from "@/assets/logo-looplance.svg";
 
 export function LoginForm() {
   const [loading, setLoading] = useState(false);
