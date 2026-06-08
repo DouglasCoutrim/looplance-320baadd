@@ -73,10 +73,11 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
         className="glass-card group relative w-full overflow-hidden transition hover:scale-[1.03] hover:shadow-md"
       >
         <video
-          src={`${replay.video_url}#t=3.0`}
+          src={`${replay.video_url}#t=0.1`}
           playsInline
           muted
           preload="metadata"
+          poster={`${replay.video_url.replace('.mp4', '.jpg')}`} // Expecting backend to provide thumb
           className="w-full h-auto object-cover"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-100 transition group-hover:bg-black/25">

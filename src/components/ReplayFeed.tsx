@@ -104,11 +104,21 @@ export function ReplayFeed() {
   }, [arenaId]);
 
   const fetchReplays = async () => {
-    const { data } = await supabase
+    let query = supabase
       .from("replays")
-      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))", { count: 'exact' });
+
+    if (quadraId) query = query.eq("quadra_id", quadraId);
+    if (date) query = query.eq("created_at::date", date);
+
+    const { data, error } = await query
       .order("created_at", { ascending: false })
-      .limit(100);
+      .limit(50);
+
+    if (error) {
+      toast.error("Erro ao carregar lances");
+      return;
+    }
     setReplays((data ?? []) as Replay[]);
   };
 

@@ -31,6 +31,7 @@ interface Arena {
 function Arenas() {
   const [arenas, setArenas] = useState<Arena[]>([]);
   const [loading, setLoading] = useState(true);
+  const { upload, uploading } = useFileUpload('arenas');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingArena, setEditingArena] = useState<Arena | null>(null);
   const [name, setName] = useState("");
@@ -38,7 +39,6 @@ function Arenas() {
   const [telefone, setTelefone] = useState("");
   const [endereco, setEndereco] = useState("");
   const [fotoFile, setFotoFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
   const [sponsorLeft, setSponsorLeft] = useState<File | null>(null);
   const [sponsorCenter, setSponsorCenter] = useState<File | null>(null);
   const [sponsorRight, setSponsorRight] = useState<File | null>(null);
