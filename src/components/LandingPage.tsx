@@ -4,18 +4,12 @@ import logoUrl from "@/assets/looplance-logo.png";
 import { LoginForm } from "./LoginForm";
 import { 
   Play, 
-  Share2, 
   Smartphone, 
-  ShieldCheck, 
   Zap,
-  Menu,
   Bell,
   Search,
   Star
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export function LandingPage() {
   const [session, setSession] = useState<any>(null);
@@ -44,150 +38,112 @@ export function LandingPage() {
     return <LoginForm />;
   }
 
+  const replays = [
+    { id: 1, title: "Pateo Beach - Quadra 02", location: "SP, Adamantina", time: "07/06 20:19", img: "https://images.unsplash.com/photo-1544919982-b61976f0ba43?q=80&w=400&auto=format&fit=crop" },
+    { id: 2, title: "Arena Beach Sports - Quadra 01", location: "SP, Adamantina", time: "07/06 20:19", img: "https://images.unsplash.com/photo-1593766788306-28561086694e?q=80&w=400&auto=format&fit=crop" },
+    { id: 3, title: "Arena Babaçu - UFNT", location: "TO, Tocantinópolis", time: "07/06 20:19", img: "https://images.unsplash.com/photo-1574629810360-7efbbe195018?q=80&w=400&auto=format&fit=crop" },
+    { id: 4, title: "Flamboyant Sport Arena - Quadra 01", location: "GO, Cristalina", time: "07/06 19:48", img: "https://images.unsplash.com/photo-1519766304817-4f37bdeac0a2?q=80&w=400&auto=format&fit=crop" },
+  ];
 
   return (
-    <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#F97316] selection:text-white overflow-x-hidden pb-20">
-      
+    <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#F97316] selection:text-white overflow-x-hidden pb-28">
       {/* NAVBAR */}
-      <nav className="sticky top-0 z-50 bg-[#0A0A0A]/80 backdrop-blur-md border-b border-[#222]">
-        <div className="px-5 py-4 flex items-center justify-between">
-          <img src={logoUrl} alt="Looplance" className="h-10 w-auto" />
-          
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden">
-                <Menu className="h-6 w-6" />
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="bottom" className="h-[40vh] bg-[#0A0A0A] border-t border-[#222]">
-              <div className="flex flex-col gap-4 mt-8 px-5">
-                <Button variant="ghost" className="justify-start text-lg">Produto</Button>
-                <Button variant="ghost" className="justify-start text-lg">Arena</Button>
-                <Button onClick={() => setIsAuthOpen(true)} className="w-full h-[52px] rounded-[14px] bg-[#F97316] text-white font-bold">Começar grátis</Button>
-              </div>
-            </SheetContent>
-          </Sheet>
+      <nav className="sticky top-0 z-50 bg-[#0A0A0A]/80 backdrop-blur-md px-5 py-4 flex items-center justify-between">
+        <img src={logoUrl} alt="Looplance" className="h-8 w-auto" />
+        <div className="flex items-center gap-4">
+          <button className="h-10 w-10 flex items-center justify-center rounded-full bg-[#111] border border-[#222]">
+            <Search className="h-5 w-5 text-white" />
+          </button>
+          <button className="h-10 w-10 flex items-center justify-center rounded-full bg-[#111] border border-[#F97316]/50">
+            <Bell className="h-5 w-5 text-[#F97316]" />
+          </button>
         </div>
       </nav>
 
-      {/* HERO SECTION */}
-      <main className="relative px-5 pt-12 pb-16 overflow-hidden">
-        {/* Sutil background gradient specifically for the hero section */}
-        <div 
-          className="absolute inset-0 pointer-events-none z-0" 
-          style={{ 
-            background: 'radial-gradient(ellipse 60% 50% at 70% 50%, rgba(249,115,22,0.12) 0%, transparent 70%)' 
-          }} 
-        />
-        <div className="relative z-10 flex flex-col items-center text-center">
-          <div className="inline-flex items-center gap-2 bg-[#111] px-4 py-2 rounded-full mb-6 border border-[#222]">
-            <Zap className="h-4 w-4 text-[#F97316]" />
-            <span className="text-sm">Tecnologia Edge AI • Tempo real</span>
+      <main className="px-5 space-y-8 mt-4">
+        {/* CARROSSEL DE REPLAYS RECENTES */}
+        <section>
+          <div className="flex overflow-x-auto gap-4 pb-4 hide-scrollbar snap-x">
+            {replays.slice(0, 3).map((replay) => (
+              <div key={replay.id} className="min-w-[85%] snap-center bg-[#111] rounded-[24px] overflow-hidden border border-[#222]">
+                <div className="relative aspect-video">
+                  <img src={replay.img} alt={replay.title} className="w-full h-full object-cover opacity-60" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="h-12 w-12 rounded-full bg-[#F97316] flex items-center justify-center pl-1 shadow-[0_0_20px_rgba(249,115,22,0.4)]">
+                      <Play className="h-6 w-6 text-black fill-black" />
+                    </div>
+                  </div>
+                  <div className="absolute top-4 left-4">
+                     <span className="bg-red-600 text-white text-[10px] font-black px-2 py-1 rounded-sm uppercase tracking-wider flex items-center gap-1">
+                        <span className="h-1.5 w-1.5 rounded-full bg-white animate-pulse" />
+                        Ao Vivo
+                     </span>
+                  </div>
+                </div>
+                <div className="p-5">
+                  <h3 className="font-bold text-base mb-1">{replay.title}</h3>
+                  <p className="text-xs text-[#888]">{replay.location}</p>
+                </div>
+              </div>
+            ))}
           </div>
+        </section>
 
-          <h1 className="text-[42px] font-black leading-[1.1] italic tracking-tighter mb-4">
-            O seu <span className="text-[#F97316]">Replay</span><br/> na palma da mão.
-          </h1>
-          
-          <p className="text-[17px] text-white/70 mb-8 max-w-[300px]">
-            Reviva seus momentos na quadra com tecnologia de processamento instantâneo.
-          </p>
-
-          <div className="relative w-full max-w-[300px] aspect-[9/18] mx-auto mb-10">
-            <div className="absolute inset-0 bg-[#F97316]/20 blur-[60px] rounded-full animate-pulse" />
-            <div className="relative w-full h-full bg-[#0F0F0F] rounded-[40px] border-4 border-[#222] overflow-hidden flex flex-col">
-               <div className="flex-1 flex items-center justify-center">
-                  <Play className="h-16 w-16 text-white fill-white/20" />
-               </div>
-               
-               {/* Player UI */}
-               <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
-                  <div className="flex items-center justify-between text-[10px] text-white font-medium">
-                    <span>00:03 / 00:08</span>
-                  </div>
-                  <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
-                    <div className="h-full w-[40%] bg-[#F97316]" />
-                  </div>
-               </div>
-
-               {/* Floating Notification */}
-               <div className="absolute bottom-14 -right-4 bg-[#1A1A1A] border border-white/10 p-3 rounded-2xl shadow-2xl backdrop-blur-xl animate-float z-10 w-[160px]">
-                 <div className="flex items-center gap-2">
-                   <div className="h-8 w-8 shrink-0 rounded-lg bg-[#F97316]/10 flex items-center justify-center text-[#F97316]">
-                     <Play className="h-4 w-4 fill-[#F97316]" />
-                   </div>
-                   <div className="text-left">
-                     <p className="text-[11px] font-bold text-white leading-none mb-1">Replay Pronto!</p>
-                     <p className="text-[10px] font-medium text-[#F97316]">Assistir agora</p>
-                   </div>
-                 </div>
+        {/* PROMO CARD (Instagram) */}
+        <section className="bg-gradient-to-r from-[#833ab4] via-[#fd1d1d] to-[#fcb045] p-[1px] rounded-[24px]">
+          <div className="bg-[#111] rounded-[23px] p-5 flex items-center gap-4">
+            <div className="h-14 w-14 rounded-2xl bg-white/10 flex items-center justify-center border border-white/20">
+               <div className="h-8 w-8 rounded-lg border-2 border-white flex items-center justify-center">
+                  <div className="h-4 w-4 rounded-full border-2 border-white" />
                </div>
             </div>
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <span className="h-1.5 w-1.5 rounded-full bg-white" />
+                <span className="text-[10px] font-black bg-white text-black px-1.5 py-0.5 rounded-sm uppercase">Novo</span>
+              </div>
+              <p className="text-sm font-bold leading-tight mb-1">Siga no Instagram para ver as novidades da ...</p>
+              <p className="text-[10px] text-white/60">@smashliveoficial →</p>
+            </div>
           </div>
+        </section>
 
-          <div className="w-full flex flex-col gap-3">
-            <Button className="w-full h-[52px] rounded-xl bg-[#F97316] hover:bg-[#F97316]/90 text-white font-bold text-base border-none">
-              Levar para minha arena →
-            </Button>
-            <Button variant="outline" className="w-full h-[52px] rounded-xl border-[1.5px] border-white/30 bg-transparent hover:bg-white/5 text-white font-bold text-base">
-              Falar com consultor
-            </Button>
-            <p className="text-[13px] text-white/50 text-center">
-              Grátis para testar · Sem cartão de crédito
-            </p>
+        {/* LISTA DE REPLAYS */}
+        <section className="space-y-6">
+          <h2 className="text-xl font-bold text-[#F97316]">Replays Recentes</h2>
+          <div className="grid grid-cols-2 gap-4">
+            {replays.map((replay) => (
+              <div key={replay.id} className="flex flex-col gap-3">
+                <div className="relative aspect-[4/3] bg-[#111] rounded-[20px] overflow-hidden border border-[#222]">
+                  <img src={replay.img} alt={replay.title} className="w-full h-full object-cover opacity-50" />
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <Play className="h-5 w-5 text-[#F97316] fill-[#F97316]" />
+                  </div>
+                </div>
+                <div>
+                  <h4 className="text-xs font-bold leading-tight">{replay.title}</h4>
+                  <div className="flex items-center justify-between mt-1 opacity-40">
+                    <span className="text-[9px]">{replay.time}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
-        </div>
+        </section>
       </main>
 
-      {/* FEATURES GRID SECTION */}
-      <section className="bg-[#0f0f0f] px-5 py-12">
-        <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4">
-          {/* Card 1: Tempo Real */}
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[14px] p-5 flex flex-col gap-3">
-            <Zap className="w-7 h-7 text-[#F97316]" />
-            <div>
-              <h3 className="text-white font-bold text-[15px] mb-1">Tempo real</h3>
-              <p className="text-[rgba(255,255,255,0.55)] text-[13px] leading-snug">Lances processados em segundos</p>
-            </div>
-          </div>
-
-          {/* Card 2: Compartilhar */}
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[14px] p-5 flex flex-col gap-3">
-            <Share2 className="w-7 h-7 text-[#F97316]" />
-            <div>
-              <h3 className="text-white font-bold text-[15px] mb-1">Compartilhar</h3>
-              <p className="text-[rgba(255,255,255,0.55)] text-[13px] leading-snug">Envie para redes sociais na hora</p>
-            </div>
-          </div>
-
-          {/* Card 3: Mobile First */}
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[14px] p-5 flex flex-col gap-3">
-            <Smartphone className="w-7 h-7 text-[#F97316]" />
-            <div>
-              <h3 className="text-white font-bold text-[15px] mb-1">Mobile First</h3>
-              <p className="text-[rgba(255,255,255,0.55)] text-[13px] leading-snug">Otimizado para smartphones</p>
-            </div>
-          </div>
-
-          {/* Card 4: Segurança */}
-          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[14px] p-5 flex flex-col gap-3">
-            <ShieldCheck className="w-7 h-7 text-[#F97316]" />
-            <div>
-              <h3 className="text-white font-bold text-[15px] mb-1">Segurança</h3>
-              <p className="text-[rgba(255,255,255,0.55)] text-[13px] leading-snug">Privacidade e controle total</p>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* TAB BAR */}
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0A0A0A]/95 backdrop-blur-md border-t border-white/5 px-6 pt-3 pb-6 flex items-center justify-between">
-        <div className="flex flex-col items-center gap-1 group">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0A0A0A]/95 backdrop-blur-md border-t border-white/5 px-6 pt-3 pb-8 flex items-center justify-between">
+        <div className="flex flex-col items-center gap-1">
           <Zap className="h-6 w-6 text-[#F97316] fill-[#F97316]/10" />
           <span className="text-[10px] text-[#F97316] font-medium">Início</span>
         </div>
         <div className="flex flex-col items-center gap-1 opacity-40">
           <Play className="h-6 w-6 text-white" />
+          <span className="text-[10px] text-white font-medium">Ao Vivo</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 opacity-40">
+          <Star className="h-6 w-6 text-white" />
           <span className="text-[10px] text-white font-medium">Replays</span>
         </div>
         <div className="flex flex-col items-center gap-1 opacity-40">
@@ -195,21 +151,10 @@ export function LandingPage() {
           <span className="text-[10px] text-white font-medium">Arena</span>
         </div>
         <div className="flex flex-col items-center gap-1 opacity-40">
-          <ShieldCheck className="h-6 w-6 text-white" />
-          <span className="text-[10px] text-white font-medium">Biblioteca</span>
-        </div>
-        <div className="flex flex-col items-center gap-1 opacity-40">
           <div className="h-6 w-6 rounded-full border border-white/20 flex items-center justify-center text-[10px] font-bold">U</div>
           <span className="text-[10px] text-white font-medium">Perfil</span>
         </div>
       </nav>
-
-      {/* Auth Modal */}
-      <Dialog open={isAuthOpen} onOpenChange={setIsAuthOpen}>
-        <DialogContent className="p-0 border-none bg-transparent">
-          <AuthForm />
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
