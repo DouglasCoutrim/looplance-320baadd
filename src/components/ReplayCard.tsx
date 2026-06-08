@@ -12,6 +12,14 @@ interface Replay {
 
 export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+
+  const handleLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (video.videoWidth && video.videoHeight) {
+      setAspectRatio(video.videoWidth / video.videoHeight);
+    }
+  };
 
   const time = new Date(replay.created_at).toLocaleTimeString("pt-BR", {
     hour: "2-digit",
@@ -62,14 +70,14 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="glass-card group relative aspect-[9/16] w-full overflow-hidden transition hover:scale-[1.03] hover:shadow-md"
+        className="glass-card group relative w-full overflow-hidden transition hover:scale-[1.03] hover:shadow-md"
       >
         <video
           src={`${replay.video_url}#t=3.0`}
           playsInline
           muted
           preload="metadata"
-          className="h-full w-full object-cover"
+          className="w-full h-auto object-cover"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-100 transition group-hover:bg-black/25">
           <div className="brand-gradient grid h-8 w-8 place-items-center rounded-full text-white shadow-lg transition-transform group-hover:scale-110">
@@ -90,13 +98,17 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-50 bg-[#1A1C3A]/95 backdrop-blur-md animate-in fade-in duration-300" />
           <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-[95vw] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-md animate-in zoom-in-95 duration-300">
-            <div className="relative flex flex-col items-center">
-              <div className="relative aspect-[9/16] w-full max-h-[75vh] overflow-hidden rounded-3xl bg-[#1A1C3A] shadow-2xl ring-1 ring-white/10">
+            <div className="relative flex flex-col items-center w-full">
+              <div 
+                className="relative w-full max-h-[75vh] overflow-hidden rounded-3xl bg-[#1A1C3A] shadow-2xl ring-1 ring-white/10"
+                style={aspectRatio ? { aspectRatio: `${aspectRatio}` } : { aspectRatio: '9/16' }}
+              >
                 <video
                   src={replay.video_url}
                   autoPlay
                   controls
                   playsInline
+                  onLoadedMetadata={handleLoadedMetadata}
                   className="h-full w-full object-contain"
                   onPlay={onReward}
                 />

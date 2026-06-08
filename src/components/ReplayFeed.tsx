@@ -32,6 +32,14 @@ export function ReplayFeed() {
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [session, setSession] = useState<any>(null);
+  const [heroAspectRatio, setHeroAspectRatio] = useState<number | null>(null);
+
+  const handleHeroMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (video.videoWidth && video.videoHeight) {
+      setHeroAspectRatio(video.videoWidth / video.videoHeight);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -210,7 +218,10 @@ export function ReplayFeed() {
       <main className="mx-auto max-w-2xl space-y-8 px-6 pb-24 pt-10">
         {/* Hero / Dynamic Video Carousel */}
         <section className="relative overflow-hidden rounded-3xl bg-[#1A1C3A] shadow-2xl ring-1 ring-white/10">
-          <div className="aspect-[9/16] w-full overflow-hidden relative">
+          <div 
+            className="w-full overflow-hidden relative transition-all duration-500"
+            style={heroAspectRatio ? { aspectRatio: `${heroAspectRatio}` } : { aspectRatio: '9/16' }}
+          >
             {featuredReplays.length > 0 ? (
               featuredReplays.map((replay, idx) => (
                 <div 
@@ -223,7 +234,8 @@ export function ReplayFeed() {
                     muted
                     loop
                     playsInline
-                    className="h-full w-full object-cover"
+                    onLoadedMetadata={handleHeroMetadata}
+                    className="w-full h-auto object-contain"
                   />
                 </div>
               ))
