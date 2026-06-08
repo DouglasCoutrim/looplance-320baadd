@@ -74,18 +74,47 @@ export function LandingPage() {
 
           <div className="relative w-full max-w-[300px] aspect-[9/18] mx-auto mb-10">
             <div className="absolute inset-0 bg-[#F97316]/20 blur-[60px] rounded-full animate-pulse" />
-            <div className="relative w-full h-full bg-[#111] rounded-[40px] border-4 border-[#222] overflow-hidden">
-               <div className="absolute inset-0 flex items-center justify-center">
+            <div className="relative w-full h-full bg-[#0F0F0F] rounded-[40px] border-4 border-[#222] overflow-hidden flex flex-col">
+               <div className="flex-1 flex items-center justify-center">
                   <Play className="h-16 w-16 text-white fill-white/20" />
+               </div>
+               
+               {/* Player UI */}
+               <div className="absolute bottom-0 left-0 right-0 p-4 space-y-2">
+                  <div className="flex items-center justify-between text-[10px] text-white font-medium">
+                    <span>00:03 / 00:08</span>
+                  </div>
+                  <div className="h-1 w-full bg-white/20 rounded-full overflow-hidden">
+                    <div className="h-full w-[40%] bg-[#F97316]" />
+                  </div>
+               </div>
+
+               {/* Floating Notification */}
+               <div className="absolute bottom-12 right-2 left-2 bg-[#1A1A1A] border border-white/10 p-3 rounded-2xl shadow-2xl backdrop-blur-xl animate-bounce-subtle">
+                 <div className="flex items-center gap-3">
+                   <div className="h-8 w-8 rounded-lg bg-[#F97316]/10 flex items-center justify-center text-[#F97316]">
+                     <Play className="h-4 w-4 fill-[#F97316]" />
+                   </div>
+                   <div className="text-left">
+                     <p className="text-[11px] font-bold text-white leading-none">Replay Pronto!</p>
+                     <p className="text-[10px] font-medium text-[#F97316]">Assistir agora</p>
+                   </div>
+                 </div>
                </div>
             </div>
           </div>
 
-          <div className="w-full space-y-3">
-            <Button className="w-full h-[52px] rounded-[14px] bg-[#F97316] text-white font-bold text-base">Começar agora →</Button>
-            <Button variant="outline" className="w-full h-[52px] rounded-[14px] border-white/20 text-white font-bold text-base">Falar com consultor</Button>
+          <div className="w-full flex flex-col gap-3">
+            <Button className="w-full h-[52px] rounded-xl bg-[#F97316] hover:bg-[#F97316]/90 text-white font-bold text-base border-none">
+              Levar para minha arena →
+            </Button>
+            <Button variant="outline" className="w-full h-[52px] rounded-xl border-[1.5px] border-white/30 bg-transparent hover:bg-white/5 text-white font-bold text-base">
+              Falar com consultor
+            </Button>
+            <p className="text-[13px] text-white/50 text-center">
+              Grátis para testar · Sem cartão de crédito
+            </p>
           </div>
-          <p className="text-xs text-white/50 mt-4">Grátis para testar • Sem cartão</p>
         </div>
       </main>
 
