@@ -90,7 +90,7 @@ export function LandingPage() {
                </div>
 
                {/* Floating Notification */}
-               <div className="absolute bottom-12 right-2 left-2 bg-[#1A1A1A] border border-white/10 p-3 rounded-2xl shadow-2xl backdrop-blur-xl animate-bounce-subtle">
+               <div className="absolute bottom-12 right-2 left-2 bg-[#1A1A1A] border border-white/10 p-3 rounded-2xl shadow-2xl backdrop-blur-xl animate-float">
                  <div className="flex items-center gap-3">
                    <div className="h-8 w-8 rounded-lg bg-[#F97316]/10 flex items-center justify-center text-[#F97316]">
                      <Play className="h-4 w-4 fill-[#F97316]" />
