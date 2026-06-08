@@ -70,7 +70,7 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="glass-card group relative aspect-[9/16] w-full overflow-hidden transition hover:scale-[1.03] hover:shadow-md"
+        className="glass-card group relative w-full overflow-hidden transition hover:scale-[1.03] hover:shadow-md"
       >
         <video
           src={`${replay.video_url}#t=3.0`}
