@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { generateAndUploadOverlay } from "@/utils/overlayGenerator";
-import logoImg from "@/assets/looplance-logo.png";
+import logoImg from "@/assets/logo-looplance.svg";
 
 
 export const Route = createFileRoute("/admin/cameras")({
