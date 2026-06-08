@@ -32,6 +32,14 @@ export function ReplayFeed() {
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [session, setSession] = useState<any>(null);
+  const [heroAspectRatio, setHeroAspectRatio] = useState<number | null>(null);
+
+  const handleHeroMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (video.videoWidth && video.videoHeight) {
+      setHeroAspectRatio(video.videoWidth / video.videoHeight);
+    }
+  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
