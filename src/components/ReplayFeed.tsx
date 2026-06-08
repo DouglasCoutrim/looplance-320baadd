@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Sparkles, MapPin, Calendar as CalIcon, Play, LogOut, Trophy, LayoutDashboard } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import logoUrl from "@/assets/looplance-logo.png";
+import logoUrl from "@/assets/logo-looplance.svg";
 import { ReplayCard } from "@/components/ReplayCard";
 
 interface Arena { id: string; nome: string }
