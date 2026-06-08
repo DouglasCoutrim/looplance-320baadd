@@ -166,12 +166,29 @@ export function LandingPage() {
         </div>
       </section>
 
-      {/* STICKY CTA */}
-      {showStickyCTA && (
-        <div className="fixed bottom-0 left-0 right-0 z-100 bg-[#0A0A0A] border-t border-[#F97316]/20 p-4 pb-8">
-          <Button className="w-full h-[52px] rounded-[14px] bg-[#F97316] text-white font-bold text-base">Começar grátis</Button>
+      {/* TAB BAR */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-[#0A0A0A]/95 backdrop-blur-md border-t border-white/5 px-6 pt-3 pb-6 flex items-center justify-between">
+        <div className="flex flex-col items-center gap-1 group">
+          <Zap className="h-6 w-6 text-[#F97316] fill-[#F97316]/10" />
+          <span className="text-[10px] text-[#F97316] font-medium">Início</span>
         </div>
-      )}
+        <div className="flex flex-col items-center gap-1 opacity-40">
+          <Play className="h-6 w-6 text-white" />
+          <span className="text-[10px] text-white font-medium">Replays</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 opacity-40">
+          <Smartphone className="h-6 w-6 text-white" />
+          <span className="text-[10px] text-white font-medium">Arena</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 opacity-40">
+          <ShieldCheck className="h-6 w-6 text-white" />
+          <span className="text-[10px] text-white font-medium">Biblioteca</span>
+        </div>
+        <div className="flex flex-col items-center gap-1 opacity-40">
+          <div className="h-6 w-6 rounded-full border border-white/20 flex items-center justify-center text-[10px] font-bold">U</div>
+          <span className="text-[10px] text-white font-medium">Perfil</span>
+        </div>
+      </nav>
 
       {/* Auth Modal */}
       <Dialog open={isAuthOpen} onOpenChange={setIsAuthOpen}>
