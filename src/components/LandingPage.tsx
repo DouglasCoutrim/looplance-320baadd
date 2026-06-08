@@ -57,8 +57,15 @@ export function LandingPage() {
       </nav>
 
       {/* HERO SECTION */}
-      <main className="px-5 pt-12 pb-16">
-        <div className="flex flex-col items-center text-center">
+      <main className="relative px-5 pt-12 pb-16 overflow-hidden">
+        {/* Sutil background gradient specifically for the hero section */}
+        <div 
+          className="absolute inset-0 pointer-events-none z-0" 
+          style={{ 
+            background: 'radial-gradient(ellipse 60% 50% at 70% 50%, rgba(249,115,22,0.12) 0%, transparent 70%)' 
+          }} 
+        />
+        <div className="relative z-10 flex flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 bg-[#111] px-4 py-2 rounded-full mb-6 border border-[#222]">
             <Zap className="h-4 w-4 text-[#F97316]" />
             <span className="text-sm">Tecnologia Edge AI • Tempo real</span>
