@@ -18,6 +18,7 @@ import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
 import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-boards'
 import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-devices'
 import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
+import { Route as AdminBotoeirasRouteImport } from './routes/admin/botoeiras'
 import { Route as AdminArenasRouteImport } from './routes/admin/arenas'
 
 const AdminRoute = AdminRouteImport.update({
@@ -65,6 +66,11 @@ const AdminCamerasRoute = AdminCamerasRouteImport.update({
   path: '/cameras',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminBotoeirasRoute = AdminBotoeirasRouteImport.update({
+  id: '/botoeiras',
+  path: '/botoeiras',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminArenasRoute = AdminArenasRouteImport.update({
   id: '/arenas',
   path: '/arenas',
@@ -75,6 +81,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/arenas': typeof AdminArenasRoute
+  '/admin/botoeiras': typeof AdminBotoeirasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
@@ -86,6 +93,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin/arenas': typeof AdminArenasRoute
+  '/admin/botoeiras': typeof AdminBotoeirasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
@@ -99,6 +107,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
   '/admin/arenas': typeof AdminArenasRoute
+  '/admin/botoeiras': typeof AdminBotoeirasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
@@ -113,6 +122,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admin/arenas'
+    | '/admin/botoeiras'
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
@@ -124,6 +134,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/admin/arenas'
+    | '/admin/botoeiras'
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
@@ -136,6 +147,7 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/admin/arenas'
+    | '/admin/botoeiras'
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
@@ -215,6 +227,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminCamerasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/botoeiras': {
+      id: '/admin/botoeiras'
+      path: '/botoeiras'
+      fullPath: '/admin/botoeiras'
+      preLoaderRoute: typeof AdminBotoeirasRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/arenas': {
       id: '/admin/arenas'
       path: '/arenas'
@@ -227,6 +246,7 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminArenasRoute: typeof AdminArenasRoute
+  AdminBotoeirasRoute: typeof AdminBotoeirasRoute
   AdminCamerasRoute: typeof AdminCamerasRoute
   AdminEdgeDevicesRoute: typeof AdminEdgeDevicesRoute
   AdminInputBoardsRoute: typeof AdminInputBoardsRoute
@@ -238,6 +258,7 @@ interface AdminRouteChildren {
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminArenasRoute: AdminArenasRoute,
+  AdminBotoeirasRoute: AdminBotoeirasRoute,
   AdminCamerasRoute: AdminCamerasRoute,
   AdminEdgeDevicesRoute: AdminEdgeDevicesRoute,
   AdminInputBoardsRoute: AdminInputBoardsRoute,
@@ -256,3 +277,13 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
