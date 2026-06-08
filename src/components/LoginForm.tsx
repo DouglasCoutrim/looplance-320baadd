@@ -44,8 +44,8 @@ export function LoginForm() {
 
   return (
     <div className="min-h-screen bg-black text-white px-8 py-12 flex flex-col items-center">
-      <div className="mb-14 mt-8">
-        <img src={logoUrl} alt="Looplance" className="h-20 w-auto" />
+      <div className="mb-14 mt-12 w-full flex justify-center">
+        <img src={logoUrl} alt="Looplance" className="w-[85%] max-w-[320px] h-auto object-contain" />
       </div>
 
       <p className="text-[#888] text-sm mb-10 text-center">
