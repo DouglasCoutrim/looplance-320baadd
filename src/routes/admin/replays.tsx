@@ -239,10 +239,10 @@ function ReplaysManagement() {
                     />
                   </TableCell>
                   <TableCell className="py-5 px-6">
-                    <div className="relative h-16 w-28 rounded-lg overflow-hidden bg-black ring-1 ring-gray-100 group-hover:scale-105 transition-transform">
+                    <div className="relative h-16 w-28 rounded-lg overflow-hidden bg-black ring-1 ring-gray-100 group-hover:scale-105 transition-transform flex items-center justify-center">
                       <video 
                         src={`${replay.video_url}#t=0.1`} 
-                        className="h-full w-full object-cover opacity-80"
+                        className="max-h-full max-w-full object-contain opacity-80"
                       />
                       <div className="absolute inset-0 flex items-center justify-center">
                         <Play className="h-5 w-5 text-white fill-white/20" />
