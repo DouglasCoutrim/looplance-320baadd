@@ -77,7 +77,7 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
           playsInline
           muted
           preload="metadata"
-          className="h-full w-full object-cover"
+          className="w-full h-auto object-cover"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-100 transition group-hover:bg-black/25">
           <div className="brand-gradient grid h-8 w-8 place-items-center rounded-full text-white shadow-lg transition-transform group-hover:scale-110">
