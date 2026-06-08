@@ -125,6 +125,47 @@ export function LandingPage() {
         </div>
       </main>
 
+      {/* FEATURES GRID SECTION */}
+      <section className="bg-[#0f0f0f] px-5 py-12">
+        <div className="max-w-7xl mx-auto grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Card 1: Tempo Real */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[14px] p-5 flex flex-col gap-3">
+            <Zap className="w-7 h-7 text-[#F97316]" />
+            <div>
+              <h3 className="text-white font-bold text-[15px] mb-1">Tempo real</h3>
+              <p className="text-[rgba(255,255,255,0.55)] text-[13px] leading-snug">Lances processados em segundos</p>
+            </div>
+          </div>
+
+          {/* Card 2: Compartilhar */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[14px] p-5 flex flex-col gap-3">
+            <Share2 className="w-7 h-7 text-[#F97316]" />
+            <div>
+              <h3 className="text-white font-bold text-[15px] mb-1">Compartilhar</h3>
+              <p className="text-[rgba(255,255,255,0.55)] text-[13px] leading-snug">Envie para redes sociais na hora</p>
+            </div>
+          </div>
+
+          {/* Card 3: Mobile First */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[14px] p-5 flex flex-col gap-3">
+            <Smartphone className="w-7 h-7 text-[#F97316]" />
+            <div>
+              <h3 className="text-white font-bold text-[15px] mb-1">Mobile First</h3>
+              <p className="text-[rgba(255,255,255,0.55)] text-[13px] leading-snug">Otimizado para smartphones</p>
+            </div>
+          </div>
+
+          {/* Card 4: Segurança */}
+          <div className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[14px] p-5 flex flex-col gap-3">
+            <ShieldCheck className="w-7 h-7 text-[#F97316]" />
+            <div>
+              <h3 className="text-white font-bold text-[15px] mb-1">Segurança</h3>
+              <p className="text-[rgba(255,255,255,0.55)] text-[13px] leading-snug">Privacidade e controle total</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* STICKY CTA */}
       {showStickyCTA && (
         <div className="fixed bottom-0 left-0 right-0 z-100 bg-[#0A0A0A] border-t border-[#F97316]/20 p-4 pb-8">
