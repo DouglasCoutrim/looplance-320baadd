@@ -176,7 +176,7 @@ export function ReplayFeed() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#1A1C3A] shadow-xl h-16 sm:h-20">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#1A1C3A] shadow-xl h-14 sm:h-16">
         <div className="mx-auto flex h-full max-w-2xl items-center px-4 sm:px-6">
           {/* Left: XP Badge */}
           <div className="flex-1">
@@ -191,7 +191,7 @@ export function ReplayFeed() {
             <img 
               src={logoUrl} 
               alt="Looplance" 
-              className="h-32 sm:h-48 w-auto object-contain transition-transform hover:scale-105 z-50 pointer-events-none" 
+              className="h-10 sm:h-12 w-auto object-contain transition-transform hover:scale-105 z-50 pointer-events-none" 
             />
           </div>
 
