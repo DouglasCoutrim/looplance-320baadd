@@ -234,7 +234,8 @@ export function ReplayFeed() {
                     muted
                     loop
                     playsInline
-                    className="h-full w-full object-cover"
+                    onLoadedMetadata={handleHeroMetadata}
+                    className="w-full h-auto object-contain"
                   />
                 </div>
               ))
