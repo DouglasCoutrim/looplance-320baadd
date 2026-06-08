@@ -52,40 +52,40 @@ export function LoginForm() {
         Inicie sessão para continuar no Looplance
       </p>
 
-      <form onSubmit={handleLogin} className="w-full max-w-sm space-y-4">
+      <form onSubmit={handleLogin} className="w-full max-w-[280px] space-y-3">
         <div className="relative group">
-          <Mail className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#555] group-focus-within:text-[#F97316] transition-colors" />
+          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555] group-focus-within:text-[#F97316] transition-colors" />
           <Input
             type="email"
             placeholder="Endereço de Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="h-14 pl-12 bg-[#1A1A1A] border-none rounded-2xl text-white placeholder:text-[#555] focus-visible:ring-1 focus-visible:ring-[#F97316]"
+            className="h-11 pl-10 bg-[#1A1A1A] border-none rounded-xl text-sm text-white placeholder:text-[#555] focus-visible:ring-1 focus-visible:ring-[#F97316]"
           />
         </div>
 
         <div className="relative group">
-          <Lock className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[#555] group-focus-within:text-[#F97316] transition-colors" />
+          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555] group-focus-within:text-[#F97316] transition-colors" />
           <Input
             type={showPassword ? "text" : "password"}
             placeholder="Senha"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="h-14 pl-12 pr-12 bg-[#1A1A1A] border-none rounded-2xl text-white placeholder:text-[#555] focus-visible:ring-1 focus-visible:ring-[#F97316]"
+            className="h-11 pl-10 pr-10 bg-[#1A1A1A] border-none rounded-xl text-sm text-white placeholder:text-[#555] focus-visible:ring-1 focus-visible:ring-[#F97316]"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#555] hover:text-white"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#555] hover:text-white"
           >
-            {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
         </div>
 
         <div className="flex justify-end">
-          <button type="button" className="text-[#F97316] text-xs font-bold">
+          <button type="button" className="text-[#F97316] text-[10px] font-bold">
             Esqueceu sua senha?
           </button>
         </div>
@@ -93,9 +93,9 @@ export function LoginForm() {
         <Button
           type="submit"
           disabled={loading}
-          className="w-full h-14 bg-[#F97316] hover:bg-[#F97316]/90 text-black font-bold rounded-2xl text-base mt-2"
+          className="w-full h-11 bg-[#F97316] hover:bg-[#F97316]/90 text-black font-bold rounded-xl text-sm mt-1"
         >
-          {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Iniciar Sessão"}
+          {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Iniciar Sessão"}
         </Button>
       </form>
 
