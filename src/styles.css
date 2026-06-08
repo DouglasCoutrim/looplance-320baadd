@@ -79,16 +79,6 @@
   .hide-scrollbar::-webkit-scrollbar {
     display: none;
   }
-  
-  .snap-x-mandatory {
-    scroll-snap-type: x mandatory;
-  }
-  .snap-start {
-    scroll-snap-align: start;
-  }
-  .snap-center {
-    scroll-snap-align: center;
-  }
 }
 
 /* Animations */
