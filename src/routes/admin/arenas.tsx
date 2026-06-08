@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { useFileUpload } from "@/hooks/use-file-upload";
 import logoImg from "@/assets/logo-looplance.svg";
 
 export const Route = createFileRoute("/admin/arenas")({
@@ -62,7 +63,8 @@ function Arenas() {
   const handleSave = async () => {
     if (!name) return;
     
-    setUploading(true);
+    // setUploading is handled by the hook
+    setLoading(true);
     let currentFotoUrl = editingArena?.foto_url || null;
     let currentSponsorLeft = editingArena?.sponsor_logo_left || null;
     let currentSponsorCenter = editingArena?.sponsor_logo_center || null;
@@ -133,7 +135,7 @@ function Arenas() {
     } catch (error: any) {
       toast.error("Erro ao salvar: " + error.message);
     } finally {
-      setUploading(false);
+      setLoading(false);
     }
   };
 
