@@ -109,7 +109,8 @@ export function ReplayFeed() {
       .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))", { count: 'exact' });
 
     if (quadraId) query = query.eq("quadra_id", quadraId);
-    if (date) query = query.eq("created_at::date", date);
+    // Note: Use simple comparison for date string or range if needed
+    if (date) query = query.gte("created_at", `${date}T00:00:00`).lte("created_at", `${date}T23:59:59`);
 
     const { data, error } = await query
       .order("created_at", { ascending: false })
