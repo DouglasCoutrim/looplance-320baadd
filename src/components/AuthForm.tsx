@@ -155,7 +155,9 @@ export function AuthForm() {
                         }}
                         className="brand-gradient text-white font-black uppercase tracking-widest w-full sm:w-auto"
                       >
-                        Aceitar e Continuar
+                        <DialogTrigger asChild>
+                          <span>Aceitar e Continuar</span>
+                        </DialogTrigger>
                       </Button>
                     </DialogFooter>
                   </DialogContent>
