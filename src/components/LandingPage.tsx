@@ -1,35 +1,49 @@
 import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
-import { AuthForm } from "./AuthForm";
+import { LoginForm } from "./LoginForm";
 import { 
   Play, 
   Share2, 
   Smartphone, 
   ShieldCheck, 
-  ArrowRight, 
   Zap,
-  X,
-  Menu
+  Menu,
+  Bell,
+  Search,
+  Star
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 
 export function LandingPage() {
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [showStickyCTA, setShowStickyCTA] = useState(false);
+  const [session, setSession] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const handleScroll = () => {
-      setShowStickyCTA(window.scrollY > 500);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
+
+  if (loading) {
+    return <div className="min-h-screen bg-black flex items-center justify-center">
+      <Zap className="h-8 w-8 text-[#F97316] animate-pulse" />
+    </div>;
+  }
+
+  if (!session) {
+    return <LoginForm />;
+  }
+
 
   return (
     <div className="min-h-screen bg-[#0A0A0A] text-white selection:bg-[#F97316] selection:text-white overflow-x-hidden pb-20">
