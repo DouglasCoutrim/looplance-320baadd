@@ -12,6 +12,14 @@ interface Replay {
 
 export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [aspectRatio, setAspectRatio] = useState<number | null>(null);
+
+  const handleLoadedMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    if (video.videoWidth && video.videoHeight) {
+      setAspectRatio(video.videoWidth / video.videoHeight);
+    }
+  };
 
   const time = new Date(replay.created_at).toLocaleTimeString("pt-BR", {
     hour: "2-digit",
