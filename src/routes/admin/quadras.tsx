@@ -98,16 +98,16 @@ function Quadras() {
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 uppercase">
             Quadras <span className="brand-text">Pistas</span>
           </h1>
-          <p className="text-white/50 mt-1 font-medium text-base sm:text-lg">
+          <p className="text-muted-foreground mt-1 font-medium text-base sm:text-lg">
             Vincule quadras específicas aos seus complexos.
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-[#2a2a2a] h-10 sm:h-12 w-10 sm:w-12 bg-[#1a1a1a] hover:bg-[#222] border shrink-0">
-            <RefreshCw className={`h-5 w-5 text-white/40 ${loading ? "animate-spin" : ""}`} />
+          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-10 sm:h-12 w-10 sm:w-12 shadow-sm bg-white hover:bg-gray-50 shrink-0">
+            <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -118,77 +118,77 @@ function Quadras() {
             }
           }}>
             <DialogTrigger asChild>
-              <Button onClick={() => { setEditingQuadra(null); setName(""); setArenaId(""); }} className="brand-gradient text-black font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
+              <Button onClick={() => { setEditingQuadra(null); setName(""); setArenaId(""); }} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
                 <Plus className="mr-2 h-5 w-5" /> Nova Quadra
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-2xl border border-[#2a2a2a] shadow-2xl bg-[#1a1a1a] text-white">
+            <DialogContent className="rounded-2xl border-none shadow-2xl">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-brand-orange">{editingQuadra ? "Editar Quadra" : "Configurar Quadra"}</DialogTitle>
-                <DialogDescription className="text-sm font-bold uppercase tracking-widest text-white/70">
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">{editingQuadra ? "Editar Quadra" : "Configurar Quadra"}</DialogTitle>
+                <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
                   {editingQuadra ? "Atualize os dados desta quadra." : "Vincule uma nova quadra ou pista a um complexo esportivo."}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-6">
                 <div className="grid gap-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-white/60">Complexo (Arena)</Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Complexo (Arena)</Label>
                   <Select value={arenaId} onValueChange={setArenaId}>
-                    <SelectTrigger className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white focus:ring-brand-orange">
+                    <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
                       <SelectValue placeholder="Selecione a arena" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-[#2a2a2a] bg-[#1a1a1a] text-white">
+                    <SelectContent className="rounded-xl border-gray-100 shadow-xl">
                       {arenas.map((a) => <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-white/60">Nome da Quadra</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Quadra 01 - Central" className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:border-brand-orange focus:ring-brand-orange" />
+                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Quadra</Label>
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Quadra 01 - Central" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold text-white/60 hover:text-white hover:bg-white/5">Cancelar</Button>
-                <Button onClick={handleSave} className="brand-gradient text-black font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
+                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
+                <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      <div className="bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
+      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
         <Table>
-          <TableHeader className="bg-transparent border-b border-white/5">
+          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Quadra / Court</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Arena Vinculada</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Quadra / Court</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Arena Vinculada</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {quadras.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="h-40 text-center text-white/35 font-medium italic">
+                <TableCell colSpan={3} className="h-40 text-center text-muted-foreground font-medium italic">
                   Nenhuma quadra encontrada para os filtros atuais.
                 </TableCell>
               </TableRow>
             ) : (
               quadras.map((q) => (
-                <TableRow key={q.id} className="hover:bg-white/[0.04] transition-colors border-b border-white/[0.07] last:border-0 group">
+                <TableRow key={q.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
                   <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
                     <div className="flex items-center gap-3 sm:gap-4">
                       <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white shrink-0">
                         <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
                       <div className="min-w-0">
-                        <span className="font-black text-base sm:text-lg text-[#ffffff] uppercase tracking-tight block truncate">{q.nome}</span>
-                        <p className="text-[10px] font-medium text-white/35 truncate">ID: {q.id.slice(0, 8)}...</p>
+                        <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{q.nome}</span>
+                        <p className="text-[10px] font-medium text-muted-foreground truncate">ID: {q.id.slice(0, 8)}...</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
                     <div className="flex items-center gap-2">
                       <Tv className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-orange shrink-0" />
-                      <span className="font-bold text-white/80 text-xs sm:text-sm truncate">{q.arenas?.nome}</span>
+                      <span className="font-bold text-gray-700 text-xs sm:text-sm truncate">{q.arenas?.nome}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
@@ -198,7 +198,7 @@ function Quadras() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => openEditDialog(q)}
-                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-white/40 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors"
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors"
                       >
                         <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
@@ -206,7 +206,7 @@ function Quadras() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => handleDelete(q.id)}
-                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-colors"
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                       >
                         <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>

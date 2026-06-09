@@ -3,7 +3,7 @@ import { toast } from "sonner";
 import { Sparkles, MapPin, Calendar as CalIcon, Play, LogOut, Trophy, LayoutDashboard } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import logoUrl from "@/assets/logo-looplance.svg";
+import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
 
 interface Arena { id: string; nome: string }
@@ -32,14 +32,6 @@ export function ReplayFeed() {
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [session, setSession] = useState<any>(null);
-  const [heroAspectRatio, setHeroAspectRatio] = useState<number | null>(null);
-
-  const handleHeroMetadata = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const video = e.currentTarget;
-    if (video.videoWidth && video.videoHeight) {
-      setHeroAspectRatio(video.videoWidth / video.videoHeight);
-    }
-  };
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -104,22 +96,11 @@ export function ReplayFeed() {
   }, [arenaId]);
 
   const fetchReplays = async () => {
-    let query = supabase
+    const { data } = await supabase
       .from("replays")
-      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))", { count: 'exact' });
-
-    if (quadraId) query = query.eq("quadra_id", quadraId);
-    // Note: Use simple comparison for date string or range if needed
-    if (date) query = query.gte("created_at", `${date}T00:00:00`).lte("created_at", `${date}T23:59:59`);
-
-    const { data, error } = await query
+      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
       .order("created_at", { ascending: false })
-      .limit(50);
-
-    if (error) {
-      toast.error("Erro ao carregar lances");
-      return;
-    }
+      .limit(100);
     setReplays((data ?? []) as Replay[]);
   };
 
@@ -173,7 +154,7 @@ export function ReplayFeed() {
   };
 
   return (
-    <div className="relative min-h-screen bg-black text-white">
+    <div className="relative min-h-screen bg-background text-foreground">
 
       <audio ref={audioRef} src="/goal-sound.mp3" preload="auto" />
 
@@ -187,11 +168,11 @@ export function ReplayFeed() {
       </div>
 
       {/* Header */}
-      <header className="sticky top-0 z-40 border-b border-white/5 bg-[#111] shadow-xl h-14 sm:h-16">
+      <header className="sticky top-0 z-40 border-b border-white/10 bg-[#1A1C3A] shadow-xl h-16 sm:h-20">
         <div className="mx-auto flex h-full max-w-2xl items-center px-4 sm:px-6">
           {/* Left: XP Badge */}
           <div className="flex-1">
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/5 bg-white/5 px-2 py-1">
+            <div className="inline-flex items-center gap-1.5 rounded-full border border-white/20 bg-white/10 px-2 py-1 backdrop-blur-md">
               <Trophy className="h-3.5 w-3.5 text-brand-orange" />
               <span className="text-[10px] font-bold text-white tracking-tight">{points} XP</span>
             </div>
@@ -202,7 +183,7 @@ export function ReplayFeed() {
             <img 
               src={logoUrl} 
               alt="Looplance" 
-              className="h-10 sm:h-12 w-auto object-contain transition-transform hover:scale-105 z-50 pointer-events-none" 
+              className="h-32 sm:h-48 w-auto object-contain transition-transform hover:scale-105 z-50 pointer-events-none" 
             />
           </div>
 
@@ -210,14 +191,14 @@ export function ReplayFeed() {
           <div className="flex-1 flex justify-end gap-2">
             <Link 
               to="/admin" 
-              className="group flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-3 py-2 transition hover:bg-white/10 hover:border-brand-orange/50"
+              className="group flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
             >
               <LayoutDashboard className="h-4 w-4 text-brand-orange transition-transform group-hover:scale-110" />
               <span className="hidden sm:block text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
             </Link>
             <button
               onClick={handleLogout}
-              className="group flex items-center gap-2 rounded-lg border border-white/5 bg-white/5 px-3 py-2 transition hover:bg-red-500/10"
+              className="group flex items-center gap-2 rounded-lg border border-white/20 bg-white/10 px-3 py-2 backdrop-blur-md transition hover:bg-red-500/20"
             >
               <LogOut className="h-4 w-4 text-gray-400 group-hover:text-red-500" />
               <span className="hidden sm:block text-[10px] font-black uppercase text-white/90 tracking-widest">Sair</span>
@@ -228,11 +209,8 @@ export function ReplayFeed() {
 
       <main className="mx-auto max-w-2xl space-y-8 px-6 pb-24 pt-10">
         {/* Hero / Dynamic Video Carousel */}
-        <section className="relative overflow-hidden rounded-3xl bg-[#1a1a1a] shadow-2xl border border-[#2a2a2a]">
-          <div 
-            className="w-full overflow-hidden relative transition-all duration-500"
-            style={heroAspectRatio ? { aspectRatio: `${heroAspectRatio}` } : { aspectRatio: '9/16' }}
-          >
+        <section className="relative overflow-hidden rounded-3xl bg-[#1A1C3A] shadow-2xl ring-1 ring-white/10">
+          <div className="aspect-[9/16] w-full overflow-hidden relative">
             {featuredReplays.length > 0 ? (
               featuredReplays.map((replay, idx) => (
                 <div 
@@ -245,8 +223,7 @@ export function ReplayFeed() {
                     muted
                     loop
                     playsInline
-                    onLoadedMetadata={handleHeroMetadata}
-                    className="w-full h-auto object-contain"
+                    className="h-full w-full object-cover"
                   />
                 </div>
               ))
@@ -255,7 +232,7 @@ export function ReplayFeed() {
             )}
             
             {/* Overlay Gradient */}
-            <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/60 via-transparent to-[#0a0a0a]/80" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#1A1C3A]/60 via-[#1A1C3A]/20 to-[#1A1C3A]/80" />
             
             {/* Content */}
             <div className="absolute inset-0 flex flex-col items-center justify-end p-8 text-center pb-12">
@@ -283,8 +260,8 @@ export function ReplayFeed() {
         </section>
 
         {/* Location selectors */}
-        <section className="space-y-5 p-6 bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px]">
-          <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.8px] text-white/35">
+        <section className="glass-card space-y-5 p-6 bg-white shadow-md border border-gray-200">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/80">
             <MapPin className="h-3.5 w-3.5" /> Localização
           </div>
           <div className="space-y-3">
@@ -298,15 +275,15 @@ export function ReplayFeed() {
         </section>
 
         {/* Filters */}
-        <section className="space-y-5 p-6 bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px]">
-          <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.8px] text-white/35">
+        <section className="glass-card space-y-5 p-6 bg-white shadow-md border border-gray-200">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/80">
             <CalIcon className="h-3.5 w-3.5" /> Filtros
           </div>
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className="w-full rounded-xl border border-[#2a2a2a] bg-[#252525] px-4 py-3 text-sm text-white outline-none transition focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
+            className="w-full rounded-xl border border-border bg-muted px-4 py-3 text-sm text-foreground outline-none transition focus:border-brand-orange focus:ring-1 focus:ring-brand-orange"
           />
           <div className="grid grid-cols-2 gap-4">
             <TimeInput label="De" value={startHour} onChange={setStartHour} />
@@ -315,7 +292,7 @@ export function ReplayFeed() {
           {(date || startHour || endHour) && (
             <button
               onClick={() => { setDate(""); setStartHour(""); setEndHour(""); }}
-              className="text-xs font-medium text-white/35 underline-offset-4 hover:text-brand-orange hover:underline"
+              className="text-xs font-medium text-muted-foreground underline-offset-4 hover:text-brand-orange hover:underline"
             >
               Limpar filtros
             </button>
@@ -325,11 +302,11 @@ export function ReplayFeed() {
         {/* Feed */}
         <section className="space-y-5">
           <div className="flex items-center justify-between px-1">
-            <h2 className="flex items-center gap-2 text-xl font-black text-white">
+            <h2 className="flex items-center gap-2 text-xl font-black text-gray-900">
               <Sparkles className="h-5 w-5 text-brand-orange" />
               Feed de Lances
             </h2>
-            <span className="text-sm font-medium text-white/35">{filtered.length} lances</span>
+            <span className="text-sm font-medium text-muted-foreground">{filtered.length} lances</span>
           </div>
 
           {filtered.length === 0 ? (
@@ -354,20 +331,20 @@ function Select({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="w-full appearance-none rounded-xl border border-[#2a2a2a] bg-[#252525] px-4 py-3.5 pr-10 text-sm font-medium text-white outline-none transition focus:border-brand-orange focus:ring-1 focus:ring-brand-orange disabled:opacity-40"
+        className="w-full appearance-none rounded-xl border border-border bg-muted px-4 py-3.5 pr-10 text-sm font-medium text-foreground outline-none transition focus:border-brand-orange focus:ring-1 focus:ring-brand-orange disabled:opacity-40"
       >
         <option value="">{placeholder}</option>
         {children}
       </select>
-      <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-white/20">▾</div>
+      <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground/60">▾</div>
     </div>
   );
 }
 
 function TimeInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="rounded-xl border border-[#2a2a2a] bg-[#252525] px-4 py-2.5 transition-colors focus-within:border-brand-orange">
-      <div className="text-[10px] font-bold uppercase tracking-widest text-white/35">{label}</div>
+    <div className="rounded-xl border border-border bg-muted px-4 py-2.5 transition-colors focus-within:border-brand-orange">
+      <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">{label}</div>
       <select
         value={value}
         onChange={(e) => onChange(e.target.value)}
@@ -384,13 +361,13 @@ function TimeInput({ label, value, onChange }: { label: string; value: string; o
 
 function EmptyState() {
   return (
-    <div className="flex flex-col items-center gap-6 px-6 py-16 text-center bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px]">
-      <div className="brand-gradient grid h-20 w-20 place-items-center rounded-full text-black transition-transform hover:scale-105">
-        <Play className="h-9 w-9 fill-black" />
+    <div className="glass-card flex flex-col items-center gap-6 px-6 py-16 text-center bg-white shadow-md border border-gray-200">
+      <div className="brand-gradient grid h-20 w-20 place-items-center rounded-full brand-glow shadow-lg transition-transform hover:scale-105">
+        <Play className="h-9 w-9 fill-white text-white" />
       </div>
       <div className="max-w-[280px] space-y-2">
-        <h3 className="text-lg font-black text-white">Aguardando o lance...</h3>
-        <p className="text-sm font-medium text-white/35 leading-relaxed">
+        <h3 className="text-lg font-black text-gray-900">Aguardando o lance...</h3>
+        <p className="text-sm font-medium text-muted-foreground leading-relaxed">
           Aperte o botão na quadra e o seu replay aparecerá aqui em poucos segundos!
         </p>
       </div>

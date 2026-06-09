@@ -10,11 +10,10 @@ import {
   Menu,
   X,
   Play,
-  Users,
-  Radio
+  Users
 } from "lucide-react";
 import { useState, useEffect } from "react";
-import logoUrl from "@/assets/logo-looplance.svg";
+import logoUrl from "@/assets/looplance-logo.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetDescription } from "@/components/ui/sheet";
 import { supabase } from "@/integrations/supabase/client";
@@ -60,7 +59,6 @@ function AdminLayout() {
     { to: "/admin/users", label: "Usuários", icon: Users },
     { to: "/admin/edge-devices", label: "Edge Devices", icon: HardDrive },
     { to: "/admin/input-boards", label: "Input Boards", icon: Usb },
-    { to: "/admin/botoeiras", label: "Botoeiras IoT", icon: Radio },
     { to: "/admin/cameras", label: "Cameras", icon: Camera },
     { to: "/admin/arenas", label: "Arenas", icon: Tv },
     { to: "/admin/quadras", label: "Quadras", icon: Tv },
@@ -95,11 +93,11 @@ function AdminLayout() {
             to={item.to}
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all duration-200 border ${
               isActive 
-                ? "brand-gradient text-black border-transparent shadow-lg shadow-brand-orange/20 scale-[1.02]" 
-                : "bg-transparent border-transparent text-white/60 hover:bg-white/5 hover:text-white"
+                ? "brand-gradient text-white border-transparent shadow-lg shadow-brand-orange/20 scale-[1.02]" 
+                : "bg-white border-gray-100 text-gray-600 hover:border-brand-orange/30 hover:text-brand-orange"
             }`}
           >
-            <Icon className={`h-5 w-5 ${isActive ? "text-black" : "text-white/40"}`} />
+            <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-gray-400 group-hover:text-brand-orange"}`} />
             <span className="text-sm">{item.label}</span>
           </Link>
         );
@@ -108,9 +106,9 @@ function AdminLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-black text-white flex flex-col">
+    <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Header - Fixed Height & High Impact */}
-      <header className="sticky top-0 z-50 border-b border-white/5 bg-[#111] shadow-xl h-16 sm:h-20">
+      <header className="sticky top-0 z-50 border-b border-white/10 bg-black shadow-xl h-16 sm:h-20">
         <div className="mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
           {/* Left: Back to Site / Menu Trigger */}
           <div className="flex-1 flex items-center gap-2">
@@ -131,10 +129,10 @@ function AdminLayout() {
                 </div>
                 <div className="p-4 space-y-6">
                   <NavLinks />
-                  <div className="pt-4 border-t border-white/10">
+                  <div className="pt-4 border-t border-gray-100">
                     <Link 
                       to="/" 
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-gray-400 hover:bg-white/5 transition-colors"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-50 transition-colors"
                     >
                       <ArrowLeft className="h-5 w-5" />
                       <span>Sair do Admin</span>
@@ -179,11 +177,11 @@ function AdminLayout() {
         {/* Navigation Sidebar - Hidden on mobile, shown on desktop */}
         <aside className="hidden md:block w-64 space-y-2 shrink-0">
           <div className="px-2 mb-4">
-            <h2 className="text-[11px] font-black uppercase tracking-[0.8px] text-white/35">Gestão de Infra</h2>
+            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Gestão de Infra</h2>
           </div>
           <NavLinks />
-          <div className="mt-8 px-2 pt-6 border-t border-white/10">
-            <p className="text-[12px] font-medium text-white/35 leading-relaxed italic">
+          <div className="mt-8 px-2 pt-6 border-t border-gray-200">
+            <p className="text-[10px] font-medium text-muted-foreground leading-relaxed italic">
               Controlando o futuro do replay esportivo.
             </p>
           </div>

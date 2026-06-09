@@ -144,16 +144,16 @@ function ReplaysManagement() {
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-white uppercase">
+          <h1 className="text-4xl font-black tracking-tight text-gray-900 uppercase">
             Gestão de <span className="brand-text">Replays</span>
           </h1>
-          <p className="text-white/50 mt-1 font-medium text-lg">
+          <p className="text-muted-foreground mt-1 font-medium text-lg">
             Visualize e faça a limpeza manual de lances processados.
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-[#2a2a2a] h-12 w-12 bg-[#1a1a1a] hover:bg-[#222] border">
-            <RefreshCw className={`h-5 w-5 text-white/40 ${loading ? "animate-spin" : ""}`} />
+          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
+            <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Button 
             variant="destructive" 
@@ -166,14 +166,14 @@ function ReplaysManagement() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[#1a1a1a] p-6 rounded-2xl border border-[#2a2a2a]">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
         <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-white/60">Filtrar por Arena</label>
+          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Filtrar por Arena</label>
           <Select value={selectedArenaId} onValueChange={(val) => { setSelectedArenaId(val); setSelectedQuadraId("all"); }}>
-            <SelectTrigger className="rounded-lg border-[#333] bg-[#252525] h-12 text-white focus:ring-brand-orange">
+            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
               <SelectValue placeholder="Todas as Arenas" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-[#2a2a2a] bg-[#1a1a1a] text-white">
+            <SelectContent className="rounded-xl shadow-xl border-gray-100">
               <SelectItem value="all">Todas as Arenas</SelectItem>
               {arenas.map(a => (
                 <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
@@ -183,12 +183,12 @@ function ReplaysManagement() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-white/60">Filtrar por Quadra</label>
+          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Filtrar por Quadra</label>
           <Select value={selectedQuadraId} onValueChange={setSelectedQuadraId}>
-            <SelectTrigger className="rounded-lg border-[#333] bg-[#252525] h-12 text-white focus:ring-brand-orange">
+            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
               <SelectValue placeholder="Todas as Quadras" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl border-[#2a2a2a] bg-[#1a1a1a] text-white">
+            <SelectContent className="rounded-xl shadow-xl border-gray-100">
               <SelectItem value="all">Todas as Quadras</SelectItem>
               {filteredQuadras.map(q => (
                 <SelectItem key={q.id} value={q.id}>{q.nome}</SelectItem>
@@ -198,51 +198,51 @@ function ReplaysManagement() {
         </div>
 
         <div className="flex items-end">
-          <Button variant="ghost" onClick={() => { setSelectedArenaId("all"); setSelectedQuadraId("all"); }} className="mb-1 text-xs font-bold text-white/50 hover:text-brand-orange">
+          <Button variant="ghost" onClick={() => { setSelectedArenaId("all"); setSelectedQuadraId("all"); }} className="mb-1 text-xs font-bold text-muted-foreground hover:text-brand-orange">
             Limpar Filtros
           </Button>
         </div>
       </div>
 
-      <div className="bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
+      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
         <Table>
-          <TableHeader className="bg-transparent border-b border-white/5">
-            <TableRow className="hover:bg-transparent border-b border-white/5">
+          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
+            <TableRow className="hover:bg-transparent">
               <TableHead className="w-[50px] py-4 px-6">
                 <Checkbox 
                   checked={replays.length > 0 && selectedReplayIds.length === replays.length}
                   onCheckedChange={toggleSelectAll}
-                  className="border-[1.5px] border-white/25 data-[state=checked]:bg-brand-orange data-[state=checked]:border-brand-orange rounded-full"
+                  className="border-gray-300 data-[state=checked]:bg-brand-orange data-[state=checked]:border-brand-orange"
                 />
               </TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Preview</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Localização</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Data / Hora</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6 text-right">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Preview</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Localização</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Data / Hora</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {replays.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-40 text-center text-white/35 font-medium italic">
+                <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium italic">
                   Nenhum replay encontrado com os filtros selecionados.
                 </TableCell>
               </TableRow>
             ) : (
               replays.map((replay) => (
-                <TableRow key={replay.id} className="hover:bg-white/[0.04] transition-colors border-b border-white/[0.07] last:border-0 group">
+                <TableRow key={replay.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <Checkbox 
                       checked={selectedReplayIds.includes(replay.id)}
                       onCheckedChange={() => toggleSelectReplay(replay.id)}
-                      className="border-[1.5px] border-white/25 data-[state=checked]:bg-brand-orange data-[state=checked]:border-brand-orange rounded-full"
+                      className="border-gray-300 data-[state=checked]:bg-brand-orange data-[state=checked]:border-brand-orange"
                     />
                   </TableCell>
                   <TableCell className="py-5 px-6">
-                    <div className="relative h-16 w-28 rounded-lg overflow-hidden bg-black ring-1 ring-white/5 group-hover:scale-105 transition-transform flex items-center justify-center">
+                    <div className="relative h-16 w-28 rounded-lg overflow-hidden bg-black ring-1 ring-gray-100 group-hover:scale-105 transition-transform">
                       <video 
                         src={`${replay.video_url}#t=0.1`} 
-                        className="max-h-full max-w-full object-contain opacity-80"
+                        className="h-full w-full object-cover opacity-80"
                       />
                       <div className="absolute inset-0 flex items-center justify-center">
                         <Play className="h-5 w-5 text-white fill-white/20" />
@@ -251,16 +251,16 @@ function ReplaysManagement() {
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <div className="flex flex-col">
-                      <span className="font-medium text-xs uppercase tracking-tight text-white">{replay.quadras?.arenas?.nome}</span>
-                      <span className="text-[10px] font-bold text-white/60 uppercase">{replay.quadras?.nome}</span>
+                      <span className="font-black text-xs uppercase tracking-tight text-gray-700">{replay.quadras?.arenas?.nome}</span>
+                      <span className="text-[10px] font-bold text-muted-foreground uppercase">{replay.quadras?.nome}</span>
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <div className="flex flex-col">
-                      <span className="font-bold text-xs text-white/35">
+                      <span className="font-bold text-xs text-gray-700">
                         {format(new Date(replay.created_at), "dd/MM/yyyy", { locale: ptBR })}
                       </span>
-                      <span className="text-[10px] font-medium text-white/45 uppercase">
+                      <span className="text-[10px] font-medium text-muted-foreground uppercase">
                         {format(new Date(replay.created_at), "HH:mm:ss", { locale: ptBR })}
                       </span>
                     </div>
@@ -273,7 +273,7 @@ function ReplaysManagement() {
                         setSelectedReplayIds([replay.id]);
                         setTimeout(() => handleDeleteSelected(), 100);
                       }}
-                      className="h-10 w-10 rounded-xl text-white/40 hover:text-red-500 hover:bg-red-500/10"
+                      className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

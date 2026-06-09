@@ -1,6 +1,6 @@
-@import "tailwindcss";
+@import "tailwindcss" source(none);
 @source "../src";
-@plugin "tailwindcss-animate";
+@import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -11,104 +11,127 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
-  --color-background: #FDF2E9;
-  --color-foreground: #2D3436;
-  --color-card: #ffffff;
-  --color-card-foreground: #2D3436;
-  --color-popover: #ffffff;
-  --color-popover-foreground: #2D3436;
-  --color-primary: #F97316;
-  --color-primary-foreground: #ffffff;
-  --color-secondary: #FFB347;
-  --color-secondary-foreground: #ffffff;
-  --color-muted: #F1F2F6;
-  --color-muted-foreground: #636E72;
-  --color-accent: #FFF9F3;
-  --color-accent-foreground: #F97316;
-  --color-destructive: #FF4757;
-  --color-destructive-foreground: #ffffff;
-  --color-border: #F1F2F6;
-  --color-input: #ffffff;
-  --color-ring: #F97316;
-
-  /* Custom mobile design system variables */
-  --mobile-brand: #F97316;
-  --mobile-brand-light: rgba(249, 115, 22, 0.12);
-  --mobile-bg: #FDF2E9;
-  --mobile-surface: #FFB347;
-  --mobile-card: #ffffff;
-  --mobile-input: #ffffff;
-  --mobile-border: #F1F2F6;
-  --mobile-text-1: #2D3436;
-  --mobile-text-2: #636E72;
-  --mobile-text-3: #B2BEC3;
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-yellow: var(--brand-yellow);
 }
 
 :root {
-  --radius: 14px;
+  --radius: 1rem;
+  --system-navy: #1A1C3A;
+  /* Clean light background */
+  --background: oklch(0.96 0.01 250);
+  --foreground: var(--system-navy);
+
+  /* Clean light card */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.2 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.2 0 0);
+
+  /* Brand: vibrant orange → yellow */
+  --brand-orange: oklch(0.7 0.2 45);
+  --brand-yellow: oklch(0.85 0.15 90);
+
+  --primary: oklch(0.7 0.2 45);
+  --primary-foreground: oklch(1 0 0);
+
+  --secondary: oklch(0.96 0 0);
+  --secondary-foreground: oklch(0.2 0 0);
+  --muted: oklch(0.96 0 0);
+  --muted-foreground: oklch(0.45 0.02 60);
+  --accent: oklch(0.85 0.15 90);
+  --accent-foreground: oklch(0.2 0 0);
+  --destructive: oklch(0.6 0.2 25);
+  --destructive-foreground: oklch(1 0 0);
+
+  --border: oklch(0.9 0 0);
+  --input: oklch(0.95 0 0);
+  --ring: oklch(0.7 0.2 45);
+
+  --gradient-brand: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow));
+  --gradient-brand-soft: linear-gradient(135deg, oklch(0.7 0.2 45 / 10%), oklch(0.85 0.15 90 / 10%));
+  --shadow-subtle: 0 4px 20px -4px oklch(0 0 0 / 8%);
+  --shadow-glow: 0 8px 30px -8px oklch(0.7 0.2 45 / 40%);
 }
+
+.dark { color-scheme: light; }
 
 @layer base {
-  * { 
-    border-color: #F1F2F6; 
-  }
-  html, body {
-    background-color: #FDF2E9 !important;
-    color: #2D3436 !important;
+  * { border-color: var(--color-border); }
+  html, body { background: var(--background); color: var(--color-foreground); }
+  body {
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
+    line-height: 1.6;
   }
 }
 
-/* Mobile Utilities */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+@utility glass-card {
+  background: var(--card);
+  box-shadow: var(--shadow-subtle);
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
 }
 
-.safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+@utility brand-gradient {
+  background: var(--gradient-brand);
 }
 
-/* Animations */
-@keyframes pulse-dot {
-  0% { transform: scale(0.8); opacity: 0.5; }
-  50% { transform: scale(1.2); opacity: 1; }
-  100% { transform: scale(0.8); opacity: 0.5; }
+@utility brand-text {
+  background: var(--gradient-brand);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
-.animate-pulse-dot {
-  animation: pulse-dot 1.5s infinite ease-in-out;
+@utility brand-glow {
+  box-shadow: var(--shadow-glow);
 }
 
-/* Helper Classes */
-.brand-gradient {
-  background: linear-gradient(135deg, #F97316, #ea6c0a);
+@keyframes xp-pop {
+  0% { opacity: 0; transform: translateY(0) scale(0.8); }
+  20% { opacity: 1; transform: translateY(-10px) scale(1.1); }
+  100% { opacity: 0; transform: translateY(-60px) scale(1); }
 }
 
-.brand-text {
-  color: #F97316;
-}
+.animate-xp-pop { animation: xp-pop 1.2s ease-out forwards; }
 
-/* Reset Scrollbar for Dark Mode */
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 0 0 oklch(0.7 0.2 45 / 40%); }
+  50% { box-shadow: 0 0 0 12px oklch(0.7 0.2 45 / 0%); }
 }
+.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #252525;
-  border-radius: 10px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #2a2a2a;
+/* Remove Lovable badge */
+#lovable-badge,
+[class*="lovable-badge"],
+[id*="lovable-badge"],
+iframe[src*="lovable"] {
+  display: none !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  opacity: 0 !important;
+  width: 0 !important;
+  height: 0 !important;
+  position: absolute !important;
+  overflow: hidden !important;
 }

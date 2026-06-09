@@ -91,36 +91,6 @@ export type Database = {
         }
         Relationships: []
       }
-      botoeiras: {
-        Row: {
-          botoeira_id: string
-          camera_id: string
-          created_at: string
-          id: string
-          ip_local: string
-          local_key: string
-          updated_at: string
-        }
-        Insert: {
-          botoeira_id: string
-          camera_id: string
-          created_at?: string
-          id?: string
-          ip_local: string
-          local_key: string
-          updated_at?: string
-        }
-        Update: {
-          botoeira_id?: string
-          camera_id?: string
-          created_at?: string
-          id?: string
-          ip_local?: string
-          local_key?: string
-          updated_at?: string
-        }
-        Relationships: []
-      }
       cameras: {
         Row: {
           active: boolean | null
