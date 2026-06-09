@@ -5,72 +5,124 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-brand-orange: var(--brand-orange);
-  --color-brand-yellow: var(--brand-yellow);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+  --radius-2xl: 24px;
+  --radius-3xl: 32px;
+  
+  --color-background: var(--bg-base);
+  --color-foreground: var(--text-primary);
+  
+  --color-card: var(--bg-card);
+  --color-card-foreground: var(--text-primary);
+  
+  --color-popover: var(--bg-card);
+  --color-popover-foreground: var(--text-primary);
+  
+  --color-primary: var(--brand);
+  --color-primary-foreground: #FFFFFF;
+  
+  --color-secondary: var(--bg-card-hover);
+  --color-secondary-foreground: var(--text-primary);
+  
+  --color-muted: var(--bg-tag);
+  --color-muted-foreground: var(--text-secondary);
+  
+  --color-accent: var(--bg-card-hover);
+  --color-accent-foreground: var(--text-primary);
+  
+  --color-destructive: var(--danger);
+  --color-destructive-foreground: #FFFFFF;
+  
+  --color-border: var(--border-default);
+  --color-input: var(--bg-input);
+  --color-ring: var(--brand);
+  
+  --color-brand-orange: var(--brand);
+  --color-brand-yellow: #FDBA74; /* fallback if needed */
+  
+  /* Custom Variables from User */
+  --bg-base: #FFFBF7;
+  --bg-surface: #FFFFFF;
+  --bg-card: #FFFFFF;
+  --bg-card-hover: #FFF5EE;
+  --bg-input: #FFF5EE;
+  --bg-tag: #FFE8D6;
+
+  --border-subtle: rgba(0,0,0,0.06);
+  --border-default: #F0E6DC;
+  --border-focus: #F97316;
+
+  --text-primary: #1A1008;
+  --text-secondary: rgba(26,16,8,0.60);
+  --text-muted: rgba(26,16,8,0.38);
+  --text-disabled: rgba(26,16,8,0.22);
+
+  --brand: #F97316;
+  --brand-dim: rgba(249,115,22,0.10);
+  --brand-border: rgba(249,115,22,0.25);
+  --brand-text: #C45108;
+
+  --status-online: #16a34a;
+  --status-offline: rgba(0,0,0,0.25);
+  --status-warning: #d97706;
+  --danger: #dc2626;
+  --danger-dim: rgba(220,38,38,0.08);
 }
 
 :root {
   --radius: 1rem;
-  --system-navy: #1A1C3A;
-  /* Clean light background */
-  --background: oklch(0.96 0.01 250);
-  --foreground: var(--system-navy);
+  
+  /* Map shadcn variables to our custom ones */
+  --background: var(--bg-base);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--brand);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--bg-card-hover);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-tag);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--bg-card-hover);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--danger);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--border-default);
+  --input: var(--bg-input);
+  --ring: var(--brand);
 
-  /* Clean light card */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.2 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.2 0 0);
+  --gradient-brand: linear-gradient(135deg, var(--brand), #FDBA74);
+  --gradient-brand-soft: linear-gradient(135deg, var(--brand-dim), rgba(253, 186, 116, 0.1));
+  --shadow-subtle: 0 4px 20px -4px rgba(0, 0, 0, 0.08);
+  --shadow-glow: 0 8px 30px -8px rgba(249, 115, 22, 0.4);
+}
 
-  /* Brand: vibrant orange → yellow */
-  --brand-orange: oklch(0.7 0.2 45);
-  --brand-yellow: oklch(0.85 0.15 90);
-
-  --primary: oklch(0.7 0.2 45);
-  --primary-foreground: oklch(1 0 0);
-
-  --secondary: oklch(0.96 0 0);
-  --secondary-foreground: oklch(0.2 0 0);
-  --muted: oklch(0.96 0 0);
-  --muted-foreground: oklch(0.45 0.02 60);
-  --accent: oklch(0.85 0.15 90);
-  --accent-foreground: oklch(0.2 0 0);
-  --destructive: oklch(0.6 0.2 25);
-  --destructive-foreground: oklch(1 0 0);
-
-  --border: oklch(0.9 0 0);
-  --input: oklch(0.95 0 0);
-  --ring: oklch(0.7 0.2 45);
-
-  --gradient-brand: linear-gradient(135deg, var(--brand-orange), var(--brand-yellow));
-  --gradient-brand-soft: linear-gradient(135deg, oklch(0.7 0.2 45 / 10%), oklch(0.85 0.15 90 / 10%));
-  --shadow-subtle: 0 4px 20px -4px oklch(0 0 0 / 8%);
-  --shadow-glow: 0 8px 30px -8px oklch(0.7 0.2 45 / 40%);
+.dark { 
+  color-scheme: light;
+  --background: var(--bg-base);
+  --foreground: var(--text-primary);
+  --card: var(--bg-card);
+  --card-foreground: var(--text-primary);
+  --popover: var(--bg-card);
+  --popover-foreground: var(--text-primary);
+  --primary: var(--brand);
+  --primary-foreground: #FFFFFF;
+  --secondary: var(--bg-card-hover);
+  --secondary-foreground: var(--text-primary);
+  --muted: var(--bg-tag);
+  --muted-foreground: var(--text-secondary);
+  --accent: var(--bg-card-hover);
+  --accent-foreground: var(--text-primary);
+  --destructive: var(--danger);
+  --destructive-foreground: #FFFFFF;
+  --border: var(--border-default);
+  --input: var(--bg-input);
+  --ring: var(--brand);
 }
 
 .dark { color-scheme: light; }
