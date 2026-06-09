@@ -155,9 +155,9 @@ function Quadras() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
+      <div className="glass-card bg-[#1a1a1a] shadow-xl border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
         <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
+          <TableHeader className="bg-transparent border-b border-white/5">
             <TableRow className="hover:bg-transparent">
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Quadra / Court</TableHead>
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Arena Vinculada</TableHead>
