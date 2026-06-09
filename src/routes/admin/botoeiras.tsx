@@ -282,14 +282,14 @@ function BotoeirasPage() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
+      <div className="glass-card bg-[#1a1a1a] shadow-xl border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
         <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Dispositivo / ID</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">IP Local</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Câmera</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Ações</TableHead>
+          <TableHeader className="bg-transparent border-b border-white/5">
+            <TableRow className="hover:bg-transparent border-b border-white/5">
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Dispositivo / ID</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">IP Local</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Câmera</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -305,17 +305,17 @@ function BotoeirasPage() {
               <TableRow>
                 <TableCell colSpan={4} className="h-64 text-center">
                   <div className="flex flex-col items-center justify-center space-y-4">
-                    <div className="h-16 w-16 bg-gray-50 rounded-full flex items-center justify-center text-gray-300">
-                      <Radio className="h-8 w-8" />
+                    <div className="h-16 w-16 bg-[#1a1a1a] rounded-full flex items-center justify-center text-white/20 border border-[#2a2a2a]">
+                      <Radio className="h-8 w-8 text-white/20 fill-none" stroke="currentColor" />
                     </div>
                     <div>
-                      <p className="text-muted-foreground font-bold uppercase tracking-widest text-xs">Nenhuma botoeira encontrada</p>
-                      <p className="text-gray-400 text-sm mt-1">Adicione módulos IoT para permitir o disparo de replays.</p>
+                      <p className="text-white/50 font-bold uppercase tracking-widest text-xs">Nenhuma botoeira encontrada</p>
+                      <p className="text-white/45 text-sm mt-1">Adicione módulos IoT para permitir o disparo de replays.</p>
                     </div>
                     <Button 
                       variant="outline" 
                       onClick={() => setIsDialogOpen(true)}
-                      className="rounded-xl font-bold uppercase tracking-widest text-[10px] h-10 px-6 border-gray-200"
+                      className="rounded-xl font-bold uppercase tracking-widest text-[10px] h-10 px-6 border-none bg-[#F97316] text-black hover:bg-[#F97316]/90"
                     >
                       <Plus className="mr-2 h-4 w-4" /> Adicionar Primeira
                     </Button>
@@ -324,28 +324,28 @@ function BotoeirasPage() {
               </TableRow>
             ) : (
               botoeiras.map((b) => (
-                <TableRow key={b.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                <TableRow key={b.id} className="hover:bg-white/[0.04] transition-colors border-b border-white/[0.07] last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-brand-orange/10 flex items-center justify-center text-brand-orange transition-colors group-hover:brand-gradient group-hover:text-white">
                         <Radio className="h-6 w-6" />
                       </div>
                       <div>
-                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{b.botoeira_id}</span>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">Módulo IoT Wi-Fi</p>
+                        <span className="font-black text-lg text-white uppercase tracking-tight">{b.botoeira_id}</span>
+                        <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest">Módulo IoT Wi-Fi</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-2">
                       <div className="h-2 w-2 rounded-full bg-green-500 animate-pulse" />
-                      <span className="font-bold text-gray-700 font-mono">{b.ip_local}</span>
+                      <span className="font-bold text-white/80 font-mono">{b.ip_local}</span>
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-2">
-                      <Camera className="h-4 w-4 text-gray-400" />
-                      <span className="font-bold text-gray-700">{b.camera_id}</span>
+                      <Camera className="h-4 w-4 text-white/45" />
+                      <span className="font-bold text-white/80">{b.camera_id}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right py-5 px-6">

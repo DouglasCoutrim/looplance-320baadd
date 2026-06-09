@@ -196,7 +196,7 @@ function UsersManagement() {
         </Button>
       </div>
 
-      <div className="glass-card bg-white p-6 shadow-md border border-gray-200">
+      <div className="glass-card bg-[#1a1a1a] p-6 shadow-md border border-[#2a2a2a] rounded-[12px]">
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
@@ -215,20 +215,20 @@ function UsersManagement() {
         ) : (
           <div className="rounded-xl border border-gray-100 overflow-hidden">
             <Table>
-              <TableHeader className="bg-gray-50">
+              <TableHeader className="bg-transparent border-b border-white/5">
                 <TableRow>
-                  <TableHead className="font-bold uppercase text-[10px] tracking-widest">Usuário</TableHead>
-                  <TableHead className="font-bold uppercase text-[10px] tracking-widest">Cargo</TableHead>
-                  <TableHead className="font-bold uppercase text-[10px] tracking-widest">Status Admin</TableHead>
-                  <TableHead className="font-bold uppercase text-[10px] tracking-widest text-right">Ações</TableHead>
+                  <TableHead className="font-bold uppercase text-[10px] tracking-widest text-white/60">Usuário</TableHead>
+                  <TableHead className="font-bold uppercase text-[10px] tracking-widest text-white/60">Cargo</TableHead>
+                  <TableHead className="font-bold uppercase text-[10px] tracking-widest text-white/60">Status Admin</TableHead>
+                  <TableHead className="font-bold uppercase text-[10px] tracking-widest text-white/60 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => (
-                  <TableRow key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                  <TableRow key={user.id} className="hover:bg-white/[0.04] transition-colors border-b border-white/[0.07] last:border-0 group">
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-bold text-gray-900">{user.full_name || "Sem Nome"}</span>
+                        <span className="font-bold text-[#ffffff]">{user.full_name || "Sem Nome"}</span>
                         <span className="text-xs text-muted-foreground">{user.email}</span>
                       </div>
                     </TableCell>

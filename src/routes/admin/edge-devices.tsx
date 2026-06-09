@@ -225,33 +225,33 @@ function EdgeDevices() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
+      <div className="glass-card bg-[#1a1a1a] shadow-xl border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
         <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
+          <TableHeader className="bg-transparent border-b border-white/5">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Dispositivo</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Endereço (Hostname)</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Status</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-right">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Dispositivo</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Endereço (Hostname)</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Status</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6 text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {devices.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-medium italic">
-                  Nenhum dispositivo provisionado. Use o botão acima para começar.
+                  <span className="text-white/50">Nenhum dispositivo provisionado. Use o botão acima para começar.</span>
                 </TableCell>
               </TableRow>
             ) : (
               devices.map((device) => (
-                <TableRow key={device.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                <TableRow key={device.id} className="hover:bg-white/[0.04] transition-colors border-b border-white/[0.07] last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-brand-orange transition-colors group-hover:brand-gradient group-hover:text-white">
                         <HardDrive className="h-6 w-6" />
                       </div>
                       <div>
-                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{device.name}</span>
+                        <span className="font-black text-lg text-[#ffffff] uppercase tracking-tight">{device.name}</span>
                         {device.arenas && (
                           <Badge variant="outline" className="ml-2 text-[8px] border-orange-200 text-brand-orange">
                             {device.arenas.nome}
@@ -266,7 +266,7 @@ function EdgeDevices() {
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     {getStatusBadge(device)}
-                    <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter">
+                    <p className="text-[10px] font-bold text-white/45 mt-1 uppercase tracking-tighter">
                       Visto {device.last_seen 
                         ? formatDistanceToNow(new Date(device.last_seen), { addSuffix: true, locale: ptBR })
                         : "nunca"}
@@ -286,7 +286,7 @@ function EdgeDevices() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => openEditDialog(device)}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5"
+                        className="h-10 w-10 rounded-xl text-white/40 hover:text-white/90 hover:bg-white/5"
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>

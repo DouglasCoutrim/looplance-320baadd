@@ -76,7 +76,7 @@ function AdminHome() {
       {/* Hero Welcome */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#ffffff] uppercase">
             Dashboard <span className="brand-text">Admin</span>
           </h1>
           <p className="text-white/60 mt-1 font-medium text-base sm:text-lg">
@@ -133,9 +133,9 @@ function AdminHome() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Resource Distribution Chart */}
-        <div className="lg:col-span-3 glass-card bg-[#111] p-4 sm:p-6 shadow-md border border-white/5">
+        <div className="lg:col-span-3 glass-card bg-[#1a1a1a] p-4 sm:p-6 shadow-md border border-[#2a2a2a] rounded-[12px]">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2 uppercase tracking-tight">
+            <h3 className="text-lg sm:text-xl font-black text-[#ffffff] flex items-center gap-2 uppercase tracking-tight">
               <Activity className="h-5 w-5 text-brand-orange" />
               Distribuição de Infra
             </h3>
@@ -233,16 +233,16 @@ function StatCard({ title, value, icon, description, link, color = "orange" }: a
   };
 
   const content = (
-    <div className="glass-card bg-[#111] p-4 sm:p-6 shadow-md border border-white/5 transition-all hover:shadow-xl hover:-translate-y-1 group">
+    <div className="glass-card bg-[#1a1a1a] p-4 sm:p-6 shadow-md border border-[#2a2a2a] rounded-[12px] transition-all hover:shadow-xl hover:-translate-y-1 group">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-2.5 sm:p-3 rounded-2xl ${colorClasses[color] || colorClasses.orange} transition-colors group-hover:brand-gradient group-hover:text-white`}>
           {icon}
         </div>
-        <div className="text-2xl sm:text-3xl font-black text-white">{value}</div>
+        <div className="text-2xl sm:text-3xl font-black text-[#ffffff]">{value}</div>
       </div>
       <div>
-        <h4 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.1em] text-muted-foreground">{title}</h4>
-        <p className="text-xs sm:text-sm font-medium text-gray-500 mt-1">{description}</p>
+        <h4 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.1em] text-white/60">{title}</h4>
+        <p className="text-xs sm:text-sm font-medium text-white/45 mt-1">{description}</p>
       </div>
     </div>
   );
@@ -257,14 +257,14 @@ function QuickAction({ to, title, description, icon }: any) {
   return (
     <Link 
       to={to} 
-      className="flex items-center gap-3 sm:gap-4 glass-card bg-[#111] p-3 sm:p-4 shadow-sm border border-white/5 transition-all hover:border-brand-orange/50 hover:shadow-md hover:bg-white/5 group"
+      className="flex items-center gap-3 sm:gap-4 glass-card bg-[#1a1a1a] p-3 sm:p-4 shadow-sm border border-[#2a2a2a] rounded-[12px] transition-all hover:border-brand-orange/50 hover:shadow-md hover:bg-white/5 group"
     >
       <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:brand-gradient group-hover:text-white transition-all">
         {icon}
       </div>
       <div className="flex-1">
-        <div className="font-black uppercase tracking-tight text-xs sm:text-sm text-white">{title}</div>
-        <div className="text-[10px] sm:text-xs font-medium text-muted-foreground mt-0.5">{description}</div>
+        <div className="font-black uppercase tracking-tight text-xs sm:text-sm text-[#ffffff]">{title}</div>
+        <div className="text-[10px] sm:text-xs font-medium text-white/60 mt-0.5">{description}</div>
       </div>
       <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-brand-orange group-hover:translate-x-1 transition-all" />
     </Link>
