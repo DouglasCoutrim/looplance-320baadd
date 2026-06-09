@@ -202,9 +202,9 @@ function InputBoards() {
                   </div>
                 </div>
               </div>
-              <DialogFooter className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
-                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="font-bold rounded-xl">Cancelar</Button>
-                <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">
+              <DialogFooter className="bg-[#111] p-6 flex justify-end gap-3 border-t border-white/5">
+                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold text-white/60 hover:text-white hover:bg-white/5">Cancelar</Button>
+                <Button onClick={handleSave} className="brand-gradient text-black font-black uppercase tracking-widest px-8 h-12 rounded-xl">
                   {editingBoard ? "Salvar Alterações" : "Cadastrar Placa"}
                 </Button>
               </DialogFooter>
