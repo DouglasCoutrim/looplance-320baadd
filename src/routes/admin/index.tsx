@@ -79,7 +79,7 @@ function AdminHome() {
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#ffffff] uppercase">
             Dashboard <span className="brand-text">Admin</span>
           </h1>
-          <p className="text-white/60 mt-1 font-medium text-base sm:text-lg">
+          <p className="text-white/50 mt-1 font-medium text-base sm:text-lg">
             Monitoramento e controle da infraestrutura <span className="text-brand-orange font-bold">Edge Replay</span>.
           </p>
         </div>
@@ -151,14 +151,14 @@ function AdminHome() {
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
+                  tick={{ fontSize: 10, fontWeight: 700, fill: 'rgba(255,255,255,0.35)' }}
                 />
                 <Tooltip 
                   cursor={{ fill: 'rgba(0,0,0,0.02)' }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-white p-3 border border-gray-100 rounded-xl shadow-xl text-[10px] font-black uppercase">
+                        <div className="bg-[#1a1a1a] p-3 border border-[#2a2a2a] rounded-xl shadow-xl text-[10px] font-black uppercase text-white">
                           <span style={{ color: payload[0].payload.color }}>{payload[0].name}</span>: {payload[0].value}
                         </div>
                       );
@@ -226,10 +226,10 @@ function AdminHome() {
 
 function StatCard({ title, value, icon, description, link, color = "orange" }: any) {
   const colorClasses: any = {
-    orange: "text-orange-500 bg-orange-50",
-    blue: "text-blue-500 bg-blue-50",
-    green: "text-green-500 bg-green-50",
-    purple: "text-purple-500 bg-purple-50",
+    orange: "text-orange-500 bg-orange-500/10",
+    blue: "text-blue-500 bg-blue-500/10",
+    green: "text-green-500 bg-green-500/10",
+    purple: "text-purple-500 bg-purple-500/10",
   };
 
   const content = (
@@ -257,9 +257,9 @@ function QuickAction({ to, title, description, icon }: any) {
   return (
     <Link 
       to={to} 
-      className="flex items-center gap-3 sm:gap-4 glass-card bg-[#1a1a1a] p-3 sm:p-4 shadow-sm border border-[#2a2a2a] rounded-[12px] transition-all hover:border-brand-orange/50 hover:shadow-md hover:bg-white/5 group"
+      className="flex items-center gap-3 sm:gap-4 bg-[#1a1a1a] p-3 sm:p-4 border border-[#2a2a2a] rounded-[12px] transition-all hover:bg-[#222] group"
     >
-      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:brand-gradient group-hover:text-white transition-all">
+      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white/5 flex items-center justify-center text-white/40 group-hover:brand-gradient group-hover:text-black transition-all">
         {icon}
       </div>
       <div className="flex-1">
