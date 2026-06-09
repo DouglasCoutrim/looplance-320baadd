@@ -378,8 +378,8 @@ function Arenas() {
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="ghost" onClick={closeDialog} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleSave} disabled={uploading} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
+                <Button variant="ghost" onClick={closeDialog} className="rounded-xl font-bold text-white/60 hover:text-white hover:bg-white/5">Cancelar</Button>
+                <Button onClick={handleSave} disabled={uploading} className="brand-gradient text-black font-black uppercase tracking-widest px-8 rounded-xl h-12">
                   {uploading ? "Salvando..." : "Salvar"}
                 </Button>
               </DialogFooter>
@@ -388,27 +388,27 @@ function Arenas() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
+      <div className="bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
         <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
+          <TableHeader className="bg-transparent border-b border-white/5">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-3 sm:py-4 px-4 sm:px-6">Local / Nome</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-3 sm:py-4 px-4 sm:px-6">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-3 sm:py-4 px-4 sm:px-6">Local / Nome</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-white/60 py-3 sm:py-4 px-4 sm:px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {arenas.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={2} className="h-40 text-center text-muted-foreground font-medium italic">
+               <TableRow>
+                <TableCell colSpan={2} className="h-40 text-center text-white/35 font-medium italic">
                   Nenhuma arena cadastrada no momento.
                 </TableCell>
               </TableRow>
             ) : (
               arenas.map((a) => (
-                <TableRow key={a.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                <TableRow key={a.id} className="hover:bg-white/[0.04] transition-colors border-b border-white/[0.07] last:border-0 group">
                   <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
                     <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="h-12 w-12 rounded-2xl overflow-hidden border border-gray-100 flex items-center justify-center bg-brand-orange/10 text-brand-orange shrink-0">
+                      <div className="h-12 w-12 rounded-2xl overflow-hidden border border-white/5 flex items-center justify-center bg-brand-orange/10 text-brand-orange shrink-0">
                         {a.foto_url ? (
                           <img src={a.foto_url} alt={a.nome} className="h-full w-full object-cover" />
                         ) : (
@@ -416,11 +416,11 @@ function Arenas() {
                         )}
                       </div>
                       <div className="min-w-0">
-                        <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{a.nome}</span>
+                        <span className="font-black text-base sm:text-lg text-white uppercase tracking-tight block truncate">{a.nome}</span>
                         <div className="flex gap-2 items-center">
-                          <p className="text-[10px] font-medium text-muted-foreground truncate">{a.cidade || "Cidade não informada"}</p>
-                          {a.telefone && <span className="text-[10px] text-muted-foreground/40">•</span>}
-                          <p className="text-[10px] font-medium text-muted-foreground truncate">{a.telefone}</p>
+                          <p className="text-[10px] font-medium text-white/60 truncate">{a.cidade || "Cidade não informada"}</p>
+                          {a.telefone && <span className="text-[10px] text-white/35">•</span>}
+                          <p className="text-[10px] font-medium text-white/60 truncate">{a.telefone}</p>
                         </div>
                       </div>
                     </div>
@@ -431,7 +431,7 @@ function Arenas() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => openEditDialog(a)}
-                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors"
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-white/40 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors"
                       >
                         <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
@@ -439,7 +439,7 @@ function Arenas() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => handleDelete(a.id)}
-                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-colors"
                       >
                         <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
