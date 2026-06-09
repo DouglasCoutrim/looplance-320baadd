@@ -96,7 +96,7 @@ function AdminLayout() {
             className={`flex items-center gap-3 px-4 py-3 rounded-xl font-bold transition-all duration-200 border ${
               isActive 
                 ? "brand-gradient text-white border-transparent shadow-lg shadow-brand-orange/20 scale-[1.02]" 
-                : "bg-white border-gray-100 text-gray-600 hover:border-brand-orange/30 hover:text-brand-orange"
+                : "bg-[#111] border-white/5 text-gray-400 hover:border-brand-orange/30 hover:text-brand-orange"
             }`}
           >
             <Icon className={`h-5 w-5 ${isActive ? "text-white" : "text-gray-400 group-hover:text-brand-orange"}`} />

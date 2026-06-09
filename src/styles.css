@@ -35,7 +35,7 @@
 
 :root {
   --radius: 14px;
-  --background: #0A0A0A;
+  --background: #000000;
   --foreground: #FFFFFF;
   --primary: #F97316;
   --primary-foreground: #FFFFFF;
@@ -43,10 +43,10 @@
   --card-foreground: #FFFFFF;
   --popover: #111111;
   --popover-foreground: #FFFFFF;
-  --secondary: #222222;
+  --secondary: #1A1A1A;
   --secondary-foreground: #FFFFFF;
   --muted: #1A1A1A;
-  --muted-foreground: rgba(255, 255, 255, 0.6);
+  --muted-foreground: rgba(255, 255, 255, 0.5);
   --accent: rgba(249, 115, 22, 0.1);
   --accent-foreground: #F97316;
   --destructive: #EF4444;
@@ -57,29 +57,19 @@
 }
 
 .dark {
-  --background: #0A0A0A;
+  --background: #000000;
   --foreground: #FFFFFF;
-  --primary: #F97316;
-  --primary-foreground: #FFFFFF;
-  --card: #111111;
-  --card-foreground: #FFFFFF;
-  --popover: #111111;
-  --popover-foreground: #FFFFFF;
-  --secondary: #222222;
-  --secondary-foreground: #FFFFFF;
-  --muted: #1A1A1A;
-  --muted-foreground: rgba(255, 255, 255, 0.6);
-  --accent: rgba(249, 115, 22, 0.1);
-  --accent-foreground: #F97316;
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --border: #222222;
-  --input: #1A1A1A;
-  --ring: #F97316;
 }
 
 @layer base {
-  * { border-color: #222222; }
+  * { 
+    border-color: rgba(255, 255, 255, 0.05); 
+    color: #FFFFFF;
+  }
+  html, body {
+    background-color: #000000 !important;
+    color: #FFFFFF !important;
+  }
   html {
     scroll-behavior: smooth;
   }
