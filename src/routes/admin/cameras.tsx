@@ -362,27 +362,27 @@ function Cameras() {
           <h1 className="text-4xl font-black tracking-tight text-[#ffffff] uppercase">
             Câmeras <span className="brand-text">Captura</span>
           </h1>
-          <p className="text-white/60 mt-1 font-medium text-lg">
+          <p className="text-white/50 mt-1 font-medium text-lg">
             Mapeie fontes de vídeo RTSP e gatilhos de gravação.
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
-            <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
+          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-[#2a2a2a] h-12 w-12 bg-[#1a1a1a] hover:bg-[#222] border">
+            <RefreshCw className={`h-5 w-5 text-white/40 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             if (!open) closeDialog();
             else setIsDialogOpen(true);
           }}>
             <DialogTrigger asChild>
-              <Button onClick={() => closeDialog()} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+              <Button onClick={() => closeDialog()} className="brand-gradient text-black font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
                 <Plus className="mr-2 h-5 w-5" /> Nova Câmera
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] rounded-2xl border-none shadow-2xl overflow-hidden p-0 flex flex-col">
-              <div className="brand-gradient p-6 text-white shrink-0">
+            <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] rounded-2xl border border-[#2a2a2a] shadow-2xl overflow-hidden p-0 flex flex-col bg-[#1a1a1a] text-white">
+              <div className="brand-gradient p-6 text-black shrink-0">
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight">{editingCamera ? "Editar Câmera" : "Configurar Câmera"}</DialogTitle>
-                <DialogDescription className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">
+                <DialogDescription className="text-black/70 text-sm font-bold uppercase tracking-widest mt-1">
                   {editingCamera ? "Atualize as configurações desta fonte de vídeo." : "Mapeie fontes de vídeo RTSP e vincule a quadras e servidores edge."}
                 </DialogDescription>
               </div>
@@ -391,18 +391,19 @@ function Cameras() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-6">
                   <div className="grid gap-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome da Câmera</Label>
-                    <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Ex: Câmera Principal Quadra 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Nome da Câmera</Label>
+                    <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Ex: Câmera Principal Quadra 1" className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:ring-brand-orange" />
                   </div>
                   
-                  <div className="grid gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/30">
+                  <div className="grid gap-4 p-4 rounded-xl border border-white/5 bg-white/5">
                     <div className="grid gap-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Marca da Câmera</Label>
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Marca da Câmera</Label>
                       <Select value={formData.brand} onValueChange={(v) => setFormData({...formData, brand: v})}>
-                        <SelectTrigger className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange">
+                        <SelectTrigger className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white focus:ring-brand-orange">
                           <SelectValue placeholder="Selecione a marca" />
                         </SelectTrigger>
-                        <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                        <SelectContent className="rounded-xl border-[#2a2a2a] bg-[#1a1a1a] text-white">
+
                           {CAMERA_BRANDS.map((b) => (
                             <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                           ))}
@@ -413,19 +414,19 @@ function Cameras() {
                     {formData.brand !== "custom" && (
                       <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
                         <div className="grid gap-2">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuário</Label>
-                          <Input value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder="admin" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Usuário</Label>
+                          <Input value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder="admin" className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:ring-brand-orange" />
                         </div>
                         <div className="grid gap-2">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
-                          <Input type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder="senha" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Senha</Label>
+                          <Input type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder="senha" className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:ring-brand-orange" />
                         </div>
                         <div className="grid gap-2">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Endereço IP</Label>
-                          <Input value={formData.ip} onChange={(e) => setFormData({...formData, ip: e.target.value})} placeholder="192.168.1.100" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Endereço IP</Label>
+                          <Input value={formData.ip} onChange={(e) => setFormData({...formData, ip: e.target.value})} placeholder="192.168.1.100" className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:ring-brand-orange" />
                         </div>
                         <div className="grid gap-2">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Porta</Label>
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-white/60">Porta</Label>
                           <Input value={formData.port} onChange={(e) => setFormData({...formData, port: e.target.value})} placeholder="554" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
                         </div>
                       </div>
