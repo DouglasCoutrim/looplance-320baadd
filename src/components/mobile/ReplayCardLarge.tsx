@@ -48,12 +48,12 @@ export const ReplayCardLarge = ({ title, duration, arena, timestamp, thumbnail, 
         </div>
         
         <div className="flex flex-col gap-2 mt-2">
-          <button className="w-full bg-[#F97316] text-black font-bold h-[40px] rounded-[10px] active:scale-95 transition-transform">
+          <div className="w-full bg-[#F97316] text-black font-bold h-[40px] rounded-[10px] flex items-center justify-center">
             Assistir
-          </button>
-          <button className="w-full border border-[rgba(255,255,255,0.3)] text-white font-medium h-[40px] rounded-[10px] active:scale-95 transition-transform">
+          </div>
+          <div className="w-full border border-[rgba(255,255,255,0.3)] text-white font-medium h-[40px] rounded-[10px] flex items-center justify-center">
             Compartilhar
-          </button>
+          </div>
         </div>
       </div>
     </div>
