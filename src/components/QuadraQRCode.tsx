@@ -61,12 +61,12 @@ export function QuadraQRCode({ quadraId, quadraNome }: QuadraQRCodeProps) {
           <QrCode className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md rounded-2xl border-none shadow-2xl">
+      <DialogContent className="sm:max-w-md rounded-2xl border border-[#2a2a2a] shadow-2xl bg-[#1a1a1a] text-white">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
+          <DialogTitle className="text-2xl font-black uppercase tracking-tight text-brand-orange">
             QR Code da Quadra
           </DialogTitle>
-          <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
+          <DialogDescription className="text-sm font-bold uppercase tracking-widest text-white/35">
             Escaneie para acessar os replays de: {quadraNome}
           </DialogDescription>
         </DialogHeader>
@@ -80,25 +80,25 @@ export function QuadraQRCode({ quadraId, quadraNome }: QuadraQRCodeProps) {
               <p className="text-[10px] font-black uppercase tracking-widest text-brand-orange">
                 Looplance Edge
               </p>
-              <p className="text-xs font-bold text-gray-900 uppercase">
+              <p className="text-xs font-bold text-black uppercase">
                 {quadraNome}
               </p>
             </div>
           </div>
 
           <div className="w-full space-y-4">
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
+            <div className="p-4 bg-[#252525] rounded-xl border border-[#2a2a2a]">
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/35 mb-1">
                 URL de Redirecionamento
               </p>
-              <p className="text-xs font-mono text-gray-600 break-all select-all">
+              <p className="text-xs font-mono text-white/60 break-all select-all">
                 {redirectUrl}
               </p>
             </div>
 
             <Button
               onClick={downloadQRCode}
-              className="w-full brand-gradient brand-glow text-white font-black uppercase tracking-widest h-12 rounded-xl transition-transform hover:scale-[1.02]"
+              className="w-full brand-gradient text-black font-black uppercase tracking-widest h-12 rounded-xl transition-transform hover:scale-[1.02]"
             >
               <Download className="mr-2 h-5 w-5" /> Baixar Imagem (PNG)
             </Button>

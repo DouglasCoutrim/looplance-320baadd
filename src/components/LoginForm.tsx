@@ -48,37 +48,37 @@ export function LoginForm() {
         <img src={logoUrl} alt="Looplance" className="w-[85%] max-w-[320px] h-auto object-contain" />
       </div>
 
-      <p className="text-[#888] text-sm mb-10 text-center">
+      <p className="text-white/35 text-sm mb-10 text-center">
         inicie sessão para ver seus replays
       </p>
 
       <form onSubmit={handleLogin} className="w-full max-w-[280px] space-y-3">
         <div className="relative group">
-          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555] group-focus-within:text-[#F97316] transition-colors" />
+          <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-[#F97316] transition-colors" />
           <Input
             type="email"
             placeholder="Endereço de Email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
-            className="h-11 pl-10 bg-[#1A1A1A] border-none rounded-xl text-sm text-white placeholder:text-[#555] focus-visible:ring-1 focus-visible:ring-[#F97316]"
+            className="h-11 pl-10 bg-[#252525] border border-[#2a2a2a] rounded-xl text-sm text-white placeholder:text-white/35 focus-visible:ring-1 focus-visible:ring-[#F97316]"
           />
         </div>
 
         <div className="relative group">
-          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#555] group-focus-within:text-[#F97316] transition-colors" />
+          <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-white/20 group-focus-within:text-[#F97316] transition-colors" />
           <Input
             type={showPassword ? "text" : "password"}
             placeholder="Senha"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
-            className="h-11 pl-10 pr-10 bg-[#1A1A1A] border-none rounded-xl text-sm text-white placeholder:text-[#555] focus-visible:ring-1 focus-visible:ring-[#F97316]"
+            className="h-11 pl-10 pr-10 bg-[#252525] border border-[#2a2a2a] rounded-xl text-sm text-white placeholder:text-white/35 focus-visible:ring-1 focus-visible:ring-[#F97316]"
           />
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#555] hover:text-white"
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-white/20 hover:text-white"
           >
             {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
           </button>
@@ -100,17 +100,17 @@ export function LoginForm() {
       </form>
 
       <div className="mt-auto space-y-6 flex flex-col items-center w-full">
-        <p className="text-sm text-[#888]">
+        <p className="text-sm text-white/50">
           Não tem uma conta? <button className="text-[#F97316] font-bold">Registrar-se</button>
         </p>
         
-        <div className="flex gap-4 text-[10px] text-[#555] uppercase font-bold tracking-wider">
+        <div className="flex gap-4 text-[10px] text-white/20 uppercase font-bold tracking-wider">
           <button>Política de Privacidade</button>
           <span>•</span>
           <button>Termos de Uso</button>
         </div>
 
-        <button className="flex items-center gap-2 px-6 py-2 rounded-full border border-[#222] text-xs font-bold">
+        <button className="flex items-center gap-2 px-6 py-2 rounded-full border border-white/5 text-xs font-bold text-white/60">
           <span className="w-4 h-4 rounded-full bg-yellow-500/20 text-yellow-500 flex items-center justify-center text-[8px]">🌐</span>
           PT
         </button>
