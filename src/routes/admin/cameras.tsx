@@ -652,47 +652,47 @@ function Cameras() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
+      <div className="bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
         <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
+          <TableHeader className="bg-transparent border-b border-white/5">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Identificação</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Localização</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-center">Config / Gatilho</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Status</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Identificação</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Localização</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6 text-center">Config / Gatilho</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Status</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {cameras.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium italic">
+               <TableRow>
+                <TableCell colSpan={5} className="h-40 text-center text-white/35 font-medium italic">
                   Nenhuma câmera configurada. Comece adicionando sua primeira fonte de vídeo.
                 </TableCell>
               </TableRow>
             ) : (
               cameras.map((camera) => (
-                <TableRow key={camera.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                <TableRow key={camera.id} className="hover:bg-white/[0.04] transition-colors border-b border-white/[0.07] last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white">
+                      <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-black">
                         <Video className="h-6 w-6" />
                       </div>
                       <div className="min-w-0">
-                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight block truncate">{camera.name}</span>
-                        <p className="text-[10px] font-bold text-muted-foreground font-mono truncate max-w-[200px]">{camera.rtsp_url}</p>
+                        <span className="font-black text-lg text-white uppercase tracking-tight block truncate">{camera.name}</span>
+                        <p className="text-[10px] font-bold text-white/35 font-mono truncate max-w-[200px]">{camera.rtsp_url}</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <div className="flex flex-col">
-                      <span className="font-black text-xs uppercase tracking-tight text-gray-700">{camera.quadras?.arenas?.nome}</span>
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase">{camera.quadras?.nome}</span>
+                      <span className="font-black text-xs uppercase tracking-tight text-white">{camera.quadras?.arenas?.nome}</span>
+                      <span className="text-[10px] font-bold text-white/35 uppercase">{camera.quadras?.nome}</span>
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6 text-center">
                     <div className="flex flex-col items-center gap-1">
-                      <Badge variant="outline" className="rounded-lg font-black uppercase tracking-tighter text-[9px] border-gray-200 text-gray-600 bg-gray-50">
+                      <Badge variant="outline" className="rounded-lg font-black uppercase tracking-tighter text-[9px] border-white/10 text-white/60 bg-white/5">
                         BTN K{ (camera.trigger_button ?? 0) + 1 }
                       </Badge>
                       <span className="text-[10px] font-bold text-brand-orange">{camera.replay_seconds}s Replay</span>
@@ -700,9 +700,9 @@ function Cameras() {
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     {camera.active ? (
-                      <Badge className="bg-green-500/10 text-green-600 hover:bg-green-500/20 border-green-200 font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">Ativa</Badge>
+                      <Badge className="bg-green-500/12 text-[#22c55e] border border-green-500/25 font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1">Ativa</Badge>
                     ) : (
-                      <Badge variant="secondary" className="font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1 opacity-50">Inativa</Badge>
+                      <Badge variant="secondary" className="font-black uppercase tracking-widest text-[9px] rounded-full px-3 py-1 bg-white/6 text-white/35 border border-white/12">Inativa</Badge>
                     )}
                   </TableCell>
                   <TableCell className="text-right py-5 px-6">
@@ -711,7 +711,7 @@ function Cameras() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => openEditDialog(camera)}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5"
+                        className="h-10 w-10 rounded-xl text-white/40 hover:text-brand-orange hover:bg-brand-orange/5"
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -719,7 +719,7 @@ function Cameras() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => handleDelete(camera.id)}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
+                        className="h-10 w-10 rounded-xl text-white/40 hover:text-red-500 hover:bg-red-500/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
