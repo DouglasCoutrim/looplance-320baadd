@@ -62,7 +62,7 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="glass-card group relative aspect-[9/16] w-full overflow-hidden transition hover:scale-[1.03] hover:shadow-md"
+        className="glass-card group relative aspect-[9/16] w-full overflow-hidden transition hover:scale-[1.03] hover:shadow-subtle"
       >
         <video
           src={`${replay.video_url}#t=3.0`}
@@ -71,7 +71,7 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
           preload="metadata"
           className="h-full w-full object-cover"
         />
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-100 transition group-hover:bg-black/25">
+        <div className="absolute inset-0 flex items-center justify-center bg-black/5 opacity-100 transition group-hover:bg-black/20">
           <div className="brand-gradient grid h-8 w-8 place-items-center rounded-full text-white shadow-lg transition-transform group-hover:scale-110">
             <Play className="h-4 w-4 fill-white" />
           </div>
@@ -88,10 +88,10 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
 
       <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-[#1A1C3A]/95 backdrop-blur-md animate-in fade-in duration-300" />
-          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-[95vw] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-md animate-in zoom-in-95 duration-300">
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-[#1A1008]/45 backdrop-blur-sm animate-in fade-in duration-300" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-[95vw] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-md animate-in zoom-in-95 duration-300 bg-surface border border-border rounded-[20px] overflow-hidden">
             <div className="relative flex flex-col items-center">
-              <div className="relative aspect-[9/16] w-full max-h-[75vh] overflow-hidden rounded-3xl bg-[#1A1C3A] shadow-2xl ring-1 ring-white/10">
+              <div className="relative aspect-[9/16] w-full max-h-[75vh] overflow-hidden rounded-b-none bg-surface shadow-subtle ring-1 ring-border">
                 <video
                   src={replay.video_url}
                   autoPlay
@@ -100,17 +100,17 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
                   className="h-full w-full object-contain"
                   onPlay={onReward}
                 />
-                <Dialog.Close className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-black/40 text-white backdrop-blur-md transition hover:bg-black/60 active:scale-90">
+                <Dialog.Close className="absolute right-4 top-4 grid h-10 w-10 place-items-center rounded-full bg-[#F5F0EB] text-[#1A1008]/50 transition hover:bg-[#FFE8D6] active:scale-90 shadow-sm">
                   <X className="h-5 w-5" />
                 </Dialog.Close>
               </div>
 
-              <div className="mt-6 flex w-full items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur-2xl shadow-xl">
+              <div className="flex w-full items-center justify-between gap-4 p-5 bg-surface border-t border-border shadow-subtle">
                 <div className="min-w-0">
-                  <h3 className="truncate text-lg font-black text-white">
+                  <h3 className="truncate text-lg font-black text-brand-text">
                     {replay.quadras?.nome ?? "Quadra"}
                   </h3>
-                  <p className="flex items-center gap-1.5 text-sm font-medium text-white/70">
+                  <p className="flex items-center gap-1.5 text-sm font-medium text-secondary">
                     <Clock className="h-3.5 w-3.5" />
                     {date} · {time}
                     {replay.quadras?.arenas?.nome && <span>· {replay.quadras.arenas.nome}</span>}
@@ -120,13 +120,13 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
                 <div className="flex shrink-0 items-center gap-3">
                   <button
                     onClick={handleShare}
-                    className="grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 active:scale-90"
+                    className="grid h-12 w-12 place-items-center rounded-full border border-border bg-tag text-secondary transition hover:bg-tag/80 active:scale-90"
                   >
                     <Share2 className="h-5 w-5" />
                   </button>
                   <button
                     onClick={handleDownload}
-                    className="brand-gradient brand-glow grid h-12 w-12 place-items-center rounded-full text-white transition hover:scale-105 active:scale-95"
+                    className="bg-brand brand-glow grid h-12 w-12 place-items-center rounded-full text-white transition hover:scale-105 active:scale-95"
                   >
                     <Download className="h-5 w-5" />
                   </button>
