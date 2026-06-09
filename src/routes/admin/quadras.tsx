@@ -159,9 +159,9 @@ function Quadras() {
         <Table>
           <TableHeader className="bg-transparent border-b border-white/5">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Quadra / Court</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Arena Vinculada</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Quadra / Court</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Arena Vinculada</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -173,14 +173,14 @@ function Quadras() {
               </TableRow>
             ) : (
               quadras.map((q) => (
-                <TableRow key={q.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                <TableRow key={q.id} className="hover:bg-white/[0.04] transition-colors border-b border-white/[0.07] last:border-0 group">
                   <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
                     <div className="flex items-center gap-3 sm:gap-4">
                       <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white shrink-0">
                         <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
                       </div>
                       <div className="min-w-0">
-                        <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{q.nome}</span>
+                        <span className="font-black text-base sm:text-lg text-[#ffffff] uppercase tracking-tight block truncate">{q.nome}</span>
                         <p className="text-[10px] font-medium text-muted-foreground truncate">ID: {q.id.slice(0, 8)}...</p>
                       </div>
                     </div>
@@ -188,7 +188,7 @@ function Quadras() {
                   <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
                     <div className="flex items-center gap-2">
                       <Tv className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-orange shrink-0" />
-                      <span className="font-bold text-gray-700 text-xs sm:text-sm truncate">{q.arenas?.nome}</span>
+                      <span className="font-bold text-white/80 text-xs sm:text-sm truncate">{q.arenas?.nome}</span>
                     </div>
                   </TableCell>
                   <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
