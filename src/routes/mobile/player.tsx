@@ -13,7 +13,7 @@ function ReplayPlayer() {
   const [rating, setRating] = useState(0);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0a0a0a] pb-8">
+    <div className="flex flex-col min-h-screen bg-[#0a0a0a] pb-[env(safe-area-inset-bottom,24px)]">
       <MobileHeader title="Lance do Jogo" showBack />
       
       {/* Video Area */}
