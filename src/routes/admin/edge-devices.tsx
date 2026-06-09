@@ -145,13 +145,13 @@ function EdgeDevices() {
     const isOnline = device.last_seen && (new Date().getTime() - new Date(device.last_seen).getTime()) < 300000; // 5 minutes
     if (isOnline) {
       return (
-        <Badge className="bg-green-500 hover:bg-green-600 font-bold uppercase tracking-widest text-[10px] rounded-full px-3 py-1">
+        <Badge variant="online" className="font-bold uppercase tracking-widest text-[10px] rounded-full px-3 py-1">
           <Wifi className="h-3 w-3 mr-1" /> Online
         </Badge>
       );
     }
     return (
-      <Badge variant="secondary" className="font-bold uppercase tracking-widest text-[10px] rounded-full px-3 py-1 bg-gray-100 text-gray-400">
+      <Badge variant="offline" className="font-bold uppercase tracking-widest text-[10px] rounded-full px-3 py-1">
         <WifiOff className="h-3 w-3 mr-1" /> Offline
       </Badge>
     );
@@ -161,16 +161,16 @@ function EdgeDevices() {
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-4xl font-black tracking-tight text-primary uppercase">
             Edge <span className="brand-text">Devices</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-lg">
+          <p className="text-secondary mt-1 font-medium text-lg">
             Gerencie seus servidores locais de processamento de vídeo.
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
-            <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
+          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-border h-12 w-12 shadow-sm bg-surface hover:bg-tag">
+            <RefreshCw className={`h-5 w-5 text-muted ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -182,33 +182,33 @@ function EdgeDevices() {
             }
           }}>
             <DialogTrigger asChild>
-              <Button onClick={() => { setEditingDevice(null); setNewName(""); setNewHostname(""); setSelectedArenaId(""); }} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+              <Button onClick={() => { setEditingDevice(null); setNewName(""); setNewHostname(""); setSelectedArenaId(""); }} className="bg-brand brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
                 <Plus className="mr-2 h-5 w-5" /> Novo Device
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-2xl border-none shadow-2xl">
+            <DialogContent className="rounded-[20px] border border-border shadow-subtle bg-surface">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">{editingDevice ? "Editar Servidor" : "Provisionar Servidor"}</DialogTitle>
-                <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-primary">{editingDevice ? "Editar Servidor" : "Provisionar Servidor"}</DialogTitle>
+                <DialogDescription className="text-sm font-bold uppercase tracking-widest text-secondary">
                   {editingDevice ? "Atualize as configurações deste servidor edge." : "Configure um novo nó de processamento local (Edge) para sua rede."}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome do Dispositivo</Label>
-                  <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex: Edge Server Arena 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-secondary">Nome do Dispositivo</Label>
+                  <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex: Edge Server Arena 1" className="rounded-xl border-border bg-input h-12 focus:border-brand focus:ring-brand" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="hostname" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Hostname (Opcional)</Label>
-                  <Input id="hostname" value={newHostname} onChange={(e) => setNewHostname(e.target.value)} placeholder="Ex: edge-01.local" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  <Label htmlFor="hostname" className="text-xs font-black uppercase tracking-widest text-secondary">Hostname (Opcional)</Label>
+                  <Input id="hostname" value={newHostname} onChange={(e) => setNewHostname(e.target.value)} placeholder="Ex: edge-01.local" className="rounded-xl border-border bg-input h-12 focus:border-brand focus:ring-brand" />
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="arena" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Arena</Label>
+                  <Label htmlFor="arena" className="text-xs font-black uppercase tracking-widest text-secondary">Arena</Label>
                   <Select value={selectedArenaId} onValueChange={setSelectedArenaId}>
-                    <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange">
+                    <SelectTrigger className="rounded-xl border-border bg-input h-12 focus:border-brand focus:ring-brand">
                       <SelectValue placeholder="Selecione a arena deste servidor" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                    <SelectContent className="rounded-xl shadow-subtle border-border">
                       {arenas.map((a) => (
                         <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
                       ))}
@@ -218,56 +218,57 @@ function EdgeDevices() {
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">{editingDevice ? "Atualizar" : "Provisionar"}</Button>
+                <Button onClick={handleSave} className="bg-brand text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">{editingDevice ? "Atualizar" : "Provisionar"}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
+      <div className="glass-card bg-surface shadow-subtle border border-border overflow-hidden overflow-x-auto">
         <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
+          <TableHeader className="bg-tag border-b border-border">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Dispositivo</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Endereço (Hostname)</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Status</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-right">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted py-4 px-6">Dispositivo</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted py-4 px-6">Endereço (Hostname)</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted py-4 px-6">Status</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted py-4 px-6 text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {devices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-medium italic">
+                <TableCell colSpan={4} className="h-40 text-center text-secondary font-medium italic">
                   Nenhum dispositivo provisionado. Use o botão acima para começar.
                 </TableCell>
               </TableRow>
             ) : (
               devices.map((device) => (
-                <TableRow key={device.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                <TableRow key={device.id} className="hover:bg-bg-card-hover transition-colors border-b border-border last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-brand-orange transition-colors group-hover:brand-gradient group-hover:text-white">
+                      <div className="h-12 w-12 rounded-2xl bg-brand-dim flex items-center justify-center text-brand transition-colors group-hover:bg-brand group-hover:text-white">
                         <HardDrive className="h-6 w-6" />
                       </div>
                       <div>
-                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{device.name}</span>
+                        <span className="font-black text-lg text-primary uppercase tracking-tight">{device.name}</span>
                         {device.arenas && (
-                          <Badge variant="outline" className="ml-2 text-[8px] border-orange-200 text-brand-orange">
+                          <Badge variant="brand" className="ml-2 text-[8px]">
                             {device.arenas.nome}
                           </Badge>
                         )}
-                        <p className="text-xs font-medium text-muted-foreground">Token: {device.edge_token?.slice(0, 8)}...</p>
+                        <p className="text-xs font-medium text-secondary">Token: {device.edge_token?.slice(0, 8)}...</p>
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="py-5 px-6 font-mono text-xs font-bold text-gray-500">
+                  <TableCell className="py-5 px-6 font-mono text-xs font-bold text-secondary">
                     {device.hostname || "não configurado"}
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     {getStatusBadge(device)}
-                    <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter">
+                    <p className="text-[10px] font-bold text-muted mt-1 uppercase tracking-tighter">
                       Visto {device.last_seen 
+
                         ? formatDistanceToNow(new Date(device.last_seen), { addSuffix: true, locale: ptBR })
                         : "nunca"}
                     </p>
@@ -278,7 +279,7 @@ function EdgeDevices() {
                         variant="ghost" 
                         size="sm" 
                         onClick={() => copyToken(device.edge_token)}
-                        className="rounded-xl font-black uppercase tracking-widest text-[10px] px-3 border border-gray-100 hover:bg-gray-50"
+                        className="rounded-xl font-black uppercase tracking-widest text-[10px] px-3 border border-border hover:bg-tag"
                       >
                         Copiar Token
                       </Button>
@@ -286,7 +287,7 @@ function EdgeDevices() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => openEditDialog(device)}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5"
+                        className="h-10 w-10 rounded-xl text-muted hover:text-brand hover:bg-brand/5"
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -294,7 +295,7 @@ function EdgeDevices() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => handleDelete(device.id)}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
+                        className="h-10 w-10 rounded-xl text-muted hover:text-danger hover:bg-danger/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
