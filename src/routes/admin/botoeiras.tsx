@@ -161,10 +161,10 @@ function BotoeirasPage() {
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-4xl font-black tracking-tight text-white uppercase">
             Gerenciamento de <span className="brand-text">Botoeiras</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-lg">
+          <p className="text-white/50 mt-1 font-medium text-lg">
             Módulos IoT físicos para disparo manual de replays.
           </p>
         </div>
@@ -174,33 +174,33 @@ function BotoeirasPage() {
             size="icon" 
             onClick={fetchData} 
             disabled={loading} 
-            className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50"
+            className="rounded-xl border-[#2a2a2a] h-12 w-12 bg-[#1a1a1a] hover:bg-[#222] border"
           >
-            <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-5 w-5 text-white/40 ${loading ? "animate-spin" : ""}`} />
           </Button>
           
           <Dialog open={isDialogOpen} onOpenChange={(open) => !open && closeDialog()}>
             <DialogTrigger asChild>
               <Button 
                 onClick={() => { setEditingBotoeira(null); }} 
-                className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]"
+                className="brand-gradient text-black font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]"
               >
                 <Plus className="mr-2 h-5 w-5" /> Nova Botoeira
               </Button>
             </DialogTrigger>
-            <DialogContent className="sm:max-w-[500px] rounded-2xl border-none shadow-2xl overflow-hidden p-0">
-               <div className="brand-gradient p-6 text-white">
+            <DialogContent className="sm:max-w-[500px] rounded-2xl border border-[#2a2a2a] shadow-2xl overflow-hidden p-0 bg-[#1a1a1a] text-white">
+               <div className="brand-gradient p-6 text-black">
                  <DialogTitle className="text-2xl font-black uppercase tracking-tight">
                    {editingBotoeira ? "Editar Botoeira" : "Nova Botoeira"}
                  </DialogTitle>
-                <DialogDescription className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">
-                  {editingBotoeira ? "Atualize as configurações do módulo IoT." : "Cadastre um novo botão Wi-Fi na rede da arena."}
+                <DialogDescription className="text-black/70 text-sm font-bold uppercase tracking-widest mt-1">
+                   {editingBotoeira ? "Atualize as configurações do módulo IoT." : "Cadastre um novo botão Wi-Fi na rede da arena."}
                 </DialogDescription>
               </div>
 
               <div className="p-8 space-y-6">
                 <div className="grid gap-2">
-                  <Label htmlFor="botoeira_id" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                  <Label htmlFor="botoeira_id" className="text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-1">
                     <Hash className="h-3 w-3" /> Device ID (botoeira_id)
                   </Label>
                   <Input 
@@ -208,12 +208,12 @@ function BotoeirasPage() {
                     value={botoeiraId} 
                     onChange={(e) => setBotoeiraId(e.target.value)} 
                     placeholder="Ex: eb9fe..." 
-                    className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" 
+                    className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:ring-brand-orange" 
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="ip_local" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                  <Label htmlFor="ip_local" className="text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-1">
                     <Globe className="h-3 w-3" /> IP Local
                   </Label>
                   <Input 
@@ -221,12 +221,12 @@ function BotoeirasPage() {
                     value={ipLocal} 
                     onChange={(e) => setIpLocal(e.target.value)} 
                     placeholder="Ex: 192.168.1.15" 
-                    className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" 
+                    className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:ring-brand-orange" 
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="local_key" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">
+                  <Label htmlFor="local_key" className="text-[10px] font-black uppercase tracking-widest text-white/60">
                     Local Key (Secret)
                   </Label>
                   <div className="relative">
@@ -236,12 +236,12 @@ function BotoeirasPage() {
                       value={localKey} 
                       onChange={(e) => setLocalKey(e.target.value)} 
                       placeholder="Chave secreta do dispositivo" 
-                      className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange pr-12" 
+                      className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:ring-brand-orange pr-12" 
                     />
                     <button
                       type="button"
                       onClick={() => setShowLocalKey(!showLocalKey)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/60"
                     >
                       {showLocalKey ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                     </button>
@@ -249,7 +249,7 @@ function BotoeirasPage() {
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="camera_id" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1">
+                  <Label htmlFor="camera_id" className="text-[10px] font-black uppercase tracking-widest text-white/60 flex items-center gap-1">
                     <Camera className="h-3 w-3" /> Câmera Vinculada
                   </Label>
                   <Input 
@@ -257,19 +257,19 @@ function BotoeirasPage() {
                     value={cameraId} 
                     onChange={(e) => setCameraId(e.target.value)} 
                     placeholder="ID ou Nome da Câmera" 
-                    className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" 
+                    className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:ring-brand-orange" 
                   />
                 </div>
               </div>
 
-              <DialogFooter className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
-                 <Button variant="ghost" onClick={closeDialog} className="font-bold rounded-xl" disabled={saving}>
+              <DialogFooter className="bg-[#111] p-6 flex justify-end gap-3 border-t border-white/5">
+                 <Button variant="ghost" onClick={closeDialog} className="font-bold rounded-xl text-white/60 hover:text-white hover:bg-white/5" disabled={saving}>
                    Cancelar
                  </Button>
                 <Button 
                   onClick={handleSave} 
                   disabled={saving}
-                  className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20"
+                  className="brand-gradient text-black font-black uppercase tracking-widest px-8 h-12 rounded-xl"
                 >
                   {saving ? (
                     <RefreshCw className="h-5 w-5 animate-spin mr-2" />
