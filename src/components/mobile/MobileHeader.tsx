@@ -12,7 +12,7 @@ export const MobileHeader = ({ title, showBack = false, rightElement, isWelcome 
   const navigate = useNavigate();
 
   return (
-    <div className="bg-[#F97316] h-[120px] pt-12 px-6 flex items-start justify-between relative overflow-hidden">
+    <div className="bg-[#F97316] h-[120px] pt-[env(safe-area-inset-top,48px)] px-6 flex items-start justify-between relative overflow-hidden">
       {showBack && (
         <button 
           onClick={() => navigate({ to: '..' })}

@@ -30,7 +30,7 @@ function MyReplays() {
   const filteredReplays = mockReplays.filter(r => r.type === activeTab);
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0a0a0a] pb-[100px]">
+    <div className="flex flex-col min-h-screen bg-[#0a0a0a] pb-[calc(100px+env(safe-area-inset-bottom,0px))]">
       <MobileHeader title="Meus Replays" />
       
       <div className="flex-1 bg-[#0a0a0a] rounded-t-[24px] -mt-5 relative z-10 px-6 pt-6">
@@ -45,7 +45,7 @@ function MyReplays() {
         <div className="flex flex-col">
           {filteredReplays.length > 0 ? (
             filteredReplays.map((replay) => (
-              <Link key={replay.id} to="/mobile/player">
+              <Link key={replay.id} to="/mobile/player" className="block active:scale-[0.98] transition-transform">
                 <ReplayCardList 
                   title={replay.title}
                   arena={replay.arena}

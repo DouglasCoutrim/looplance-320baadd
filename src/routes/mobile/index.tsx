@@ -22,7 +22,7 @@ function MobileHome() {
   const [activeCategory, setActiveCategory] = useState('all');
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#0a0a0a] pb-[100px]">
+    <div className="flex flex-col min-h-screen bg-[#0a0a0a] pb-[calc(100px+env(safe-area-inset-bottom,0px))]">
       <MobileHeader title="Bem-vindo, Atleta 👋" isWelcome />
       
       <div className="flex-1 bg-[#0a0a0a] rounded-t-[24px] -mt-5 relative z-10 px-6 pt-6">
@@ -61,7 +61,7 @@ function MobileHome() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-8">
-          <Link to="/mobile/player">
+          <Link to="/mobile/player" className="block active:scale-[0.98] transition-transform">
             <ReplayCardLarge 
               title="Lance do Jogo" 
               duration="00:08" 
@@ -70,7 +70,7 @@ function MobileHome() {
               thumbnail="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&q=80"
             />
           </Link>
-          <Link to="/mobile/player">
+          <Link to="/mobile/player" className="block active:scale-[0.98] transition-transform">
             <ReplayCardLarge 
               title="Cesta incrível" 
               duration="00:12" 
