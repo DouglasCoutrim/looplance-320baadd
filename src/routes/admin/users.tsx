@@ -180,28 +180,28 @@ function UsersManagement() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-3xl font-black tracking-tight text-white uppercase">
             Gestão de <span className="brand-text">Usuários</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium">
+          <p className="text-white/50 mt-1 font-medium">
             Administre acessos, permissões e contas de usuários do sistema.
           </p>
         </div>
         <Button 
           onClick={() => setIsCreateDialogOpen(true)}
-          className="brand-gradient text-white border-none brand-glow"
+          className="brand-gradient text-black border-none font-bold"
         >
           <UserPlus className="h-4 w-4 mr-2" />
           Novo Usuário
         </Button>
       </div>
 
-      <div className="glass-card bg-[#1a1a1a] p-6 shadow-md border border-[#2a2a2a] rounded-[12px]">
+      <div className="bg-[#1a1a1a] p-6 border border-[#2a2a2a] rounded-[12px]">
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/35" />
           <Input 
             placeholder="Buscar por nome ou e-mail..." 
-            className="pl-10 h-12 bg-gray-50/50 border-gray-200 focus:ring-brand-orange/20"
+            className="pl-10 h-12 bg-[#252525] border-[#2a2a2a] text-white placeholder:text-white/35 focus:ring-brand-orange/20"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -210,10 +210,10 @@ function UsersManagement() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="h-10 w-10 text-brand-orange animate-spin" />
-            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Carregando Usuários...</p>
+            <p className="text-xs font-black uppercase tracking-widest text-white/35">Carregando Usuários...</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-100 overflow-hidden">
+          <div className="rounded-xl border border-white/5 overflow-hidden">
             <Table>
               <TableHeader className="bg-transparent border-b border-white/5">
                 <TableRow>
@@ -229,28 +229,28 @@ function UsersManagement() {
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-bold text-[#ffffff]">{user.full_name || "Sem Nome"}</span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                        <span className="text-xs text-white/50">{user.email}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="capitalize bg-white font-bold border-gray-200 text-gray-600">
+                      <Badge variant="outline" className="capitalize bg-white/5 font-bold border-white/10 text-white/60">
                         {user.role || "usuário"}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         {user.is_super_admin && (
-                          <Badge className="bg-purple-100 text-purple-700 border-purple-200 font-black text-[9px] uppercase tracking-tighter">
+                          <Badge className="bg-purple-500/12 text-purple-400 border-purple-500/25 font-black text-[9px] uppercase tracking-tighter">
                             Super Admin
                           </Badge>
                         )}
                         {user.is_arena_owner && (
-                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-black text-[9px] uppercase tracking-tighter">
+                          <Badge className="bg-blue-500/12 text-blue-400 border-blue-500/25 font-black text-[9px] uppercase tracking-tighter">
                             Dono de Arena
                           </Badge>
                         )}
                         {!user.is_super_admin && !user.is_arena_owner && (
-                          <Badge className="bg-gray-100 text-gray-400 border-gray-200 font-black text-[9px] uppercase tracking-tighter">
+                          <Badge className="bg-white/6 text-white/40 border-white/12 font-black text-[9px] uppercase tracking-tighter">
                             Padrão
                           </Badge>
                         )}
@@ -259,14 +259,14 @@ function UsersManagement() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
-                            <MoreVertical className="h-4 w-4 text-gray-500" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/5 text-white/40">
+                            <MoreVertical className="h-4 w-4 text-white/40" />
                           </Button>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuLabel className="text-[10px] uppercase font-black text-muted-foreground">Gerenciar Usuário</DropdownMenuLabel>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem onClick={() => {
+                        <DropdownMenuContent align="end" className="w-48 bg-[#1a1a1a] border-[#2a2a2a] text-white">
+                          <DropdownMenuLabel className="text-[10px] uppercase font-black text-white/35">Gerenciar Usuário</DropdownMenuLabel>
+                          <DropdownMenuSeparator className="bg-white/5" />
+                          <DropdownMenuItem className="focus:bg-white/5 focus:text-white" onClick={() => {
                             setSelectedUser(user);
                             setEditUserForm({
                               fullName: user.full_name || "",
@@ -279,16 +279,16 @@ function UsersManagement() {
                             <Settings2 className="h-4 w-4 mr-2" />
                             Editar Permissões
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => {
+                          <DropdownMenuItem className="focus:bg-white/5 focus:text-white" onClick={() => {
                             setSelectedUser(user);
                             setIsPasswordDialogOpen(true);
                           }}>
                             <Key className="h-4 w-4 mr-2" />
                             Alterar Senha
                           </DropdownMenuItem>
-                          <DropdownMenuSeparator />
+                          <DropdownMenuSeparator className="bg-white/5" />
                           <DropdownMenuItem 
-                            className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                            className="text-red-500 focus:text-red-500 focus:bg-red-500/10"
                             onClick={() => handleDeleteUser(user.id)}
                           >
                             <Trash2 className="h-4 w-4 mr-2" />
@@ -307,24 +307,24 @@ function UsersManagement() {
 
       {/* Dialog: Editar Perfil */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-[#1a1a1a] border-[#2a2a2a] text-white rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase tracking-tight">Editar Permissões</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="font-black uppercase tracking-tight text-brand-orange">Editar Permissões</DialogTitle>
+            <DialogDescription className="text-white/60">
               Ajuste o cargo e privilégios administrativos de {selectedUser?.full_name}.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-muted-foreground">Cargo Funcional</Label>
+              <Label className="text-[10px] font-black uppercase text-white/35">Cargo Funcional</Label>
               <Select 
                 value={editUserForm.role} 
                 onValueChange={(v) => setEditUserForm(prev => ({ ...prev, role: v }))}
               >
-                <SelectTrigger className="w-full">
+                <SelectTrigger className="w-full bg-[#252525] border-[#2a2a2a] text-white">
                   <SelectValue placeholder="Selecione um cargo" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-[#1a1a1a] border-[#2a2a2a] text-white">
                   <SelectItem value="user">Usuário Comum</SelectItem>
                   <SelectItem value="manager">Gerente de Arena</SelectItem>
                   <SelectItem value="staff">Equipe Técnica</SelectItem>
@@ -332,10 +332,10 @@ function UsersManagement() {
               </Select>
             </div>
             
-            <div className="flex items-center justify-between p-3 border rounded-xl bg-gray-50/50">
+            <div className="flex items-center justify-between p-3 border border-white/5 rounded-xl bg-white/5">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold">Super Admin</Label>
-                <p className="text-[10px] text-muted-foreground">Acesso total a todas as arenas e infra.</p>
+                <Label className="text-sm font-bold text-white">Super Admin</Label>
+                <p className="text-[10px] text-white/35">Acesso total a todas as arenas e infra.</p>
               </div>
               <Switch 
                 checked={editUserForm.isSuperAdmin}
@@ -343,10 +343,10 @@ function UsersManagement() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-xl bg-gray-50/50">
+            <div className="flex items-center justify-between p-3 border border-white/5 rounded-xl bg-white/5">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold">Dono de Arena</Label>
-                <p className="text-[10px] text-muted-foreground">Pode gerenciar suas próprias quadras e replays.</p>
+                <Label className="text-sm font-bold text-white">Dono de Arena</Label>
+                <p className="text-[10px] text-white/35">Pode gerenciar suas próprias quadras e replays.</p>
               </div>
               <Switch 
                 checked={editUserForm.isArenaOwner}
@@ -355,65 +355,66 @@ function UsersManagement() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleUpdateProfile} className="brand-gradient text-white border-none">Salvar Alterações</Button>
+            <Button variant="outline" onClick={() => setIsEditDialogOpen(false)} className="bg-transparent border-white/20 text-white hover:bg-white/5">Cancelar</Button>
+            <Button onClick={handleUpdateProfile} className="brand-gradient text-black border-none font-bold">Salvar Alterações</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Dialog: Alterar Senha */}
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-[400px] bg-[#1a1a1a] border-[#2a2a2a] text-white rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase tracking-tight">Alterar Senha</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="font-black uppercase tracking-tight text-brand-orange">Alterar Senha</DialogTitle>
+            <DialogDescription className="text-white/60">
               Defina uma nova senha de acesso para o usuário.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label>Nova Senha</Label>
+              <Label className="text-white/60 text-[10px] font-black uppercase tracking-widest">Nova Senha</Label>
               <Input 
                 type="password" 
                 placeholder="Mínimo 6 caracteres"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
+                className="bg-[#252525] border-[#2a2a2a] text-white placeholder:text-white/35"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleUpdatePassword} className="brand-gradient text-white border-none">Atualizar Senha</Button>
+            <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)} className="bg-transparent border-white/20 text-white hover:bg-white/5">Cancelar</Button>
+            <Button onClick={handleUpdatePassword} className="brand-gradient text-black border-none font-bold">Atualizar Senha</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Dialog: Criar Usuário */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[450px] bg-[#1a1a1a] border-[#2a2a2a] text-white rounded-2xl">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase tracking-tight">Novo Usuário</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="font-black uppercase tracking-tight text-brand-orange">Novo Usuário</DialogTitle>
+            <DialogDescription className="text-white/60">
               Cadastre um novo usuário diretamente no sistema.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="space-y-2">
-              <Label>Nome Completo</Label>
-              <Input placeholder="Ex: João Silva" />
+              <Label className="text-white/60 text-[10px] font-black uppercase tracking-widest">Nome Completo</Label>
+              <Input placeholder="Ex: João Silva" className="bg-[#252525] border-[#2a2a2a] text-white placeholder:text-white/35" />
             </div>
             <div className="space-y-2">
-              <Label>E-mail</Label>
-              <Input type="email" placeholder="email@exemplo.com" />
+              <Label className="text-white/60 text-[10px] font-black uppercase tracking-widest">E-mail</Label>
+              <Input type="email" placeholder="email@exemplo.com" className="bg-[#252525] border-[#2a2a2a] text-white placeholder:text-white/35" />
             </div>
             <div className="space-y-2">
-              <Label>Senha Inicial</Label>
-              <Input type="password" placeholder="Senha provisória" />
+              <Label className="text-white/60 text-[10px] font-black uppercase tracking-widest">Senha Inicial</Label>
+              <Input type="password" placeholder="Senha provisória" className="bg-[#252525] border-[#2a2a2a] text-white placeholder:text-white/35" />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleCreateUser} className="brand-gradient text-white border-none">Criar Conta</Button>
+            <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)} className="bg-transparent border-white/20 text-white hover:bg-white/5">Cancelar</Button>
+            <Button onClick={handleCreateUser} className="brand-gradient text-black border-none font-bold">Criar Conta</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

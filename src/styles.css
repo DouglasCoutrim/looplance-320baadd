@@ -11,113 +11,72 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-brand-orange: #F97316;
+  --color-background: #0a0a0a;
+  --color-foreground: #ffffff;
+  --color-card: #1a1a1a;
+  --color-card-foreground: #ffffff;
+  --color-popover: #1a1a1a;
+  --color-popover-foreground: #ffffff;
+  --color-primary: #F97316;
+  --color-primary-foreground: #000000;
+  --color-secondary: #2a2a2a;
+  --color-secondary-foreground: #ffffff;
+  --color-muted: #2a2a2a;
+  --color-muted-foreground: rgba(255, 255, 255, 0.60);
+  --color-accent: #2a2a2a;
+  --color-accent-foreground: #ffffff;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #2a2a2a;
+  --color-input: #252525;
+  --color-ring: #F97316;
 }
 
 :root {
   --radius: 14px;
-  --background: #000000;
-  --foreground: #FFFFFF;
-  --primary: #F97316;
-  --primary-foreground: #FFFFFF;
-  --card: #111111;
-  --card-foreground: #FFFFFF;
-  --popover: #111111;
-  --popover-foreground: #FFFFFF;
-  --secondary: #1A1A1A;
-  --secondary-foreground: #FFFFFF;
-  --muted: #1A1A1A;
-  --muted-foreground: rgba(255, 255, 255, 0.5);
-  --accent: rgba(249, 115, 22, 0.1);
-  --accent-foreground: #F97316;
-  --destructive: #EF4444;
-  --destructive-foreground: #FFFFFF;
-  --border: rgba(255, 255, 255, 0.1);
-  --input: #1A1A1A;
-  --ring: #F97316;
-}
-
-.dark {
-  --background: #000000;
-  --foreground: #FFFFFF;
 }
 
 @layer base {
   * { 
-    border-color: rgba(255, 255, 255, 0.1); 
+    border-color: #2a2a2a; 
   }
   html, body {
-    background-color: #000000 !important;
-    color: #FFFFFF !important;
-    scroll-behavior: smooth;
-    font-size: 16px;
+    background-color: #0a0a0a !important;
+    color: #ffffff !important;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
   }
 }
 
-@layer utilities {
-  .hide-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-  }
-  .hide-scrollbar::-webkit-scrollbar {
-    display: none;
-  }
+/* Helper Classes */
+.brand-gradient {
+  background: linear-gradient(135deg, #F97316, #ea6c0a);
 }
 
-/* Animations */
-.fade-in-up {
-  opacity: 0;
-  transform: translateY(20px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+.brand-text {
+  color: #F97316;
 }
 
-.fade-in-up.visible {
-  opacity: 1;
-  transform: translateY(0);
+.brand-glow {
+  box-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-10px); }
+/* Reset Scrollbar for Dark Mode */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
+::-webkit-scrollbar-track {
+  background: #0a0a0a;
 }
 
-/* Remove Lovable badge */
-#lovable-badge,
-[class*="lovable-badge"],
-[id*="lovable-badge"],
-iframe[src*="lovable"] {
-  display: none !important;
-  visibility: hidden !important;
-  pointer-events: none !important;
-  opacity: 0 !important;
-  width: 0 !important;
-  height: 0 !important;
-  position: absolute !important;
-  overflow: hidden !important;
+::-webkit-scrollbar-thumb {
+  background: #252525;
+  border-radius: 5px;
+  border: 2px solid #0a0a0a;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #2a2a2a;
 }

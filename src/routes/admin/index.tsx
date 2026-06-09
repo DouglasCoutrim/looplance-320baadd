@@ -79,7 +79,7 @@ function AdminHome() {
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#ffffff] uppercase">
             Dashboard <span className="brand-text">Admin</span>
           </h1>
-          <p className="text-white/60 mt-1 font-medium text-base sm:text-lg">
+          <p className="text-white/50 mt-1 font-medium text-base sm:text-lg">
             Monitoramento e controle da infraestrutura <span className="text-brand-orange font-bold">Edge Replay</span>.
           </p>
         </div>
@@ -133,7 +133,7 @@ function AdminHome() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Resource Distribution Chart */}
-        <div className="lg:col-span-3 glass-card bg-[#1a1a1a] p-4 sm:p-6 shadow-md border border-[#2a2a2a] rounded-[12px]">
+        <div className="bg-[#1a1a1a] p-4 sm:p-6 border border-[#2a2a2a] rounded-[12px]">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-lg sm:text-xl font-black text-[#ffffff] flex items-center gap-2 uppercase tracking-tight">
               <Activity className="h-5 w-5 text-brand-orange" />
@@ -151,14 +151,14 @@ function AdminHome() {
                   dataKey="name" 
                   axisLine={false} 
                   tickLine={false} 
-                  tick={{ fontSize: 10, fontWeight: 700, fill: '#64748b' }}
+                  tick={{ fontSize: 10, fontWeight: 700, fill: 'rgba(255,255,255,0.35)' }}
                 />
                 <Tooltip 
                   cursor={{ fill: 'rgba(0,0,0,0.02)' }}
                   content={({ active, payload }) => {
                     if (active && payload && payload.length) {
                       return (
-                        <div className="bg-white p-3 border border-gray-100 rounded-xl shadow-xl text-[10px] font-black uppercase">
+                        <div className="bg-[#1a1a1a] p-3 border border-[#2a2a2a] rounded-xl shadow-xl text-[10px] font-black uppercase text-white">
                           <span style={{ color: payload[0].payload.color }}>{payload[0].name}</span>: {payload[0].value}
                         </div>
                       );
@@ -208,11 +208,11 @@ function AdminHome() {
             icon={<Tv className="h-6 w-6" />}
           />
           
-          <div className="glass-card brand-gradient brand-glow p-4 sm:p-6 text-white mt-2 relative overflow-hidden group transition-transform hover:scale-[1.02]">
+          <div className="brand-gradient p-4 sm:p-6 text-black mt-2 relative overflow-hidden group transition-transform hover:scale-[1.02] rounded-[12px]">
             <div className="relative z-10">
               <h4 className="font-black uppercase tracking-widest text-xs opacity-80 mb-1">Status Global</h4>
               <p className="text-xl sm:text-2xl font-black leading-tight">Sua rede Edge está pronta para lances.</p>
-              <button className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-md px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-white/30 transition">
+              <button className="mt-4 inline-flex items-center gap-2 rounded-full bg-black/20 backdrop-blur-md px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-black/30 transition">
                 Ver Logs <ArrowRight className="h-3 w-3" />
               </button>
             </div>
@@ -226,14 +226,14 @@ function AdminHome() {
 
 function StatCard({ title, value, icon, description, link, color = "orange" }: any) {
   const colorClasses: any = {
-    orange: "text-orange-500 bg-orange-50",
-    blue: "text-blue-500 bg-blue-50",
-    green: "text-green-500 bg-green-50",
-    purple: "text-purple-500 bg-purple-50",
+    orange: "text-orange-500 bg-orange-500/10",
+    blue: "text-blue-500 bg-blue-500/10",
+    green: "text-green-500 bg-green-500/10",
+    purple: "text-purple-500 bg-purple-500/10",
   };
 
   const content = (
-    <div className="glass-card bg-[#1a1a1a] p-4 sm:p-6 shadow-md border border-[#2a2a2a] rounded-[12px] transition-all hover:shadow-xl hover:-translate-y-1 group">
+    <div className="bg-[#1a1a1a] p-4 sm:p-6 border border-[#2a2a2a] rounded-[12px] transition-all group">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-2.5 sm:p-3 rounded-2xl ${colorClasses[color] || colorClasses.orange} transition-colors group-hover:brand-gradient group-hover:text-white`}>
           {icon}
@@ -257,9 +257,9 @@ function QuickAction({ to, title, description, icon }: any) {
   return (
     <Link 
       to={to} 
-      className="flex items-center gap-3 sm:gap-4 glass-card bg-[#1a1a1a] p-3 sm:p-4 shadow-sm border border-[#2a2a2a] rounded-[12px] transition-all hover:border-brand-orange/50 hover:shadow-md hover:bg-white/5 group"
+      className="flex items-center gap-3 sm:gap-4 bg-[#1a1a1a] p-3 sm:p-4 border border-[#2a2a2a] rounded-[12px] transition-all hover:bg-[#222] group"
     >
-      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:brand-gradient group-hover:text-white transition-all">
+      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-white/5 flex items-center justify-center text-white/40 group-hover:brand-gradient group-hover:text-black transition-all">
         {icon}
       </div>
       <div className="flex-1">
