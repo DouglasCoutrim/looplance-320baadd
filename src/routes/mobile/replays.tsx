@@ -45,7 +45,7 @@ function MyReplays() {
         <div className="flex flex-col">
           {filteredReplays.length > 0 ? (
             filteredReplays.map((replay) => (
-              <Link key={replay.id} to="/mobile/player">
+              <Link key={replay.id} to="/mobile/player" className="block active:scale-[0.98] transition-transform">
                 <ReplayCardList 
                   title={replay.title}
                   arena={replay.arena}
