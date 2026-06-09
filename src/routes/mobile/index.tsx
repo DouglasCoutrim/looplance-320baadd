@@ -61,20 +61,24 @@ function MobileHome() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-8">
-          <ReplayCardLarge 
-            title="Lance do Jogo" 
-            duration="00:08" 
-            arena="Arena Central" 
-            timestamp="Hoje, 14:20" 
-            thumbnail="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&q=80"
-          />
-          <ReplayCardLarge 
-            title="Cesta incrível" 
-            duration="00:12" 
-            arena="Arena Central" 
-            timestamp="Hoje, 13:45" 
-            thumbnail="https://images.unsplash.com/photo-1504450758481-7338eba7524a?w=400&q=80"
-          />
+          <Link to="/mobile/player">
+            <ReplayCardLarge 
+              title="Lance do Jogo" 
+              duration="00:08" 
+              arena="Arena Central" 
+              timestamp="Hoje, 14:20" 
+              thumbnail="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&q=80"
+            />
+          </Link>
+          <Link to="/mobile/player">
+            <ReplayCardLarge 
+              title="Cesta incrível" 
+              duration="00:12" 
+              arena="Arena Central" 
+              timestamp="Hoje, 13:45" 
+              thumbnail="https://images.unsplash.com/photo-1504450758481-7338eba7524a?w=400&q=80"
+            />
+          </Link>
         </div>
 
         {/* Highlight Section */}
