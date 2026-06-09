@@ -98,16 +98,16 @@ function Quadras() {
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase">
             Quadras <span className="brand-text">Pistas</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-base sm:text-lg">
+          <p className="text-white/50 mt-1 font-medium text-base sm:text-lg">
             Vincule quadras específicas aos seus complexos.
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-10 sm:h-12 w-10 sm:w-12 shadow-sm bg-white hover:bg-gray-50 shrink-0">
-            <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
+          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-[#2a2a2a] h-10 sm:h-12 w-10 sm:w-12 bg-[#1a1a1a] hover:bg-[#222] border shrink-0">
+            <RefreshCw className={`h-5 w-5 text-white/40 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             setIsDialogOpen(open);
@@ -118,37 +118,37 @@ function Quadras() {
             }
           }}>
             <DialogTrigger asChild>
-              <Button onClick={() => { setEditingQuadra(null); setName(""); setArenaId(""); }} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
+              <Button onClick={() => { setEditingQuadra(null); setName(""); setArenaId(""); }} className="brand-gradient text-black font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
                 <Plus className="mr-2 h-5 w-5" /> Nova Quadra
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-2xl border-none shadow-2xl">
+            <DialogContent className="rounded-2xl border border-[#2a2a2a] shadow-2xl bg-[#1a1a1a] text-white">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">{editingQuadra ? "Editar Quadra" : "Configurar Quadra"}</DialogTitle>
-                <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-brand-orange">{editingQuadra ? "Editar Quadra" : "Configurar Quadra"}</DialogTitle>
+                <DialogDescription className="text-sm font-bold uppercase tracking-widest text-white/70">
                   {editingQuadra ? "Atualize os dados desta quadra." : "Vincule uma nova quadra ou pista a um complexo esportivo."}
                 </DialogDescription>
               </DialogHeader>
               <div className="grid gap-6 py-6">
                 <div className="grid gap-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Complexo (Arena)</Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-white/60">Complexo (Arena)</Label>
                   <Select value={arenaId} onValueChange={setArenaId}>
-                    <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                    <SelectTrigger className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white focus:ring-brand-orange">
                       <SelectValue placeholder="Selecione a arena" />
                     </SelectTrigger>
-                    <SelectContent className="rounded-xl border-gray-100 shadow-xl">
+                    <SelectContent className="rounded-xl border-[#2a2a2a] bg-[#1a1a1a] text-white">
                       {arenas.map((a) => <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
                 <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Quadra</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Quadra 01 - Central" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-white/60">Nome da Quadra</Label>
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Quadra 01 - Central" className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:border-brand-orange focus:ring-brand-orange" />
                 </div>
               </div>
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleSave} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
+                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold text-white/60 hover:text-white hover:bg-white/5">Cancelar</Button>
+                <Button onClick={handleSave} className="brand-gradient text-black font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
