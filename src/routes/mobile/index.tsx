@@ -3,6 +3,8 @@ import { Search, MapPin, ChevronRight, Play } from 'lucide-react';
 import { MobileHeader } from '../../components/mobile/MobileHeader';
 import { ReplayCardLarge } from '../../components/mobile/ReplayCardLarge';
 import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
+
 
 export const Route = createFileRoute('/mobile/')({
   component: MobileHome,
