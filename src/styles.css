@@ -11,37 +11,37 @@
   --radius-xl: calc(var(--radius) + 4px);
   --radius-2xl: calc(var(--radius) + 8px);
   --radius-3xl: calc(var(--radius) + 12px);
-  --color-background: #0a0a0a;
-  --color-foreground: #ffffff;
-  --color-card: #1a1a1a;
-  --color-card-foreground: #ffffff;
-  --color-popover: #1a1a1a;
-  --color-popover-foreground: #ffffff;
+  --color-background: #FDF2E9;
+  --color-foreground: #2D3436;
+  --color-card: #ffffff;
+  --color-card-foreground: #2D3436;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #2D3436;
   --color-primary: #F97316;
-  --color-primary-foreground: #000000;
-  --color-secondary: #111111;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #FFB347;
   --color-secondary-foreground: #ffffff;
-  --color-muted: #2a2a2a;
-  --color-muted-foreground: rgba(255, 255, 255, 0.60);
-  --color-accent: #252525;
-  --color-accent-foreground: #ffffff;
-  --color-destructive: #dc2626;
+  --color-muted: #F1F2F6;
+  --color-muted-foreground: #636E72;
+  --color-accent: #FFF9F3;
+  --color-accent-foreground: #F97316;
+  --color-destructive: #FF4757;
   --color-destructive-foreground: #ffffff;
-  --color-border: #2a2a2a;
-  --color-input: #252525;
+  --color-border: #F1F2F6;
+  --color-input: #ffffff;
   --color-ring: #F97316;
 
   /* Custom mobile design system variables */
   --mobile-brand: #F97316;
   --mobile-brand-light: rgba(249, 115, 22, 0.12);
-  --mobile-bg: #0a0a0a;
-  --mobile-surface: #111111;
-  --mobile-card: #1a1a1a;
-  --mobile-input: #252525;
-  --mobile-border: #2a2a2a;
-  --mobile-text-1: #ffffff;
-  --mobile-text-2: rgba(255, 255, 255, 0.60);
-  --mobile-text-3: rgba(255, 255, 255, 0.35);
+  --mobile-bg: #FDF2E9;
+  --mobile-surface: #FFB347;
+  --mobile-card: #ffffff;
+  --mobile-input: #ffffff;
+  --mobile-border: #F1F2F6;
+  --mobile-text-1: #2D3436;
+  --mobile-text-2: #636E72;
+  --mobile-text-3: #B2BEC3;
 }
 
 :root {
@@ -50,11 +50,11 @@
 
 @layer base {
   * { 
-    border-color: #2a2a2a; 
+    border-color: #F1F2F6; 
   }
   html, body {
-    background-color: #0a0a0a !important;
-    color: #ffffff !important;
+    background-color: #FDF2E9 !important;
+    color: #2D3436 !important;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
