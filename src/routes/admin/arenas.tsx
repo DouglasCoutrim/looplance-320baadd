@@ -186,27 +186,27 @@ function Arenas() {
           <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#ffffff] uppercase">
             Arenas <span className="brand-text">Complexos</span>
           </h1>
-          <p className="text-white/60 mt-1 font-medium text-base sm:text-lg">
+          <p className="text-white/50 mt-1 font-medium text-base sm:text-lg">
             Gerencie os locais onde o espetáculo acontece.
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="icon" onClick={fetchArenas} disabled={loading} className="rounded-xl border-gray-200 h-10 sm:h-12 w-10 sm:w-12 shadow-sm bg-white hover:bg-gray-50 shrink-0">
-            <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
+          <Button variant="outline" size="icon" onClick={fetchArenas} disabled={loading} className="rounded-xl border-[#2a2a2a] h-10 sm:h-12 w-10 sm:w-12 bg-[#1a1a1a] hover:bg-[#222] shrink-0 border">
+            <RefreshCw className={`h-5 w-5 text-white/40 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={(open) => {
             if (!open) closeDialog();
             else setIsDialogOpen(true);
           }}>
             <DialogTrigger asChild>
-              <Button onClick={() => closeDialog()} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
+              <Button onClick={() => closeDialog()} className="brand-gradient text-black font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
                 <Plus className="mr-2 h-5 w-5" /> Nova Arena
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-2xl border-none shadow-2xl max-w-2xl w-[95vw] sm:w-full">
+            <DialogContent className="rounded-2xl border border-[#2a2a2a] shadow-2xl max-w-2xl w-[95vw] sm:w-full bg-[#1a1a1a] text-white">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">{editingArena ? "Editar Arena" : "Adicionar Arena"}</DialogTitle>
-                <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-brand-orange">{editingArena ? "Editar Arena" : "Adicionar Arena"}</DialogTitle>
+                <DialogDescription className="text-sm font-bold uppercase tracking-widest text-white/70">
                   {editingArena ? "Atualize os dados desta arena." : "Cadastre um novo complexo esportivo no sistema."}
                 </DialogDescription>
               </DialogHeader>
@@ -214,26 +214,26 @@ function Arenas() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 py-6">
                   <div className="space-y-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
-                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                      <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-white/60">Nome da Arena</Label>
+                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:border-brand-orange focus:ring-brand-orange" />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="cidade" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cidade</Label>
-                      <Input id="cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Ex: São Paulo" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                      <Label htmlFor="cidade" className="text-xs font-black uppercase tracking-widest text-white/60">Cidade</Label>
+                      <Input id="cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} placeholder="Ex: São Paulo" className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:border-brand-orange focus:ring-brand-orange" />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="telefone" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Telefone</Label>
-                      <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Ex: (11) 99999-9999" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                      <Label htmlFor="telefone" className="text-xs font-black uppercase tracking-widest text-white/60">Telefone</Label>
+                      <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} placeholder="Ex: (11) 99999-9999" className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:border-brand-orange focus:ring-brand-orange" />
                     </div>
                   </div>
                   
                   <div className="space-y-4">
                     <div className="grid gap-2">
-                      <Label htmlFor="endereco" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Endereço Completo</Label>
-                      <Input id="endereco" value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua, número, bairro" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                      <Label htmlFor="endereco" className="text-xs font-black uppercase tracking-widest text-white/60">Endereço Completo</Label>
+                      <Input id="endereco" value={endereco} onChange={(e) => setEndereco(e.target.value)} placeholder="Rua, número, bairro" className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 text-white placeholder:text-white/35 focus:border-brand-orange focus:ring-brand-orange" />
                     </div>
                     <div className="grid gap-2">
-                      <Label htmlFor="foto" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Foto da Arena</Label>
+                      <Label htmlFor="foto" className="text-xs font-black uppercase tracking-widest text-white/60">Foto da Arena</Label>
                       <div className="flex flex-col gap-4">
                         {editingArena?.foto_url && !fotoFile && (
                           <div className="h-20 w-32 rounded-lg overflow-hidden border border-gray-100">
@@ -245,7 +245,7 @@ function Arenas() {
                           type="file" 
                           accept="image/*"
                           onChange={(e) => setFotoFile(e.target.files?.[0] || null)}
-                          className="rounded-xl border-gray-100 bg-gray-50 h-12 pt-2 focus:border-brand-orange focus:ring-brand-orange cursor-pointer" 
+                          className="rounded-xl border-[#2a2a2a] bg-[#252525] h-12 pt-2 focus:border-brand-orange focus:ring-brand-orange cursor-pointer text-white" 
                         />
                       </div>
                     </div>
