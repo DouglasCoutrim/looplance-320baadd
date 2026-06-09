@@ -133,9 +133,9 @@ function AdminHome() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Resource Distribution Chart */}
-        <div className="lg:col-span-3 glass-card bg-[#111] p-4 sm:p-6 shadow-md border border-white/5">
+        <div className="lg:col-span-3 glass-card bg-[#1a1a1a] p-4 sm:p-6 shadow-md border border-[#2a2a2a] rounded-[12px]">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2 uppercase tracking-tight">
+            <h3 className="text-lg sm:text-xl font-black text-[#ffffff] flex items-center gap-2 uppercase tracking-tight">
               <Activity className="h-5 w-5 text-brand-orange" />
               Distribuição de Infra
             </h3>
