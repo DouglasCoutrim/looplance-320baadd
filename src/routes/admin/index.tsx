@@ -76,10 +76,10 @@ function AdminHome() {
       {/* Hero Welcome */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase">
             Dashboard <span className="brand-text">Admin</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-base sm:text-lg">
+          <p className="text-white/60 mt-1 font-medium text-base sm:text-lg">
             Monitoramento e controle da infraestrutura <span className="text-brand-orange font-bold">Edge Replay</span>.
           </p>
         </div>
@@ -133,9 +133,9 @@ function AdminHome() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Resource Distribution Chart */}
-        <div className="lg:col-span-3 glass-card bg-white p-4 sm:p-6 shadow-md border border-gray-200">
+        <div className="lg:col-span-3 glass-card bg-[#111] p-4 sm:p-6 shadow-md border border-white/5">
           <div className="flex items-center justify-between mb-8">
-            <h3 className="text-lg sm:text-xl font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight">
+            <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2 uppercase tracking-tight">
               <Activity className="h-5 w-5 text-brand-orange" />
               Distribuição de Infra
             </h3>
@@ -178,7 +178,7 @@ function AdminHome() {
 
         {/* Quick Actions - High Impact */}
         <div className="lg:col-span-2 space-y-4">
-          <h3 className="text-lg sm:text-xl font-black text-gray-900 flex items-center gap-2 uppercase tracking-tight px-1">
+          <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2 uppercase tracking-tight px-1">
             <Zap className="h-5 w-5 text-brand-orange fill-brand-orange" />
             Ações Rápidas
           </h3>
@@ -233,7 +233,7 @@ function StatCard({ title, value, icon, description, link, color = "orange" }: a
   };
 
   const content = (
-    <div className="glass-card bg-white p-4 sm:p-6 shadow-md border border-gray-200 transition-all hover:shadow-xl hover:-translate-y-1 group">
+    <div className="glass-card bg-[#111] p-4 sm:p-6 shadow-md border border-white/5 transition-all hover:shadow-xl hover:-translate-y-1 group">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-2.5 sm:p-3 rounded-2xl ${colorClasses[color] || colorClasses.orange} transition-colors group-hover:brand-gradient group-hover:text-white`}>
           {icon}
@@ -257,13 +257,13 @@ function QuickAction({ to, title, description, icon }: any) {
   return (
     <Link 
       to={to} 
-      className="flex items-center gap-3 sm:gap-4 glass-card bg-white p-3 sm:p-4 shadow-sm border border-gray-100 transition-all hover:border-brand-orange/50 hover:shadow-md hover:bg-gray-50 group"
+      className="flex items-center gap-3 sm:gap-4 glass-card bg-[#111] p-3 sm:p-4 shadow-sm border border-white/5 transition-all hover:border-brand-orange/50 hover:shadow-md hover:bg-white/5 group"
     >
       <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover:brand-gradient group-hover:text-white transition-all">
         {icon}
       </div>
       <div className="flex-1">
-        <div className="font-black uppercase tracking-tight text-xs sm:text-sm text-gray-900">{title}</div>
+        <div className="font-black uppercase tracking-tight text-xs sm:text-sm text-white">{title}</div>
         <div className="text-[10px] sm:text-xs font-medium text-muted-foreground mt-0.5">{description}</div>
       </div>
       <ArrowRight className="h-4 w-4 text-gray-300 group-hover:text-brand-orange group-hover:translate-x-1 transition-all" />
