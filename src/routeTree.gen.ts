@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as MobileRouteImport } from './routes/mobile'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MobileIndexRouteImport } from './routes/mobile/index'
@@ -25,6 +26,11 @@ import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
 import { Route as AdminBotoeirasRouteImport } from './routes/admin/botoeiras'
 import { Route as AdminArenasRouteImport } from './routes/admin/arenas'
 
+const MobileRoute = MobileRouteImport.update({
+  id: '/mobile',
+  path: '/mobile',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -36,9 +42,9 @@ const IndexRoute = IndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const MobileIndexRoute = MobileIndexRouteImport.update({
-  id: '/mobile/',
-  path: '/mobile/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => MobileRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
@@ -46,19 +52,19 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 const MobileReplaysRoute = MobileReplaysRouteImport.update({
-  id: '/mobile/replays',
-  path: '/mobile/replays',
-  getParentRoute: () => rootRouteImport,
+  id: '/replays',
+  path: '/replays',
+  getParentRoute: () => MobileRoute,
 } as any)
 const MobileProfileRoute = MobileProfileRouteImport.update({
-  id: '/mobile/profile',
-  path: '/mobile/profile',
-  getParentRoute: () => rootRouteImport,
+  id: '/profile',
+  path: '/profile',
+  getParentRoute: () => MobileRoute,
 } as any)
 const MobilePlayerRoute = MobilePlayerRouteImport.update({
-  id: '/mobile/player',
-  path: '/mobile/player',
-  getParentRoute: () => rootRouteImport,
+  id: '/player',
+  path: '/player',
+  getParentRoute: () => MobileRoute,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
@@ -104,6 +110,7 @@ const AdminArenasRoute = AdminArenasRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/mobile': typeof MobileRouteWithChildren
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/botoeiras': typeof AdminBotoeirasRoute
   '/admin/cameras': typeof AdminCamerasRoute
@@ -138,6 +145,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/mobile': typeof MobileRouteWithChildren
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/botoeiras': typeof AdminBotoeirasRoute
   '/admin/cameras': typeof AdminCamerasRoute
@@ -157,6 +165,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/mobile'
     | '/admin/arenas'
     | '/admin/botoeiras'
     | '/admin/cameras'
@@ -190,6 +199,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/mobile'
     | '/admin/arenas'
     | '/admin/botoeiras'
     | '/admin/cameras'
@@ -208,14 +218,18 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
-  MobilePlayerRoute: typeof MobilePlayerRoute
-  MobileProfileRoute: typeof MobileProfileRoute
-  MobileReplaysRoute: typeof MobileReplaysRoute
-  MobileIndexRoute: typeof MobileIndexRoute
+  MobileRoute: typeof MobileRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/mobile': {
+      id: '/mobile'
+      path: '/mobile'
+      fullPath: '/mobile'
+      preLoaderRoute: typeof MobileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -232,10 +246,10 @@ declare module '@tanstack/react-router' {
     }
     '/mobile/': {
       id: '/mobile/'
-      path: '/mobile'
+      path: '/'
       fullPath: '/mobile/'
       preLoaderRoute: typeof MobileIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MobileRoute
     }
     '/admin/': {
       id: '/admin/'
@@ -246,24 +260,24 @@ declare module '@tanstack/react-router' {
     }
     '/mobile/replays': {
       id: '/mobile/replays'
-      path: '/mobile/replays'
+      path: '/replays'
       fullPath: '/mobile/replays'
       preLoaderRoute: typeof MobileReplaysRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MobileRoute
     }
     '/mobile/profile': {
       id: '/mobile/profile'
-      path: '/mobile/profile'
+      path: '/profile'
       fullPath: '/mobile/profile'
       preLoaderRoute: typeof MobileProfileRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MobileRoute
     }
     '/mobile/player': {
       id: '/mobile/player'
-      path: '/mobile/player'
+      path: '/player'
       fullPath: '/mobile/player'
       preLoaderRoute: typeof MobilePlayerRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof MobileRoute
     }
     '/admin/users': {
       id: '/admin/users'
@@ -350,13 +364,27 @@ const AdminRouteChildren: AdminRouteChildren = {
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
-const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AdminRoute: AdminRouteWithChildren,
+interface MobileRouteChildren {
+  MobilePlayerRoute: typeof MobilePlayerRoute
+  MobileProfileRoute: typeof MobileProfileRoute
+  MobileReplaysRoute: typeof MobileReplaysRoute
+  MobileIndexRoute: typeof MobileIndexRoute
+}
+
+const MobileRouteChildren: MobileRouteChildren = {
   MobilePlayerRoute: MobilePlayerRoute,
   MobileProfileRoute: MobileProfileRoute,
   MobileReplaysRoute: MobileReplaysRoute,
   MobileIndexRoute: MobileIndexRoute,
+}
+
+const MobileRouteWithChildren =
+  MobileRoute._addFileChildren(MobileRouteChildren)
+
+const rootRouteChildren: RootRouteChildren = {
+  IndexRoute: IndexRoute,
+  AdminRoute: AdminRouteWithChildren,
+  MobileRoute: MobileRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
