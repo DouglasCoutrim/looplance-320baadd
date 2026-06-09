@@ -61,7 +61,7 @@ function MobileHome() {
         </div>
 
         <div className="grid grid-cols-2 gap-4 mb-8">
-          <Link to="/mobile/player">
+          <Link to="/mobile/player" className="block active:scale-[0.98] transition-transform">
             <ReplayCardLarge 
               title="Lance do Jogo" 
               duration="00:08" 
