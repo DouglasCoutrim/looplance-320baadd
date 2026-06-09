@@ -155,7 +155,7 @@ function Quadras() {
         </div>
       </div>
 
-      <div className="glass-card bg-[#1a1a1a] shadow-xl border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
+      <div className="bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
         <Table>
           <TableHeader className="bg-transparent border-b border-white/5">
             <TableRow className="hover:bg-transparent">

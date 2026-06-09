@@ -133,7 +133,7 @@ function AdminHome() {
 
       <div className="grid gap-6 lg:grid-cols-5">
         {/* Resource Distribution Chart */}
-        <div className="lg:col-span-3 glass-card bg-[#1a1a1a] p-4 sm:p-6 shadow-md border border-[#2a2a2a] rounded-[12px]">
+        <div className="bg-[#1a1a1a] p-4 sm:p-6 border border-[#2a2a2a] rounded-[12px]">
           <div className="flex items-center justify-between mb-8">
             <h3 className="text-lg sm:text-xl font-black text-[#ffffff] flex items-center gap-2 uppercase tracking-tight">
               <Activity className="h-5 w-5 text-brand-orange" />
@@ -208,11 +208,11 @@ function AdminHome() {
             icon={<Tv className="h-6 w-6" />}
           />
           
-          <div className="glass-card brand-gradient brand-glow p-4 sm:p-6 text-white mt-2 relative overflow-hidden group transition-transform hover:scale-[1.02]">
+          <div className="brand-gradient p-4 sm:p-6 text-black mt-2 relative overflow-hidden group transition-transform hover:scale-[1.02] rounded-[12px]">
             <div className="relative z-10">
               <h4 className="font-black uppercase tracking-widest text-xs opacity-80 mb-1">Status Global</h4>
               <p className="text-xl sm:text-2xl font-black leading-tight">Sua rede Edge está pronta para lances.</p>
-              <button className="mt-4 inline-flex items-center gap-2 rounded-full bg-white/20 backdrop-blur-md px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-white/30 transition">
+              <button className="mt-4 inline-flex items-center gap-2 rounded-full bg-black/20 backdrop-blur-md px-4 py-2 text-xs font-black uppercase tracking-widest hover:bg-black/30 transition">
                 Ver Logs <ArrowRight className="h-3 w-3" />
               </button>
             </div>
@@ -233,7 +233,7 @@ function StatCard({ title, value, icon, description, link, color = "orange" }: a
   };
 
   const content = (
-    <div className="glass-card bg-[#1a1a1a] p-4 sm:p-6 shadow-md border border-[#2a2a2a] rounded-[12px] transition-all hover:shadow-xl hover:-translate-y-1 group">
+    <div className="bg-[#1a1a1a] p-4 sm:p-6 border border-[#2a2a2a] rounded-[12px] transition-all group">
       <div className="flex items-center justify-between mb-4">
         <div className={`p-2.5 sm:p-3 rounded-2xl ${colorClasses[color] || colorClasses.orange} transition-colors group-hover:brand-gradient group-hover:text-white`}>
           {icon}

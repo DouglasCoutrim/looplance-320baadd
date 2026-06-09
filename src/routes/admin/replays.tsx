@@ -166,7 +166,7 @@ function ReplaysManagement() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[#1a1a1a] p-6 rounded-2xl border border-[#2a2a2a] shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[#1a1a1a] p-6 rounded-2xl border border-[#2a2a2a]">
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase tracking-widest text-white/60">Filtrar por Arena</label>
           <Select value={selectedArenaId} onValueChange={(val) => { setSelectedArenaId(val); setSelectedQuadraId("all"); }}>

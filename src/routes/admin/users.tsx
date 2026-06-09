@@ -196,9 +196,9 @@ function UsersManagement() {
         </Button>
       </div>
 
-      <div className="glass-card bg-[#1a1a1a] p-6 shadow-md border border-[#2a2a2a] rounded-[12px]">
+      <div className="bg-[#1a1a1a] p-6 border border-[#2a2a2a] rounded-[12px]">
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/35" />
           <Input 
             placeholder="Buscar por nome ou e-mail..." 
             className="pl-10 h-12 bg-[#252525] border-[#2a2a2a] text-white placeholder:text-white/35 focus:ring-brand-orange/20"
@@ -210,7 +210,7 @@ function UsersManagement() {
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
             <Loader2 className="h-10 w-10 text-brand-orange animate-spin" />
-            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Carregando Usuários...</p>
+            <p className="text-xs font-black uppercase tracking-widest text-white/35">Carregando Usuários...</p>
           </div>
         ) : (
           <div className="rounded-xl border border-white/5 overflow-hidden">
