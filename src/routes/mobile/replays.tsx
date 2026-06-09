@@ -45,14 +45,15 @@ function MyReplays() {
         <div className="flex flex-col">
           {filteredReplays.length > 0 ? (
             filteredReplays.map((replay) => (
-              <ReplayCardList 
-                key={replay.id}
-                title={replay.title}
-                arena={replay.arena}
-                timestamp={replay.timestamp}
-                thumbnail={replay.thumbnail}
-                status={replay.status}
-              />
+              <Link key={replay.id} to="/mobile/player">
+                <ReplayCardList 
+                  title={replay.title}
+                  arena={replay.arena}
+                  timestamp={replay.timestamp}
+                  thumbnail={replay.thumbnail}
+                  status={replay.status}
+                />
+              </Link>
             ))
           ) : (
             <EmptyState 
