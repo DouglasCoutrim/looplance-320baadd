@@ -144,16 +144,16 @@ function ReplaysManagement() {
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
-          <h1 className="text-4xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-4xl font-black tracking-tight text-white uppercase">
             Gestão de <span className="brand-text">Replays</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-lg">
+          <p className="text-white/50 mt-1 font-medium text-lg">
             Visualize e faça a limpeza manual de lances processados.
           </p>
         </div>
         <div className="flex gap-3">
-          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
-            <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
+          <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-[#2a2a2a] h-12 w-12 bg-[#1a1a1a] hover:bg-[#222] border">
+            <RefreshCw className={`h-5 w-5 text-white/40 ${loading ? "animate-spin" : ""}`} />
           </Button>
           <Button 
             variant="destructive" 
@@ -173,7 +173,7 @@ function ReplaysManagement() {
             <SelectTrigger className="rounded-lg border-[#333] bg-[#252525] h-12 text-white focus:ring-brand-orange">
               <SelectValue placeholder="Todas as Arenas" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl shadow-xl border-gray-100">
+            <SelectContent className="rounded-xl border-[#2a2a2a] bg-[#1a1a1a] text-white">
               <SelectItem value="all">Todas as Arenas</SelectItem>
               {arenas.map(a => (
                 <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
@@ -188,7 +188,7 @@ function ReplaysManagement() {
             <SelectTrigger className="rounded-lg border-[#333] bg-[#252525] h-12 text-white focus:ring-brand-orange">
               <SelectValue placeholder="Todas as Quadras" />
             </SelectTrigger>
-            <SelectContent className="rounded-xl shadow-xl border-gray-100">
+            <SelectContent className="rounded-xl border-[#2a2a2a] bg-[#1a1a1a] text-white">
               <SelectItem value="all">Todas as Quadras</SelectItem>
               {filteredQuadras.map(q => (
                 <SelectItem key={q.id} value={q.id}>{q.nome}</SelectItem>
@@ -198,13 +198,13 @@ function ReplaysManagement() {
         </div>
 
         <div className="flex items-end">
-          <Button variant="ghost" onClick={() => { setSelectedArenaId("all"); setSelectedQuadraId("all"); }} className="mb-1 text-xs font-bold text-muted-foreground hover:text-brand-orange">
+          <Button variant="ghost" onClick={() => { setSelectedArenaId("all"); setSelectedQuadraId("all"); }} className="mb-1 text-xs font-bold text-white/50 hover:text-brand-orange">
             Limpar Filtros
           </Button>
         </div>
       </div>
 
-      <div className="glass-card bg-[#1a1a1a] shadow-xl border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
+      <div className="bg-[#1a1a1a] border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
         <Table>
           <TableHeader className="bg-transparent border-b border-white/5">
             <TableRow className="hover:bg-transparent border-b border-white/5">
@@ -273,7 +273,7 @@ function ReplaysManagement() {
                         setSelectedReplayIds([replay.id]);
                         setTimeout(() => handleDeleteSelected(), 100);
                       }}
-                      className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
+                      className="h-10 w-10 rounded-xl text-white/40 hover:text-red-500 hover:bg-red-500/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
