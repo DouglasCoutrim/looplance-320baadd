@@ -57,7 +57,32 @@
     color: #ffffff !important;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
+}
+
+/* Mobile Utilities */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.safe-area-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* Animations */
+@keyframes pulse-dot {
+  0% { transform: scale(0.8); opacity: 0.5; }
+  50% { transform: scale(1.2); opacity: 1; }
+  100% { transform: scale(0.8); opacity: 0.5; }
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 1.5s infinite ease-in-out;
 }
 
 /* Helper Classes */
@@ -69,24 +94,19 @@
   color: #F97316;
 }
 
-.brand-glow {
-  box-shadow: 0 0 20px rgba(249, 115, 22, 0.15);
-}
-
 /* Reset Scrollbar for Dark Mode */
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #0a0a0a;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
   background: #252525;
-  border-radius: 5px;
-  border: 2px solid #0a0a0a;
+  border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
