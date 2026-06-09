@@ -179,11 +179,11 @@ function AdminLayout() {
         {/* Navigation Sidebar - Hidden on mobile, shown on desktop */}
         <aside className="hidden md:block w-64 space-y-2 shrink-0">
           <div className="px-2 mb-4">
-            <h2 className="text-[10px] font-black uppercase tracking-[0.2em] text-muted-foreground/80">Gestão de Infra</h2>
+            <h2 className="text-[11px] font-black uppercase tracking-[0.8px] text-white/35">Gestão de Infra</h2>
           </div>
           <NavLinks />
-          <div className="mt-8 px-2 pt-6 border-t border-gray-200">
-            <p className="text-[10px] font-medium text-muted-foreground leading-relaxed italic">
+          <div className="mt-8 px-2 pt-6 border-t border-white/10">
+            <p className="text-[12px] font-medium text-white/35 leading-relaxed italic">
               Controlando o futuro do replay esportivo.
             </p>
           </div>
