@@ -44,10 +44,10 @@ function Home() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center space-y-4">
-          <Loader2 className="h-12 w-12 text-brand-orange animate-spin mx-auto" />
-          <p className="text-white/40 font-black uppercase tracking-widest text-[10px]">Carregando Looplance...</p>
+          <Loader2 className="h-12 w-12 text-brand animate-spin mx-auto" />
+          <p className="text-muted font-black uppercase tracking-widest text-[10px]">Carregando Looplance...</p>
         </div>
       </div>
     );
