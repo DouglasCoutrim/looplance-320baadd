@@ -70,7 +70,7 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
     <>
       <button 
         onClick={() => setIsOpen(true)}
-        className="glass-card group relative w-full overflow-hidden transition hover:scale-[1.03] hover:shadow-md"
+        className="bg-[#1a1a1a] border border-[#2a2a2a] rounded-[12px] group relative w-full overflow-hidden transition hover:scale-[1.03]"
       >
         <video
           src={`${replay.video_url}#t=0.1`}
@@ -81,7 +81,7 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
           className="w-full h-auto object-cover"
         />
         <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-100 transition group-hover:bg-black/25">
-          <div className="brand-gradient grid h-8 w-8 place-items-center rounded-full text-white shadow-lg transition-transform group-hover:scale-110">
+          <div className="brand-gradient grid h-8 w-8 place-items-center rounded-full text-black shadow-lg transition-transform group-hover:scale-110">
             <Play className="h-4 w-4 fill-white" />
           </div>
         </div>
@@ -97,11 +97,11 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
 
       <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
         <Dialog.Portal>
-          <Dialog.Overlay className="fixed inset-0 z-50 bg-[#1A1C3A]/95 backdrop-blur-md animate-in fade-in duration-300" />
+          <Dialog.Overlay className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md animate-in fade-in duration-300" />
           <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-[95vw] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-md animate-in zoom-in-95 duration-300">
             <div className="relative flex flex-col items-center w-full">
               <div 
-                className="relative w-full max-h-[75vh] overflow-hidden rounded-3xl bg-[#1A1C3A] shadow-2xl ring-1 ring-white/10"
+                className="relative w-full max-h-[75vh] overflow-hidden rounded-3xl bg-[#1a1a1a] shadow-2xl border border-[#2a2a2a]"
                 style={aspectRatio ? { aspectRatio: `${aspectRatio}` } : { aspectRatio: '9/16' }}
               >
                 <video
@@ -118,7 +118,7 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
                 </Dialog.Close>
               </div>
 
-              <div className="mt-6 flex w-full items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur-2xl shadow-xl">
+              <div className="mt-6 flex w-full items-center justify-between gap-4 rounded-3xl border border-[#2a2a2a] bg-[#1a1a1a] p-5 shadow-xl">
                 <div className="min-w-0">
                   <h3 className="truncate text-lg font-black text-white">
                     {replay.quadras?.nome ?? "Quadra"}
@@ -133,13 +133,13 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
                 <div className="flex shrink-0 items-center gap-3">
                   <button
                     onClick={handleShare}
-                    className="grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 active:scale-90"
+                    className="grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/5 text-white transition hover:bg-white/10 active:scale-90"
                   >
                     <Share2 className="h-5 w-5" />
                   </button>
                   <button
                     onClick={handleDownload}
-                    className="brand-gradient brand-glow grid h-12 w-12 place-items-center rounded-full text-white transition hover:scale-105 active:scale-95"
+                    className="brand-gradient grid h-12 w-12 place-items-center rounded-full text-black transition hover:scale-105 active:scale-95"
                   >
                     <Download className="h-5 w-5" />
                   </button>
