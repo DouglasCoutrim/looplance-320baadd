@@ -4,11 +4,11 @@ import { Sparkles, Play, Share2, Smartphone, ShieldCheck, Zap } from "lucide-rea
 
 export function LandingPage() {
   return (
-    <div className="min-h-screen bg-black text-white selection:bg-brand-orange selection:text-white">
+    <div className="min-h-screen bg-background text-foreground selection:bg-brand selection:text-white">
       {/* Background patterns */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-20">
-        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-brand-orange/30 blur-[120px] rounded-full animate-pulse-glow" />
-        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-brand-orange/20 blur-[120px] rounded-full" />
+      <div className="fixed inset-0 overflow-hidden pointer-events-none opacity-10">
+        <div className="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] bg-brand blur-[120px] rounded-full animate-pulse-glow" />
+        <div className="absolute -bottom-[10%] -right-[10%] w-[40%] h-[40%] bg-brand blur-[120px] rounded-full" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 lg:px-8 pt-10 pb-24">
@@ -23,9 +23,9 @@ export function LandingPage() {
             <div className="space-y-6">
               <h1 className="text-5xl sm:text-7xl font-black leading-[0.9] tracking-tighter uppercase">
                 O SEU <span className="brand-text">REPLAY</span> <br />
-                NA PALMA DA <span className="text-white/40">MÃO.</span>
+                NA PALMA DA <span className="text-muted">MÃO.</span>
               </h1>
-              <p className="text-xl text-white/70 font-medium leading-relaxed max-w-lg italic">
+              <p className="text-xl text-secondary font-medium leading-relaxed max-w-lg italic">
                 Reviva seus melhores momentos na quadra, baixe e compartilhe em tempo real com a tecnologia Looplance Edge.
               </p>
             </div>
