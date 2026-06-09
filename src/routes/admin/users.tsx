@@ -180,16 +180,16 @@ function UsersManagement() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-3xl font-black tracking-tight text-white uppercase">
             Gestão de <span className="brand-text">Usuários</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium">
+          <p className="text-white/50 mt-1 font-medium">
             Administre acessos, permissões e contas de usuários do sistema.
           </p>
         </div>
         <Button 
           onClick={() => setIsCreateDialogOpen(true)}
-          className="brand-gradient text-white border-none brand-glow"
+          className="brand-gradient text-black border-none font-bold"
         >
           <UserPlus className="h-4 w-4 mr-2" />
           Novo Usuário
@@ -201,7 +201,7 @@ function UsersManagement() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input 
             placeholder="Buscar por nome ou e-mail..." 
-            className="pl-10 h-12 bg-gray-50/50 border-gray-200 focus:ring-brand-orange/20"
+            className="pl-10 h-12 bg-[#252525] border-[#2a2a2a] text-white placeholder:text-white/35 focus:ring-brand-orange/20"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -213,7 +213,7 @@ function UsersManagement() {
             <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Carregando Usuários...</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-100 overflow-hidden">
+          <div className="rounded-xl border border-white/5 overflow-hidden">
             <Table>
               <TableHeader className="bg-transparent border-b border-white/5">
                 <TableRow>
@@ -229,28 +229,28 @@ function UsersManagement() {
                     <TableCell>
                       <div className="flex flex-col">
                         <span className="font-bold text-[#ffffff]">{user.full_name || "Sem Nome"}</span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                        <span className="text-xs text-white/50">{user.email}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="capitalize bg-white font-bold border-gray-200 text-gray-600">
+                      <Badge variant="outline" className="capitalize bg-white/5 font-bold border-white/10 text-white/60">
                         {user.role || "usuário"}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         {user.is_super_admin && (
-                          <Badge className="bg-purple-100 text-purple-700 border-purple-200 font-black text-[9px] uppercase tracking-tighter">
+                          <Badge className="bg-purple-500/12 text-purple-400 border-purple-500/25 font-black text-[9px] uppercase tracking-tighter">
                             Super Admin
                           </Badge>
                         )}
                         {user.is_arena_owner && (
-                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-black text-[9px] uppercase tracking-tighter">
+                          <Badge className="bg-blue-500/12 text-blue-400 border-blue-500/25 font-black text-[9px] uppercase tracking-tighter">
                             Dono de Arena
                           </Badge>
                         )}
                         {!user.is_super_admin && !user.is_arena_owner && (
-                          <Badge className="bg-gray-100 text-gray-400 border-gray-200 font-black text-[9px] uppercase tracking-tighter">
+                          <Badge className="bg-white/6 text-white/40 border-white/12 font-black text-[9px] uppercase tracking-tighter">
                             Padrão
                           </Badge>
                         )}
@@ -259,8 +259,8 @@ function UsersManagement() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
-                            <MoreVertical className="h-4 w-4 text-gray-500" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-white/5 text-white/40">
+                            <MoreVertical className="h-4 w-4 text-white/40" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
