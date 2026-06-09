@@ -173,7 +173,7 @@ export function ReplayFeed() {
   };
 
   return (
-    <div className="relative min-h-screen bg-background text-foreground">
+    <div className="relative min-h-screen bg-black text-white">
 
       <audio ref={audioRef} src="/goal-sound.mp3" preload="auto" />
 
@@ -283,7 +283,7 @@ export function ReplayFeed() {
         </section>
 
         {/* Location selectors */}
-        <section className="glass-card space-y-5 p-6 bg-white shadow-md border border-gray-200">
+        <section className="glass-card space-y-5 p-6 bg-[#111] shadow-md border border-white/5">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/80">
             <MapPin className="h-3.5 w-3.5" /> Localização
           </div>
@@ -298,7 +298,7 @@ export function ReplayFeed() {
         </section>
 
         {/* Filters */}
-        <section className="glass-card space-y-5 p-6 bg-white shadow-md border border-gray-200">
+        <section className="glass-card space-y-5 p-6 bg-[#111] shadow-md border border-white/5">
           <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/80">
             <CalIcon className="h-3.5 w-3.5" /> Filtros
           </div>
@@ -325,7 +325,7 @@ export function ReplayFeed() {
         {/* Feed */}
         <section className="space-y-5">
           <div className="flex items-center justify-between px-1">
-            <h2 className="flex items-center gap-2 text-xl font-black text-gray-900">
+            <h2 className="flex items-center gap-2 text-xl font-black text-white">
               <Sparkles className="h-5 w-5 text-brand-orange" />
               Feed de Lances
             </h2>
@@ -354,7 +354,7 @@ function Select({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         disabled={disabled}
-        className="w-full appearance-none rounded-xl border border-border bg-muted px-4 py-3.5 pr-10 text-sm font-medium text-foreground outline-none transition focus:border-brand-orange focus:ring-1 focus:ring-brand-orange disabled:opacity-40"
+        className="w-full appearance-none rounded-xl border border-white/5 bg-[#1A1A1A] px-4 py-3.5 pr-10 text-sm font-medium text-white outline-none transition focus:border-brand-orange focus:ring-1 focus:ring-brand-orange disabled:opacity-40"
       >
         <option value="">{placeholder}</option>
         {children}
@@ -366,7 +366,7 @@ function Select({
 
 function TimeInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="rounded-xl border border-border bg-muted px-4 py-2.5 transition-colors focus-within:border-brand-orange">
+    <div className="rounded-xl border border-white/5 bg-[#1A1A1A] px-4 py-2.5 transition-colors focus-within:border-brand-orange">
       <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">{label}</div>
       <select
         value={value}
@@ -384,7 +384,7 @@ function TimeInput({ label, value, onChange }: { label: string; value: string; o
 
 function EmptyState() {
   return (
-    <div className="glass-card flex flex-col items-center gap-6 px-6 py-16 text-center bg-white shadow-md border border-gray-200">
+    <div className="glass-card flex flex-col items-center gap-6 px-6 py-16 text-center bg-[#111] shadow-md border border-white/5">
       <div className="brand-gradient grid h-20 w-20 place-items-center rounded-full brand-glow shadow-lg transition-transform hover:scale-105">
         <Play className="h-9 w-9 fill-white text-white" />
       </div>

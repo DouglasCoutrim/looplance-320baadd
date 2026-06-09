@@ -108,9 +108,9 @@ function AdminLayout() {
   );
 
   return (
-    <div className="min-h-screen bg-background text-foreground flex flex-col">
+    <div className="min-h-screen bg-black text-white flex flex-col">
       {/* Header - Fixed Height & High Impact */}
-      <header className="sticky top-0 z-50 border-b border-white/10 bg-black shadow-xl h-16 sm:h-20">
+      <header className="sticky top-0 z-50 border-b border-white/5 bg-[#111] shadow-xl h-16 sm:h-20">
         <div className="mx-auto flex h-full max-w-7xl items-center px-4 sm:px-6 lg:px-8">
           {/* Left: Back to Site / Menu Trigger */}
           <div className="flex-1 flex items-center gap-2">
