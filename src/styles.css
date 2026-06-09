@@ -51,7 +51,7 @@
   --accent-foreground: #F97316;
   --destructive: #EF4444;
   --destructive-foreground: #FFFFFF;
-  --border: #222222;
+  --border: rgba(255, 255, 255, 0.1);
   --input: #1A1A1A;
   --ring: #F97316;
 }
@@ -63,19 +63,12 @@
 
 @layer base {
   * { 
-    border-color: rgba(255, 255, 255, 0.05); 
-    color: #FFFFFF;
+    border-color: rgba(255, 255, 255, 0.1); 
   }
   html, body {
     background-color: #000000 !important;
     color: #FFFFFF !important;
-  }
-  html {
     scroll-behavior: smooth;
-  }
-  body { 
-    background: var(--background); 
-    color: var(--color-foreground);
     font-size: 16px;
     font-family: 'Inter', system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;

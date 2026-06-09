@@ -238,7 +238,7 @@ function StatCard({ title, value, icon, description, link, color = "orange" }: a
         <div className={`p-2.5 sm:p-3 rounded-2xl ${colorClasses[color] || colorClasses.orange} transition-colors group-hover:brand-gradient group-hover:text-white`}>
           {icon}
         </div>
-        <div className="text-2xl sm:text-3xl font-black text-gray-900">{value}</div>
+        <div className="text-2xl sm:text-3xl font-black text-white">{value}</div>
       </div>
       <div>
         <h4 className="text-[10px] sm:text-xs font-black uppercase tracking-[0.1em] text-muted-foreground">{title}</h4>
