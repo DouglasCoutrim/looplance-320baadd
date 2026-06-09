@@ -167,7 +167,7 @@ function Quadras() {
           <TableBody>
             {quadras.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={3} className="h-40 text-center text-muted-foreground font-medium italic">
+                <TableCell colSpan={3} className="h-40 text-center text-white/35 font-medium italic">
                   Nenhuma quadra encontrada para os filtros atuais.
                 </TableCell>
               </TableRow>
@@ -181,7 +181,7 @@ function Quadras() {
                       </div>
                       <div className="min-w-0">
                         <span className="font-black text-base sm:text-lg text-[#ffffff] uppercase tracking-tight block truncate">{q.nome}</span>
-                        <p className="text-[10px] font-medium text-muted-foreground truncate">ID: {q.id.slice(0, 8)}...</p>
+                        <p className="text-[10px] font-medium text-white/35 truncate">ID: {q.id.slice(0, 8)}...</p>
                       </div>
                     </div>
                   </TableCell>
@@ -198,7 +198,7 @@ function Quadras() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => openEditDialog(q)}
-                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors"
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-white/40 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors"
                       >
                         <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
@@ -206,7 +206,7 @@ function Quadras() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => handleDelete(q.id)}
-                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                        className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-white/40 hover:text-red-500 hover:bg-red-500/10 transition-colors"
                       >
                         <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
