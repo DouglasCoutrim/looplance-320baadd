@@ -19,17 +19,29 @@
   --color-popover-foreground: #ffffff;
   --color-primary: #F97316;
   --color-primary-foreground: #000000;
-  --color-secondary: #2a2a2a;
+  --color-secondary: #111111;
   --color-secondary-foreground: #ffffff;
   --color-muted: #2a2a2a;
   --color-muted-foreground: rgba(255, 255, 255, 0.60);
-  --color-accent: #2a2a2a;
+  --color-accent: #252525;
   --color-accent-foreground: #ffffff;
   --color-destructive: #dc2626;
   --color-destructive-foreground: #ffffff;
   --color-border: #2a2a2a;
   --color-input: #252525;
   --color-ring: #F97316;
+
+  /* Custom mobile design system variables */
+  --mobile-brand: #F97316;
+  --mobile-brand-light: rgba(249, 115, 22, 0.12);
+  --mobile-bg: #0a0a0a;
+  --mobile-surface: #111111;
+  --mobile-card: #1a1a1a;
+  --mobile-input: #252525;
+  --mobile-border: #2a2a2a;
+  --mobile-text-1: #ffffff;
+  --mobile-text-2: rgba(255, 255, 255, 0.60);
+  --mobile-text-3: rgba(255, 255, 255, 0.35);
 }
 
 :root {
