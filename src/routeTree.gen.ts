@@ -15,6 +15,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MobileIndexRouteImport } from './routes/mobile/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as MobileReplaysRouteImport } from './routes/mobile/replays'
+import { Route as MobileQuadrasRouteImport } from './routes/mobile/quadras'
 import { Route as MobileProfileRouteImport } from './routes/mobile/profile'
 import { Route as MobilePlayerRouteImport } from './routes/mobile/player'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
@@ -54,6 +55,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const MobileReplaysRoute = MobileReplaysRouteImport.update({
   id: '/replays',
   path: '/replays',
+  getParentRoute: () => MobileRoute,
+} as any)
+const MobileQuadrasRoute = MobileQuadrasRouteImport.update({
+  id: '/quadras',
+  path: '/quadras',
   getParentRoute: () => MobileRoute,
 } as any)
 const MobileProfileRoute = MobileProfileRouteImport.update({
@@ -121,6 +127,7 @@ export interface FileRoutesByFullPath {
   '/admin/users': typeof AdminUsersRoute
   '/mobile/player': typeof MobilePlayerRoute
   '/mobile/profile': typeof MobileProfileRoute
+  '/mobile/quadras': typeof MobileQuadrasRoute
   '/mobile/replays': typeof MobileReplaysRoute
   '/admin/': typeof AdminIndexRoute
   '/mobile/': typeof MobileIndexRoute
@@ -137,6 +144,7 @@ export interface FileRoutesByTo {
   '/admin/users': typeof AdminUsersRoute
   '/mobile/player': typeof MobilePlayerRoute
   '/mobile/profile': typeof MobileProfileRoute
+  '/mobile/quadras': typeof MobileQuadrasRoute
   '/mobile/replays': typeof MobileReplaysRoute
   '/admin': typeof AdminIndexRoute
   '/mobile': typeof MobileIndexRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/admin/users': typeof AdminUsersRoute
   '/mobile/player': typeof MobilePlayerRoute
   '/mobile/profile': typeof MobileProfileRoute
+  '/mobile/quadras': typeof MobileQuadrasRoute
   '/mobile/replays': typeof MobileReplaysRoute
   '/admin/': typeof AdminIndexRoute
   '/mobile/': typeof MobileIndexRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/mobile/player'
     | '/mobile/profile'
+    | '/mobile/quadras'
     | '/mobile/replays'
     | '/admin/'
     | '/mobile/'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/mobile/player'
     | '/mobile/profile'
+    | '/mobile/quadras'
     | '/mobile/replays'
     | '/admin'
     | '/mobile'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/admin/users'
     | '/mobile/player'
     | '/mobile/profile'
+    | '/mobile/quadras'
     | '/mobile/replays'
     | '/admin/'
     | '/mobile/'
@@ -263,6 +275,13 @@ declare module '@tanstack/react-router' {
       path: '/replays'
       fullPath: '/mobile/replays'
       preLoaderRoute: typeof MobileReplaysRouteImport
+      parentRoute: typeof MobileRoute
+    }
+    '/mobile/quadras': {
+      id: '/mobile/quadras'
+      path: '/quadras'
+      fullPath: '/mobile/quadras'
+      preLoaderRoute: typeof MobileQuadrasRouteImport
       parentRoute: typeof MobileRoute
     }
     '/mobile/profile': {
@@ -367,6 +386,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 interface MobileRouteChildren {
   MobilePlayerRoute: typeof MobilePlayerRoute
   MobileProfileRoute: typeof MobileProfileRoute
+  MobileQuadrasRoute: typeof MobileQuadrasRoute
   MobileReplaysRoute: typeof MobileReplaysRoute
   MobileIndexRoute: typeof MobileIndexRoute
 }
@@ -374,6 +394,7 @@ interface MobileRouteChildren {
 const MobileRouteChildren: MobileRouteChildren = {
   MobilePlayerRoute: MobilePlayerRoute,
   MobileProfileRoute: MobileProfileRoute,
+  MobileQuadrasRoute: MobileQuadrasRoute,
   MobileReplaysRoute: MobileReplaysRoute,
   MobileIndexRoute: MobileIndexRoute,
 }
