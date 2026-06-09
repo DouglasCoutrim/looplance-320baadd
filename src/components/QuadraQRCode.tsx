@@ -55,50 +55,50 @@ export function QuadraQRCode({ quadraId, quadraNome }: QuadraQRCodeProps) {
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors"
+          className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-muted hover:text-brand hover:bg-brand/5 transition-colors"
           title="Gerar QR Code"
         >
           <QrCode className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-md rounded-2xl border-none shadow-2xl">
+      <DialogContent className="sm:max-w-md rounded-2xl border border-border shadow-subtle bg-surface">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
+          <DialogTitle className="text-2xl font-black uppercase tracking-tight text-primary">
             QR Code da Quadra
           </DialogTitle>
-          <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted-foreground/60">
+          <DialogDescription className="text-sm font-bold uppercase tracking-widest text-muted">
             Escaneie para acessar os replays de: {quadraNome}
           </DialogDescription>
         </DialogHeader>
         <div className="flex flex-col items-center justify-center py-10 gap-8">
           <div
             ref={qrRef}
-            className="p-6 bg-white rounded-3xl shadow-lg border border-gray-100 flex flex-col items-center gap-4"
+            className="p-6 bg-white rounded-3xl shadow-subtle border border-border flex flex-col items-center gap-4"
           >
             <QRCodeSVG value={redirectUrl} size={256} level="H" includeMargin={true} />
             <div className="text-center">
-              <p className="text-[10px] font-black uppercase tracking-widest text-brand-orange">
+              <p className="text-[10px] font-black uppercase tracking-widest text-brand-text">
                 Looplance Edge
               </p>
-              <p className="text-xs font-bold text-gray-900 uppercase">
+              <p className="text-xs font-bold text-primary uppercase">
                 {quadraNome}
               </p>
             </div>
           </div>
 
           <div className="w-full space-y-4">
-            <div className="p-4 bg-gray-50 rounded-xl border border-gray-100">
-              <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground mb-1">
+            <div className="p-4 bg-tag rounded-xl border border-border">
+              <p className="text-[10px] font-black uppercase tracking-widest text-muted mb-1">
                 URL de Redirecionamento
               </p>
-              <p className="text-xs font-mono text-gray-600 break-all select-all">
+              <p className="text-xs font-mono text-secondary break-all select-all">
                 {redirectUrl}
               </p>
             </div>
 
             <Button
               onClick={downloadQRCode}
-              className="w-full brand-gradient brand-glow text-white font-black uppercase tracking-widest h-12 rounded-xl transition-transform hover:scale-[1.02]"
+              className="w-full bg-brand brand-glow text-white font-black uppercase tracking-widest h-12 rounded-xl transition-transform hover:scale-[1.02]"
             >
               <Download className="mr-2 h-5 w-5" /> Baixar Imagem (PNG)
             </Button>
