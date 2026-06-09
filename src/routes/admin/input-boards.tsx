@@ -226,7 +226,7 @@ function InputBoards() {
           <TableBody>
             {boards.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-40 text-center text-white/50 font-medium italic">
+                <TableCell colSpan={4} className="h-40 text-center text-white/35 font-medium italic">
                   Nenhuma placa USB configurada. Verifique as conexões físicas dos Edge Devices.
                 </TableCell>
               </TableRow>
@@ -251,7 +251,7 @@ function InputBoards() {
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6 text-center">
-                    <Badge variant="outline" className="rounded-lg font-mono text-[10px] border-white/10 text-white/45 px-3 py-1 bg-white/5">
+                    <Badge variant="outline" className="rounded-lg font-mono text-[10px] border-white/10 text-white/35 px-3 py-1 bg-white/5">
                       {board.vendor_id}:{board.product_id}
                     </Badge>
                   </TableCell>

@@ -224,7 +224,7 @@ function ReplaysManagement() {
           <TableBody>
             {replays.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-40 text-center text-white/50 font-medium italic">
+                <TableCell colSpan={5} className="h-40 text-center text-white/35 font-medium italic">
                   Nenhum replay encontrado com os filtros selecionados.
                 </TableCell>
               </TableRow>
@@ -257,7 +257,7 @@ function ReplaysManagement() {
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <div className="flex flex-col">
-                      <span className="font-bold text-xs text-white/50">
+                      <span className="font-bold text-xs text-white/35">
                         {format(new Date(replay.created_at), "dd/MM/yyyy", { locale: ptBR })}
                       </span>
                       <span className="text-[10px] font-medium text-white/45 uppercase">

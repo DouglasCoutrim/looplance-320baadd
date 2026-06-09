@@ -238,8 +238,8 @@ function EdgeDevices() {
           <TableBody>
             {devices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-medium italic">
-                  <span className="text-white/50">Nenhum dispositivo provisionado. Use o botão acima para começar.</span>
+                <TableCell colSpan={4} className="h-40 text-center text-white/35 font-medium italic">
+                  <span>Nenhum dispositivo provisionado. Use o botão acima para começar.</span>
                 </TableCell>
               </TableRow>
             ) : (
@@ -261,7 +261,7 @@ function EdgeDevices() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="py-5 px-6 font-mono text-xs font-bold text-gray-500">
+                  <TableCell className="py-5 px-6 font-mono text-xs font-bold text-white/35">
                     {device.hostname || "não configurado"}
                   </TableCell>
                   <TableCell className="py-5 px-6">
@@ -278,7 +278,7 @@ function EdgeDevices() {
                         variant="ghost" 
                         size="sm" 
                         onClick={() => copyToken(device.edge_token)}
-                        className="rounded-xl font-black uppercase tracking-widest text-[10px] px-3 border border-gray-100 hover:bg-gray-50"
+                        className="rounded-xl font-black uppercase tracking-widest text-[10px] px-3 border border-white/10 hover:bg-white/5 text-white/60"
                       >
                         Copiar Token
                       </Button>
@@ -294,7 +294,7 @@ function EdgeDevices() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => handleDelete(device.id)}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
+                        className="h-10 w-10 rounded-xl text-white/40 hover:text-red-500 hover:bg-red-500/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
