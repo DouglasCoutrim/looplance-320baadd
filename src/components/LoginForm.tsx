@@ -44,12 +44,12 @@ export function LoginForm() {
 
   return (
     <div className="min-h-screen bg-black text-white px-8 py-12 flex flex-col items-center">
-      <div className="mb-[3px] mt-6 w-full flex justify-center">
+      <div className="mb-8 mt-6 w-full flex justify-center">
         <img src={logoUrl} alt="Looplance" className="w-[85%] max-w-[320px] h-auto object-contain" />
       </div>
 
       <p className="text-[#888] text-sm mb-10 text-center">
-        Inicie sessão para continuar no Looplance
+        inicie sessão para ver seus replays
       </p>
 
       <form onSubmit={handleLogin} className="w-full max-w-[280px] space-y-3">
