@@ -180,28 +180,28 @@ function UsersManagement() {
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-gray-900 uppercase">
+          <h1 className="text-3xl font-black tracking-tight text-primary uppercase">
             Gestão de <span className="brand-text">Usuários</span>
           </h1>
-          <p className="text-muted-foreground mt-1 font-medium">
+          <p className="text-secondary mt-1 font-medium">
             Administre acessos, permissões e contas de usuários do sistema.
           </p>
         </div>
         <Button 
           onClick={() => setIsCreateDialogOpen(true)}
-          className="brand-gradient text-white border-none brand-glow"
+          className="bg-brand text-white border-none brand-glow"
         >
           <UserPlus className="h-4 w-4 mr-2" />
           Novo Usuário
         </Button>
       </div>
 
-      <div className="glass-card bg-white p-6 shadow-md border border-gray-200">
+      <div className="glass-card bg-surface p-6 shadow-subtle border border-border">
         <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted" />
           <Input 
             placeholder="Buscar por nome ou e-mail..." 
-            className="pl-10 h-12 bg-gray-50/50 border-gray-200 focus:ring-brand-orange/20"
+            className="pl-10 h-12 bg-tag border-border focus:ring-brand/12"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
@@ -209,13 +209,13 @@ function UsersManagement() {
 
         {loading ? (
           <div className="flex flex-col items-center justify-center py-20 gap-4">
-            <Loader2 className="h-10 w-10 text-brand-orange animate-spin" />
-            <p className="text-xs font-black uppercase tracking-widest text-muted-foreground">Carregando Usuários...</p>
+            <Loader2 className="h-10 w-10 text-brand animate-spin" />
+            <p className="text-xs font-black uppercase tracking-widest text-muted">Carregando Usuários...</p>
           </div>
         ) : (
-          <div className="rounded-xl border border-gray-100 overflow-hidden">
+          <div className="rounded-xl border border-border overflow-hidden">
             <Table>
-              <TableHeader className="bg-gray-50">
+              <TableHeader className="bg-tag">
                 <TableRow>
                   <TableHead className="font-bold uppercase text-[10px] tracking-widest">Usuário</TableHead>
                   <TableHead className="font-bold uppercase text-[10px] tracking-widest">Cargo</TableHead>
@@ -225,32 +225,32 @@ function UsersManagement() {
               </TableHeader>
               <TableBody>
                 {filteredUsers.map((user) => (
-                  <TableRow key={user.id} className="hover:bg-gray-50/50 transition-colors">
+                  <TableRow key={user.id} className="hover:bg-bg-card-hover transition-colors">
                     <TableCell>
                       <div className="flex flex-col">
-                        <span className="font-bold text-gray-900">{user.full_name || "Sem Nome"}</span>
-                        <span className="text-xs text-muted-foreground">{user.email}</span>
+                        <span className="font-bold text-primary">{user.full_name || "Sem Nome"}</span>
+                        <span className="text-xs text-secondary">{user.email}</span>
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Badge variant="outline" className="capitalize bg-white font-bold border-gray-200 text-gray-600">
+                      <Badge variant="offline" className="capitalize font-bold">
                         {user.role || "usuário"}
                       </Badge>
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
                         {user.is_super_admin && (
-                          <Badge className="bg-purple-100 text-purple-700 border-purple-200 font-black text-[9px] uppercase tracking-tighter">
+                          <Badge variant="brand" className="font-black text-[9px] uppercase tracking-tighter">
                             Super Admin
                           </Badge>
                         )}
                         {user.is_arena_owner && (
-                          <Badge className="bg-blue-100 text-blue-700 border-blue-200 font-black text-[9px] uppercase tracking-tighter">
+                          <Badge variant="brand" className="font-black text-[9px] uppercase tracking-tighter">
                             Dono de Arena
                           </Badge>
                         )}
                         {!user.is_super_admin && !user.is_arena_owner && (
-                          <Badge className="bg-gray-100 text-gray-400 border-gray-200 font-black text-[9px] uppercase tracking-tighter">
+                          <Badge variant="offline" className="font-black text-[9px] uppercase tracking-tighter">
                             Padrão
                           </Badge>
                         )}
@@ -259,12 +259,12 @@ function UsersManagement() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-gray-100">
-                            <MoreVertical className="h-4 w-4 text-gray-500" />
+                          <Button variant="ghost" size="icon" className="h-8 w-8 hover:bg-tag">
+                            <MoreVertical className="h-4 w-4 text-secondary" />
                           </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end" className="w-48">
-                          <DropdownMenuLabel className="text-[10px] uppercase font-black text-muted-foreground">Gerenciar Usuário</DropdownMenuLabel>
+                          <DropdownMenuLabel className="text-[10px] uppercase font-black text-muted">Gerenciar Usuário</DropdownMenuLabel>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem onClick={() => {
                             setSelectedUser(user);
@@ -307,16 +307,16 @@ function UsersManagement() {
 
       {/* Dialog: Editar Perfil */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[425px] bg-surface border-border rounded-[20px]">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase tracking-tight">Editar Permissões</DialogTitle>
+            <DialogTitle className="font-black uppercase tracking-tight text-brand-text">Editar Permissões</DialogTitle>
             <DialogDescription>
               Ajuste o cargo e privilégios administrativos de {selectedUser?.full_name}.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-6 py-4">
             <div className="space-y-2">
-              <Label className="text-[10px] font-black uppercase text-muted-foreground">Cargo Funcional</Label>
+              <Label className="text-[10px] font-black uppercase text-secondary">Cargo Funcional</Label>
               <Select 
                 value={editUserForm.role} 
                 onValueChange={(v) => setEditUserForm(prev => ({ ...prev, role: v }))}
@@ -332,10 +332,10 @@ function UsersManagement() {
               </Select>
             </div>
             
-            <div className="flex items-center justify-between p-3 border rounded-xl bg-gray-50/50">
+            <div className="flex items-center justify-between p-3 border border-border rounded-xl bg-bg-card-hover">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold">Super Admin</Label>
-                <p className="text-[10px] text-muted-foreground">Acesso total a todas as arenas e infra.</p>
+                <Label className="text-sm font-bold text-primary">Super Admin</Label>
+                <p className="text-[10px] text-secondary">Acesso total a todas as arenas e infra.</p>
               </div>
               <Switch 
                 checked={editUserForm.isSuperAdmin}
@@ -343,10 +343,10 @@ function UsersManagement() {
               />
             </div>
 
-            <div className="flex items-center justify-between p-3 border rounded-xl bg-gray-50/50">
+            <div className="flex items-center justify-between p-3 border border-border rounded-xl bg-bg-card-hover">
               <div className="space-y-0.5">
-                <Label className="text-sm font-bold">Dono de Arena</Label>
-                <p className="text-[10px] text-muted-foreground">Pode gerenciar suas próprias quadras e replays.</p>
+                <Label className="text-sm font-bold text-primary">Dono de Arena</Label>
+                <p className="text-[10px] text-secondary">Pode gerenciar suas próprias quadras e replays.</p>
               </div>
               <Switch 
                 checked={editUserForm.isArenaOwner}
@@ -356,16 +356,16 @@ function UsersManagement() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsEditDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleUpdateProfile} className="brand-gradient text-white border-none">Salvar Alterações</Button>
+            <Button onClick={handleUpdateProfile} className="bg-brand text-white border-none">Salvar Alterações</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Dialog: Alterar Senha */}
       <Dialog open={isPasswordDialogOpen} onOpenChange={setIsPasswordDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-[400px] bg-surface border-border rounded-[20px]">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase tracking-tight">Alterar Senha</DialogTitle>
+            <DialogTitle className="font-black uppercase tracking-tight text-brand-text">Alterar Senha</DialogTitle>
             <DialogDescription>
               Defina uma nova senha de acesso para o usuário.
             </DialogDescription>
@@ -383,16 +383,16 @@ function UsersManagement() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsPasswordDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleUpdatePassword} className="brand-gradient text-white border-none">Atualizar Senha</Button>
+            <Button onClick={handleUpdatePassword} className="bg-brand text-white border-none">Atualizar Senha</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Dialog: Criar Usuário */}
       <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[450px] bg-surface border-border rounded-[20px]">
           <DialogHeader>
-            <DialogTitle className="font-black uppercase tracking-tight">Novo Usuário</DialogTitle>
+            <DialogTitle className="font-black uppercase tracking-tight text-brand-text">Novo Usuário</DialogTitle>
             <DialogDescription>
               Cadastre um novo usuário diretamente no sistema.
             </DialogDescription>
@@ -413,7 +413,7 @@ function UsersManagement() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancelar</Button>
-            <Button onClick={handleCreateUser} className="brand-gradient text-white border-none">Criar Conta</Button>
+            <Button onClick={handleCreateUser} className="bg-brand text-white border-none">Criar Conta</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
