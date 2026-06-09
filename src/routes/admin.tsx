@@ -131,10 +131,10 @@ function AdminLayout() {
                 </div>
                 <div className="p-4 space-y-6">
                   <NavLinks />
-                  <div className="pt-4 border-t border-gray-100">
+                  <div className="pt-4 border-t border-white/10">
                     <Link 
                       to="/" 
-                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-gray-500 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-3 px-4 py-3 rounded-xl font-bold text-gray-400 hover:bg-white/5 transition-colors"
                     >
                       <ArrowLeft className="h-5 w-5" />
                       <span>Sair do Admin</span>
