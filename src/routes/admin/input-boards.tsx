@@ -213,45 +213,45 @@ function InputBoards() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
+      <div className="glass-card bg-[#1a1a1a] shadow-xl border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
         <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Interface / ID</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Conexão Edge</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-center">Identificação HW</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Ações</TableHead>
+          <TableHeader className="bg-transparent border-b border-white/5">
+            <TableRow className="hover:bg-transparent border-b border-white/5">
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Interface / ID</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Conexão Edge</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6 text-center">Identificação HW</TableHead>
+              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {boards.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-medium italic">
+                <TableCell colSpan={4} className="h-40 text-center text-white/50 font-medium italic">
                   Nenhuma placa USB configurada. Verifique as conexões físicas dos Edge Devices.
                 </TableCell>
               </TableRow>
             ) : (
               boards.map((board) => (
-                <TableRow key={board.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                <TableRow key={board.id} className="hover:bg-white/[0.04] transition-colors border-b border-white/[0.07] last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-indigo-500/10 flex items-center justify-center text-indigo-500 transition-colors group-hover:brand-gradient group-hover:text-white">
                         <Usb className="h-6 w-6" />
                       </div>
                       <div>
-                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{board.name}</span>
-                        <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest">USB Zero Delay</p>
+                        <span className="font-semibold text-lg text-white uppercase tracking-tight">{board.name}</span>
+                        <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest">USB Zero Delay</p>
                       </div>
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-2">
                       <HardDrive className="h-4 w-4 text-brand-orange" />
-                      <span className="font-bold text-gray-700">{board.edge_devices?.name || "Desvinculada"}</span>
+                      <Badge className="bg-orange-500/15 text-brand-orange border border-orange-500/30 rounded-full font-bold px-3">{board.edge_devices?.name || "Desvinculada"}</Badge>
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6 text-center">
-                    <Badge variant="outline" className="rounded-lg font-mono text-[10px] border-gray-200 text-gray-500 px-3 py-1 bg-gray-50">
+                    <Badge variant="outline" className="rounded-lg font-mono text-[10px] border-white/10 text-white/45 px-3 py-1 bg-white/5">
                       {board.vendor_id}:{board.product_id}
                     </Badge>
                   </TableCell>
@@ -261,7 +261,7 @@ function InputBoards() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => openEditDialog(board)}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5"
+                        className="h-10 w-10 rounded-xl text-white/40 hover:text-white/90 hover:bg-white/5"
                       >
                         <Edit2 className="h-4 w-4" />
                       </Button>
@@ -269,7 +269,7 @@ function InputBoards() {
                         variant="ghost" 
                         size="icon" 
                         onClick={() => handleDelete(board.id)}
-                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50"
+                        className="h-10 w-10 rounded-xl text-white/40 hover:text-red-500 hover:bg-red-500/10"
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>

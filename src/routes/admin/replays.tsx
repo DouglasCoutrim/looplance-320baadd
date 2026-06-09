@@ -166,11 +166,11 @@ function ReplaysManagement() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-[#1a1a1a] p-6 rounded-2xl border border-[#2a2a2a] shadow-sm">
         <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Filtrar por Arena</label>
+          <label className="text-[10px] font-black uppercase tracking-widest text-white/60">Filtrar por Arena</label>
           <Select value={selectedArenaId} onValueChange={(val) => { setSelectedArenaId(val); setSelectedQuadraId("all"); }}>
-            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+            <SelectTrigger className="rounded-lg border-[#333] bg-[#252525] h-12 text-white focus:ring-brand-orange">
               <SelectValue placeholder="Todas as Arenas" />
             </SelectTrigger>
             <SelectContent className="rounded-xl shadow-xl border-gray-100">
@@ -183,9 +183,9 @@ function ReplaysManagement() {
         </div>
 
         <div className="space-y-2">
-          <label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Filtrar por Quadra</label>
+          <label className="text-[10px] font-black uppercase tracking-widest text-white/60">Filtrar por Quadra</label>
           <Select value={selectedQuadraId} onValueChange={setSelectedQuadraId}>
-            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+            <SelectTrigger className="rounded-lg border-[#333] bg-[#252525] h-12 text-white focus:ring-brand-orange">
               <SelectValue placeholder="Todas as Quadras" />
             </SelectTrigger>
             <SelectContent className="rounded-xl shadow-xl border-gray-100">
@@ -204,42 +204,42 @@ function ReplaysManagement() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden overflow-x-auto">
+      <div className="glass-card bg-[#1a1a1a] shadow-xl border border-[#2a2a2a] overflow-hidden overflow-x-auto rounded-[12px]">
         <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
-            <TableRow className="hover:bg-transparent">
+          <TableHeader className="bg-transparent border-b border-white/5">
+            <TableRow className="hover:bg-transparent border-b border-white/5">
               <TableHead className="w-[50px] py-4 px-6">
                 <Checkbox 
                   checked={replays.length > 0 && selectedReplayIds.length === replays.length}
                   onCheckedChange={toggleSelectAll}
-                  className="border-gray-300 data-[state=checked]:bg-brand-orange data-[state=checked]:border-brand-orange"
+                  className="border-[1.5px] border-white/25 data-[state=checked]:bg-brand-orange data-[state=checked]:border-brand-orange rounded-full"
                 />
               </TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Preview</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Localização</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Data / Hora</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-right">Ações</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Preview</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Localização</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6">Data / Hora</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-white/60 py-4 px-6 text-right">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {replays.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium italic">
+                <TableCell colSpan={5} className="h-40 text-center text-white/50 font-medium italic">
                   Nenhum replay encontrado com os filtros selecionados.
                 </TableCell>
               </TableRow>
             ) : (
               replays.map((replay) => (
-                <TableRow key={replay.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                <TableRow key={replay.id} className="hover:bg-white/[0.04] transition-colors border-b border-white/[0.07] last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <Checkbox 
                       checked={selectedReplayIds.includes(replay.id)}
                       onCheckedChange={() => toggleSelectReplay(replay.id)}
-                      className="border-gray-300 data-[state=checked]:bg-brand-orange data-[state=checked]:border-brand-orange"
+                      className="border-[1.5px] border-white/25 data-[state=checked]:bg-brand-orange data-[state=checked]:border-brand-orange rounded-full"
                     />
                   </TableCell>
                   <TableCell className="py-5 px-6">
-                    <div className="relative h-16 w-28 rounded-lg overflow-hidden bg-black ring-1 ring-gray-100 group-hover:scale-105 transition-transform flex items-center justify-center">
+                    <div className="relative h-16 w-28 rounded-lg overflow-hidden bg-black ring-1 ring-white/5 group-hover:scale-105 transition-transform flex items-center justify-center">
                       <video 
                         src={`${replay.video_url}#t=0.1`} 
                         className="max-h-full max-w-full object-contain opacity-80"
@@ -251,16 +251,16 @@ function ReplaysManagement() {
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <div className="flex flex-col">
-                      <span className="font-black text-xs uppercase tracking-tight text-gray-700">{replay.quadras?.arenas?.nome}</span>
-                      <span className="text-[10px] font-bold text-muted-foreground uppercase">{replay.quadras?.nome}</span>
+                      <span className="font-medium text-xs uppercase tracking-tight text-white">{replay.quadras?.arenas?.nome}</span>
+                      <span className="text-[10px] font-bold text-white/60 uppercase">{replay.quadras?.nome}</span>
                     </div>
                   </TableCell>
                   <TableCell className="py-5 px-6">
                     <div className="flex flex-col">
-                      <span className="font-bold text-xs text-gray-700">
+                      <span className="font-bold text-xs text-white/50">
                         {format(new Date(replay.created_at), "dd/MM/yyyy", { locale: ptBR })}
                       </span>
-                      <span className="text-[10px] font-medium text-muted-foreground uppercase">
+                      <span className="text-[10px] font-medium text-white/45 uppercase">
                         {format(new Date(replay.created_at), "HH:mm:ss", { locale: ptBR })}
                       </span>
                     </div>
