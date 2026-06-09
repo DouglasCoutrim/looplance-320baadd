@@ -343,7 +343,7 @@ function Select({
 
 function TimeInput({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
   return (
-    <div className="rounded-xl border border-border bg-input px-4 py-2.5 transition-colors focus-within:border-brand">>
+    <div className="rounded-xl border border-border bg-input px-4 py-2.5 transition-colors focus-within:border-brand">
       <div className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground/70">{label}</div>
       <select
         value={value}
