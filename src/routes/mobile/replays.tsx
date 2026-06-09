@@ -5,6 +5,8 @@ import { ReplayCardList } from '../../components/mobile/ReplayCardList';
 import { EmptyState } from '../../components/mobile/EmptyState';
 import { Play } from 'lucide-react';
 import { useState } from 'react';
+import { Link } from '@tanstack/react-router';
+
 
 export const Route = createFileRoute('/mobile/replays')({
   component: MyReplays,
