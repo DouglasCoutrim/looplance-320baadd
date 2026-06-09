@@ -76,7 +76,7 @@ function AdminHome() {
       {/* Hero Welcome */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-white uppercase">
+          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-[#ffffff] uppercase">
             Dashboard <span className="brand-text">Admin</span>
           </h1>
           <p className="text-white/60 mt-1 font-medium text-base sm:text-lg">
