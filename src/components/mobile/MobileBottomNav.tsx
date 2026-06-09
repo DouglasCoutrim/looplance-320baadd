@@ -13,7 +13,7 @@ export const MobileBottomNav = () => {
   const location = useLocation();
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 bg-[#F97316] h-[86px] rounded-t-[24px] px-4 flex items-start justify-around pt-3 safe-area-bottom z-50">
+    <div className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[390px] bg-[#F97316] h-[86px] rounded-t-[24px] px-4 flex items-start justify-around pt-3 safe-area-bottom z-50">
       {navItems.map((item) => {
         const isActive = location.pathname === item.to;
         const Icon = item.icon;
