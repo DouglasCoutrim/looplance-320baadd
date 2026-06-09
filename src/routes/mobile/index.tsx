@@ -70,7 +70,7 @@ function MobileHome() {
               thumbnail="https://images.unsplash.com/photo-1546519638-68e109498ffc?w=400&q=80"
             />
           </Link>
-          <Link to="/mobile/player">
+          <Link to="/mobile/player" className="block active:scale-[0.98] transition-transform">
             <ReplayCardLarge 
               title="Cesta incrível" 
               duration="00:12" 
