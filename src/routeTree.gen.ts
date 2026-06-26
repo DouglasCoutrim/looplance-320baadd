@@ -17,6 +17,7 @@ import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-board
 import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-devices'
 import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
 import { Route as AdminArenasRouteImport } from './routes/admin/arenas'
+import { Route as ApiPublicEdgeSetupIdRouteImport } from './routes/api/public/edge-setup.$id'
 
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
@@ -58,6 +59,11 @@ const AdminArenasRoute = AdminArenasRouteImport.update({
   path: '/arenas',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiPublicEdgeSetupIdRoute = ApiPublicEdgeSetupIdRouteImport.update({
+  id: '/api/public/edge-setup/$id',
+  path: '/api/public/edge-setup/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -68,6 +74,7 @@ export interface FileRoutesByFullPath {
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -77,6 +84,7 @@ export interface FileRoutesByTo {
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin': typeof AdminIndexRoute
+  '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -88,6 +96,7 @@ export interface FileRoutesById {
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -100,6 +109,7 @@ export interface FileRouteTypes {
     | '/admin/input-boards'
     | '/admin/quadras'
     | '/admin/'
+    | '/api/public/edge-setup/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/admin/input-boards'
     | '/admin/quadras'
     | '/admin'
+    | '/api/public/edge-setup/$id'
   id:
     | '__root__'
     | '/'
@@ -119,11 +130,13 @@ export interface FileRouteTypes {
     | '/admin/input-boards'
     | '/admin/quadras'
     | '/admin/'
+    | '/api/public/edge-setup/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  ApiPublicEdgeSetupIdRoute: typeof ApiPublicEdgeSetupIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -184,6 +197,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminArenasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/public/edge-setup/$id': {
+      id: '/api/public/edge-setup/$id'
+      path: '/api/public/edge-setup/$id'
+      fullPath: '/api/public/edge-setup/$id'
+      preLoaderRoute: typeof ApiPublicEdgeSetupIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -210,6 +230,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  ApiPublicEdgeSetupIdRoute: ApiPublicEdgeSetupIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -42,8 +42,12 @@ function EdgeDevices() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<EdgeDevice | null>(null);
   const [deletingDevice, setDeletingDevice] = useState<EdgeDevice | null>(null);
+  const [scriptDevice, setScriptDevice] = useState<EdgeDevice | null>(null);
   const [newName, setNewName] = useState("");
   const [newHostname, setNewHostname] = useState("");
+
+  const setupUrl = (id: string) => `${window.location.origin}/api/public/edge-setup/${id}`;
+  const setupCommand = (id: string) => `curl -fsSL ${setupUrl(id)} | sudo bash`;
 
   const fetchDevices = async () => {
     setLoading(true);
@@ -264,6 +268,14 @@ function EdgeDevices() {
                   </TableCell>
                   <TableCell className="text-right py-5 px-6">
                     <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setScriptDevice(device)}
+                        className="rounded-xl font-black uppercase tracking-widest text-[10px] px-3 border border-gray-100 hover:bg-gray-50 text-brand-orange"
+                      >
+                        <Terminal className="h-3.5 w-3.5 mr-1.5" /> Script Setup
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
