@@ -207,7 +207,51 @@ function EdgeDevices() {
         </DialogContent>
       </Dialog>
 
-      <AlertDialog open={!!deletingDevice} onOpenChange={(open) => !open && setDeletingDevice(null)}>
+      <Dialog open={!!scriptDevice} onOpenChange={(open) => !open && setScriptDevice(null)}>
+        <DialogContent className="rounded-2xl border-none shadow-2xl max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
+              Script de Instalação <span className="brand-text">Ubuntu</span>
+            </DialogTitle>
+          </DialogHeader>
+          {scriptDevice && (
+            <div className="space-y-5 py-4">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium mb-2">
+                  Cole o comando abaixo no terminal do servidor Ubuntu (como root ou com sudo). Ele instala dependências, configura o serviço de heartbeat e vincula este device automaticamente.
+                </p>
+              </div>
+              <div className="rounded-xl bg-gray-900 p-4 font-mono text-xs text-green-400 overflow-x-auto">
+                <code>{setupCommand(scriptDevice.id)}</code>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(setupCommand(scriptDevice.id));
+                    toast.success("Comando copiado!");
+                  }}
+                  className="brand-gradient text-white font-black uppercase tracking-widest rounded-xl flex-1"
+                >
+                  <Copy className="h-4 w-4 mr-2" /> Copiar Comando
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(setupUrl(scriptDevice.id), "_blank")}
+                  className="rounded-xl font-bold border-gray-200"
+                >
+                  <Terminal className="h-4 w-4 mr-2" /> Ver Script
+                </Button>
+              </div>
+              <div className="rounded-xl bg-orange-50 border border-orange-100 p-3">
+                <p className="text-xs font-bold text-orange-900 uppercase tracking-widest mb-1">⚠ Importante</p>
+                <p className="text-xs text-orange-800">O script contém o token único deste device. Não compartilhe publicamente.</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-black uppercase tracking-tight">Deletar Dispositivo?</AlertDialogTitle>
