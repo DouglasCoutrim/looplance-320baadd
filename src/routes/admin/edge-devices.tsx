@@ -6,6 +6,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Plus, Copy, RefreshCw, HardDrive, Edit2, Trash2, Wifi, WifiOff } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
@@ -30,6 +40,8 @@ function EdgeDevices() {
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editingDevice, setEditingDevice] = useState<EdgeDevice | null>(null);
+  const [deletingDevice, setDeletingDevice] = useState<EdgeDevice | null>(null);
   const [newName, setNewName] = useState("");
   const [newHostname, setNewHostname] = useState("");
 
@@ -52,23 +64,72 @@ function EdgeDevices() {
     fetchDevices();
   }, []);
 
-  const handleCreate = async () => {
+  const resetForm = () => {
+    setNewName("");
+    setNewHostname("");
+    setEditingDevice(null);
+  };
+
+  const openCreateDialog = () => {
+    resetForm();
+    setIsDialogOpen(true);
+  };
+
+  const openEditDialog = (device: EdgeDevice) => {
+    setEditingDevice(device);
+    setNewName(device.name);
+    setNewHostname(device.hostname || "");
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = async () => {
     if (!newName) {
       toast.error("Nome é obrigatório");
       return;
     }
 
+    if (editingDevice) {
+      const { error } = await supabase
+        .from("edge_devices")
+        .update({ name: newName, hostname: newHostname })
+        .eq("id", editingDevice.id);
+
+      if (error) {
+        toast.error("Erro ao atualizar dispositivo");
+      } else {
+        toast.success("Dispositivo atualizado com sucesso");
+        setIsDialogOpen(false);
+        resetForm();
+        fetchDevices();
+      }
+    } else {
+      const { error } = await supabase
+        .from("edge_devices")
+        .insert([{ name: newName, hostname: newHostname, status: "offline" }]);
+
+      if (error) {
+        toast.error("Erro ao criar dispositivo");
+      } else {
+        toast.success("Dispositivo criado com sucesso");
+        setIsDialogOpen(false);
+        resetForm();
+        fetchDevices();
+      }
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deletingDevice) return;
     const { error } = await supabase
       .from("edge_devices")
-      .insert([{ name: newName, hostname: newHostname, status: "offline" }]);
+      .delete()
+      .eq("id", deletingDevice.id);
 
     if (error) {
-      toast.error("Erro ao criar dispositivo");
+      toast.error("Erro ao deletar dispositivo");
     } else {
-      toast.success("Dispositivo criado com sucesso");
-      setIsDialogOpen(false);
-      setNewName("");
-      setNewHostname("");
+      toast.success("Dispositivo deletado com sucesso");
+      setDeletingDevice(null);
       fetchDevices();
     }
   };
@@ -80,7 +141,7 @@ function EdgeDevices() {
   };
 
   const getStatusBadge = (device: EdgeDevice) => {
-    const isOnline = device.last_seen && (new Date().getTime() - new Date(device.last_seen).getTime()) < 300000; // 5 minutes
+    const isOnline = device.last_seen && (new Date().getTime() - new Date(device.last_seen).getTime()) < 300000;
     if (isOnline) {
       return (
         <Badge className="bg-green-500 hover:bg-green-600 font-bold uppercase tracking-widest text-[10px] rounded-full px-3 py-1">
@@ -110,34 +171,54 @@ function EdgeDevices() {
           <Button variant="outline" size="icon" onClick={fetchDevices} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
-                <Plus className="mr-2 h-5 w-5" /> Novo Device
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="rounded-2xl border-none shadow-2xl">
-              <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">Provisionar Servidor</DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-6 py-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome do Dispositivo</Label>
-                  <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex: Edge Server Arena 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
-                </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="hostname" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Hostname (Opcional)</Label>
-                  <Input id="hostname" value={newHostname} onChange={(e) => setNewHostname(e.target.value)} placeholder="Ex: edge-01.local" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleCreate} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Provisionar</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={openCreateDialog} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+            <Plus className="mr-2 h-5 w-5" /> Novo Device
+          </Button>
         </div>
       </div>
+
+      <Dialog open={isDialogOpen} onOpenChange={(open) => { setIsDialogOpen(open); if (!open) resetForm(); }}>
+        <DialogContent className="rounded-2xl border-none shadow-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
+              {editingDevice ? "Editar Servidor" : "Provisionar Servidor"}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-6 py-6">
+            <div className="grid gap-2">
+              <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome do Dispositivo</Label>
+              <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex: Edge Server Arena 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="hostname" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Hostname (Opcional)</Label>
+              <Input id="hostname" value={newHostname} onChange={(e) => setNewHostname(e.target.value)} placeholder="Ex: edge-01.local" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="ghost" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="rounded-xl font-bold">Cancelar</Button>
+            <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
+              {editingDevice ? "Salvar" : "Provisionar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <AlertDialog open={!!deletingDevice} onOpenChange={(open) => !open && setDeletingDevice(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="font-black uppercase tracking-tight">Deletar Dispositivo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja deletar <strong>{deletingDevice?.name}</strong>? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl font-bold">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="rounded-xl bg-red-500 hover:bg-red-600 font-black uppercase tracking-widest">
+              Deletar
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
 
       <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
         <Table>
@@ -176,23 +257,26 @@ function EdgeDevices() {
                   <TableCell className="py-5 px-6">
                     {getStatusBadge(device)}
                     <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter">
-                      Visto {device.last_seen 
+                      Visto {device.last_seen
                         ? formatDistanceToNow(new Date(device.last_seen), { addSuffix: true, locale: ptBR })
                         : "nunca"}
                     </p>
                   </TableCell>
                   <TableCell className="text-right py-5 px-6">
                     <div className="flex justify-end gap-2">
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => copyToken(device.edge_token)}
                         className="rounded-xl font-black uppercase tracking-widest text-[10px] px-3 border border-gray-100 hover:bg-gray-50"
                       >
                         Copiar Token
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
+                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(device)} className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
                         <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setDeletingDevice(device)} className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-500/5">
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
