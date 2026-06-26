@@ -251,7 +251,7 @@ function EdgeDevices() {
         </DialogContent>
       </Dialog>
 
-
+      <AlertDialog open={!!deletingDevice} onOpenChange={(open) => !open && setDeletingDevice(null)}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
             <AlertDialogTitle className="font-black uppercase tracking-tight">Deletar Dispositivo?</AlertDialogTitle>
