@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Copy, RefreshCw, HardDrive, Edit2, Trash2, Wifi, WifiOff } from "lucide-react";
+import { Plus, Copy, RefreshCw, HardDrive, Edit2, Trash2, Wifi, WifiOff, Terminal } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -42,8 +42,12 @@ function EdgeDevices() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<EdgeDevice | null>(null);
   const [deletingDevice, setDeletingDevice] = useState<EdgeDevice | null>(null);
+  const [scriptDevice, setScriptDevice] = useState<EdgeDevice | null>(null);
   const [newName, setNewName] = useState("");
   const [newHostname, setNewHostname] = useState("");
+
+  const setupUrl = (id: string) => `${window.location.origin}/api/public/edge-setup/${id}`;
+  const setupCommand = (id: string) => `curl -fsSL ${setupUrl(id)} | sudo bash`;
 
   const fetchDevices = async () => {
     setLoading(true);
@@ -203,6 +207,50 @@ function EdgeDevices() {
         </DialogContent>
       </Dialog>
 
+      <Dialog open={!!scriptDevice} onOpenChange={(open) => !open && setScriptDevice(null)}>
+        <DialogContent className="rounded-2xl border-none shadow-2xl max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
+              Script de Instalação <span className="brand-text">Ubuntu</span>
+            </DialogTitle>
+          </DialogHeader>
+          {scriptDevice && (
+            <div className="space-y-5 py-4">
+              <div>
+                <p className="text-sm text-muted-foreground font-medium mb-2">
+                  Cole o comando abaixo no terminal do servidor Ubuntu (como root ou com sudo). Ele instala dependências, configura o serviço de heartbeat e vincula este device automaticamente.
+                </p>
+              </div>
+              <div className="rounded-xl bg-gray-900 p-4 font-mono text-xs text-green-400 overflow-x-auto">
+                <code>{setupCommand(scriptDevice.id)}</code>
+              </div>
+              <div className="flex gap-2 flex-wrap">
+                <Button
+                  onClick={() => {
+                    navigator.clipboard.writeText(setupCommand(scriptDevice.id));
+                    toast.success("Comando copiado!");
+                  }}
+                  className="brand-gradient text-white font-black uppercase tracking-widest rounded-xl flex-1"
+                >
+                  <Copy className="h-4 w-4 mr-2" /> Copiar Comando
+                </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => window.open(setupUrl(scriptDevice.id), "_blank")}
+                  className="rounded-xl font-bold border-gray-200"
+                >
+                  <Terminal className="h-4 w-4 mr-2" /> Ver Script
+                </Button>
+              </div>
+              <div className="rounded-xl bg-orange-50 border border-orange-100 p-3">
+                <p className="text-xs font-bold text-orange-900 uppercase tracking-widest mb-1">⚠ Importante</p>
+                <p className="text-xs text-orange-800">O script contém o token único deste device. Não compartilhe publicamente.</p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
       <AlertDialog open={!!deletingDevice} onOpenChange={(open) => !open && setDeletingDevice(null)}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
@@ -264,6 +312,14 @@ function EdgeDevices() {
                   </TableCell>
                   <TableCell className="text-right py-5 px-6">
                     <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setScriptDevice(device)}
+                        className="rounded-xl font-black uppercase tracking-widest text-[10px] px-3 border border-gray-100 hover:bg-gray-50 text-brand-orange"
+                      >
+                        <Terminal className="h-3.5 w-3.5 mr-1.5" /> Script Setup
+                      </Button>
                       <Button
                         variant="ghost"
                         size="sm"
