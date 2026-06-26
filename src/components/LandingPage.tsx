@@ -23,9 +23,9 @@ export function LandingPage() {
             <div className="space-y-6">
               <h1 className="text-5xl sm:text-7xl font-black leading-[0.9] tracking-tighter uppercase">
                 O SEU <span className="brand-text">REPLAY</span> <br />
-                NA PALMA DA <span className="text-muted">MÃO.</span>
+                NA PALMA DA <span className="text-foreground/70">MÃO.</span>
               </h1>
-              <p className="text-xl text-secondary font-medium leading-relaxed max-w-lg italic">
+              <p className="text-xl text-muted-foreground font-medium leading-relaxed max-w-lg italic">
                 Reviva seus melhores momentos na quadra, baixe e compartilhe em tempo real com a tecnologia Looplance Edge.
               </p>
             </div>
@@ -90,7 +90,7 @@ export function LandingPage() {
           </div>
           
           <div className="space-y-4 md:col-span-2 flex flex-col justify-center">
-            <h4 className="text-xs font-black uppercase tracking-widest text-muted">Para Donos de Arena</h4>
+            <h4 className="text-xs font-black uppercase tracking-widest text-muted-foreground">Para Donos de Arena</h4>
             <div className="flex flex-wrap gap-4">
               <a href="#" className="px-6 py-3 rounded-xl bg-tag border border-border hover:bg-tag/80 transition text-sm font-bold text-primary">
                 Levar para minha Arena
