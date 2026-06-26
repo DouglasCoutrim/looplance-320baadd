@@ -14,11 +14,6 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground shadow hover:bg-destructive/80",
         outline: "text-foreground",
-        brand: "bg-brand-dim text-brand-text border-brand-border",
-        online: "bg-[rgba(22,163,74,0.10)] text-[#15803d] border-[rgba(22,163,74,0.20)]",
-        offline: "bg-[rgba(0,0,0,0.05)] text-[rgba(26,16,8,0.45)] border-[rgba(0,0,0,0.08)]",
-        danger: "bg-[rgba(220,38,38,0.08)] text-[#dc2626] border-[rgba(220,38,38,0.15)]",
-        warning: "bg-[rgba(217,119,6,0.10)] text-[#d97706] border-[rgba(217,119,6,0.20)]",
       },
     },
     defaultVariants: {

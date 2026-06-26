@@ -14,121 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
-      arena_settings: {
-        Row: {
-          arena_id: string
-          auto_cleanup_enabled: boolean
-          created_at: string | null
-          id: string
-          replay_retention_days: number
-          updated_at: string | null
-        }
-        Insert: {
-          arena_id: string
-          auto_cleanup_enabled?: boolean
-          created_at?: string | null
-          id?: string
-          replay_retention_days?: number
-          updated_at?: string | null
-        }
-        Update: {
-          arena_id?: string
-          auto_cleanup_enabled?: boolean
-          created_at?: string | null
-          id?: string
-          replay_retention_days?: number
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "arena_settings_arena_id_fkey"
-            columns: ["arena_id"]
-            isOneToOne: true
-            referencedRelation: "arenas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       arenas: {
         Row: {
-          cidade: string | null
           created_at: string
-          endereco: string | null
-          final_overlay_url: string | null
-          foto_url: string | null
           id: string
           nome: string
-          sponsor_logo_center: string | null
-          sponsor_logo_left: string | null
-          sponsor_logo_right: string | null
-          telefone: string | null
         }
         Insert: {
-          cidade?: string | null
           created_at?: string
-          endereco?: string | null
-          final_overlay_url?: string | null
-          foto_url?: string | null
           id?: string
           nome: string
-          sponsor_logo_center?: string | null
-          sponsor_logo_left?: string | null
-          sponsor_logo_right?: string | null
-          telefone?: string | null
         }
         Update: {
-          cidade?: string | null
           created_at?: string
-          endereco?: string | null
-          final_overlay_url?: string | null
-          foto_url?: string | null
           id?: string
           nome?: string
-          sponsor_logo_center?: string | null
-          sponsor_logo_left?: string | null
-          sponsor_logo_right?: string | null
-          telefone?: string | null
-        }
-        Relationships: []
-      }
-      botoeiras: {
-        Row: {
-          botoeira_id: string
-          camera_id: string
-          created_at: string
-          id: string
-          ip_local: string
-          local_key: string
-          updated_at: string
-        }
-        Insert: {
-          botoeira_id: string
-          camera_id: string
-          created_at?: string
-          id?: string
-          ip_local: string
-          local_key: string
-          updated_at?: string
-        }
-        Update: {
-          botoeira_id?: string
-          camera_id?: string
-          created_at?: string
-          id?: string
-          ip_local?: string
-          local_key?: string
-          updated_at?: string
         }
         Relationships: []
       }
       cameras: {
         Row: {
           active: boolean | null
-          aspect_ratio: string | null
           buffer_seconds: number | null
           created_at: string | null
           edge_device_id: string | null
-          final_overlay_url: string | null
           id: string
           input_board_id: string | null
           name: string
@@ -136,24 +45,13 @@ export type Database = {
           quadra_id: string | null
           replay_seconds: number | null
           rtsp_url: string | null
-          sponsor_logo_center: string | null
-          sponsor_logo_left: string | null
-          sponsor_logo_right: string | null
-          streaming_error: string | null
-          streaming_status: string | null
           trigger_button: number | null
-          video_height: number | null
-          video_width: number | null
-          video_x: number | null
-          video_y: number | null
         }
         Insert: {
           active?: boolean | null
-          aspect_ratio?: string | null
           buffer_seconds?: number | null
           created_at?: string | null
           edge_device_id?: string | null
-          final_overlay_url?: string | null
           id?: string
           input_board_id?: string | null
           name: string
@@ -161,24 +59,13 @@ export type Database = {
           quadra_id?: string | null
           replay_seconds?: number | null
           rtsp_url?: string | null
-          sponsor_logo_center?: string | null
-          sponsor_logo_left?: string | null
-          sponsor_logo_right?: string | null
-          streaming_error?: string | null
-          streaming_status?: string | null
           trigger_button?: number | null
-          video_height?: number | null
-          video_width?: number | null
-          video_x?: number | null
-          video_y?: number | null
         }
         Update: {
           active?: boolean | null
-          aspect_ratio?: string | null
           buffer_seconds?: number | null
           created_at?: string | null
           edge_device_id?: string | null
-          final_overlay_url?: string | null
           id?: string
           input_board_id?: string | null
           name?: string
@@ -186,16 +73,7 @@ export type Database = {
           quadra_id?: string | null
           replay_seconds?: number | null
           rtsp_url?: string | null
-          sponsor_logo_center?: string | null
-          sponsor_logo_left?: string | null
-          sponsor_logo_right?: string | null
-          streaming_error?: string | null
-          streaming_status?: string | null
           trigger_button?: number | null
-          video_height?: number | null
-          video_width?: number | null
-          video_x?: number | null
-          video_y?: number | null
         }
         Relationships: [
           {
@@ -221,73 +99,35 @@ export type Database = {
           },
         ]
       }
-      debug_logs: {
-        Row: {
-          created_at: string | null
-          id: string
-          message: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          message?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          message?: string | null
-        }
-        Relationships: []
-      }
       edge_devices: {
         Row: {
-          arena_id: string | null
           created_at: string | null
           edge_token: string | null
-          edge_version: string | null
           hostname: string | null
           id: string
           last_seen: string | null
-          local_ip: string | null
           name: string
           status: string | null
-          uptime_seconds: number | null
         }
         Insert: {
-          arena_id?: string | null
           created_at?: string | null
           edge_token?: string | null
-          edge_version?: string | null
           hostname?: string | null
           id?: string
           last_seen?: string | null
-          local_ip?: string | null
           name: string
           status?: string | null
-          uptime_seconds?: number | null
         }
         Update: {
-          arena_id?: string | null
           created_at?: string | null
           edge_token?: string | null
-          edge_version?: string | null
           hostname?: string | null
           id?: string
           last_seen?: string | null
-          local_ip?: string | null
           name?: string
           status?: string | null
-          uptime_seconds?: number | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "edge_devices_arena_id_fkey"
-            columns: ["arena_id"]
-            isOneToOne: false
-            referencedRelation: "arenas"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       input_boards: {
         Row: {
@@ -327,62 +167,6 @@ export type Database = {
           },
         ]
       }
-      profiles: {
-        Row: {
-          arena_id: string | null
-          birth_date: string | null
-          consent_accepted: boolean | null
-          consent_timestamp: string | null
-          cpf: string | null
-          created_at: string
-          email: string | null
-          full_name: string | null
-          id: string
-          is_arena_owner: boolean | null
-          is_super_admin: boolean | null
-          role: string | null
-          updated_at: string
-        }
-        Insert: {
-          arena_id?: string | null
-          birth_date?: string | null
-          consent_accepted?: boolean | null
-          consent_timestamp?: string | null
-          cpf?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id: string
-          is_arena_owner?: boolean | null
-          is_super_admin?: boolean | null
-          role?: string | null
-          updated_at?: string
-        }
-        Update: {
-          arena_id?: string | null
-          birth_date?: string | null
-          consent_accepted?: boolean | null
-          consent_timestamp?: string | null
-          cpf?: string | null
-          created_at?: string
-          email?: string | null
-          full_name?: string | null
-          id?: string
-          is_arena_owner?: boolean | null
-          is_super_admin?: boolean | null
-          role?: string | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "profiles_arena_id_fkey"
-            columns: ["arena_id"]
-            isOneToOne: false
-            referencedRelation: "arenas"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       quadras: {
         Row: {
           arena_id: string
@@ -412,75 +196,26 @@ export type Database = {
           },
         ]
       }
-      r2_deletion_logs: {
-        Row: {
-          created_at: string | null
-          error_message: string | null
-          id: string
-          r2_key: string
-          replay_id: string
-          status: string
-        }
-        Insert: {
-          created_at?: string | null
-          error_message?: string | null
-          id?: string
-          r2_key: string
-          replay_id: string
-          status: string
-        }
-        Update: {
-          created_at?: string | null
-          error_message?: string | null
-          id?: string
-          r2_key?: string
-          replay_id?: string
-          status?: string
-        }
-        Relationships: []
-      }
       replays: {
         Row: {
-          arena_id: string | null
           created_at: string
-          duration_sec: number | null
-          edge_device_id: string | null
-          file_size_bytes: number | null
           id: string
           quadra_id: string
-          r2_key: string | null
           video_url: string
         }
         Insert: {
-          arena_id?: string | null
           created_at?: string
-          duration_sec?: number | null
-          edge_device_id?: string | null
-          file_size_bytes?: number | null
           id?: string
           quadra_id: string
-          r2_key?: string | null
           video_url: string
         }
         Update: {
-          arena_id?: string | null
           created_at?: string
-          duration_sec?: number | null
-          edge_device_id?: string | null
-          file_size_bytes?: number | null
           id?: string
           quadra_id?: string
-          r2_key?: string | null
           video_url?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "replays_edge_device_id_fkey"
-            columns: ["edge_device_id"]
-            isOneToOne: false
-            referencedRelation: "edge_devices"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "replays_quadra_id_fkey"
             columns: ["quadra_id"]
@@ -495,30 +230,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      admin_update_user_profile:
-        | {
-            Args: {
-              new_is_arena_owner: boolean
-              new_is_super_admin: boolean
-              new_role: string
-              user_id: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              new_arena_id?: string
-              new_is_arena_owner: boolean
-              new_is_super_admin: boolean
-              new_role: string
-              user_id: string
-            }
-            Returns: undefined
-          }
-      fn_get_camera_for_replay: { Args: { p_quadra_id: string }; Returns: Json }
-      is_admin: { Args: { _uid: string }; Returns: boolean }
-      is_arena_manager: { Args: { _uid: string }; Returns: boolean }
-      is_super_admin: { Args: never; Returns: boolean }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
