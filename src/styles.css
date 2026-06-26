@@ -56,9 +56,9 @@
   --border-focus: #F97316;
 
   --text-primary: #1A1008;
-  --text-secondary: rgba(26,16,8,0.60);
-  --text-muted: rgba(26,16,8,0.38);
-  --text-disabled: rgba(26,16,8,0.22);
+  --text-secondary: rgba(26,16,8,0.85);
+  --text-muted: rgba(26,16,8,0.70);
+  --text-disabled: rgba(26,16,8,0.45);
 
   --brand: #F97316;
   --brand-dim: rgba(249,115,22,0.10);
