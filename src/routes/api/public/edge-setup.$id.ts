@@ -44,6 +44,7 @@ fi
 DEVICE_ID="${device.id}"
 DEVICE_NAME="${deviceName}"
 EDGE_TOKEN="${token}"
+EDGE_SHARED_SECRET="${process.env.EDGE_SHARED_SECRET || ""}"
 SUPABASE_URL="${supabaseUrl}"
 SUPABASE_ANON_KEY="${supabaseKey}"
 LOOPLANCE_API="${origin}"

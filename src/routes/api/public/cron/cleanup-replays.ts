@@ -60,6 +60,7 @@ export const Route = createFileRoute("/api/public/cron/cleanup-replays")({
             const del = await deleteR2Object(r2Key);
             await supabaseAdmin.from("r2_deletion_logs").insert({
               r2_key: r2Key,
+              replay_id: row.id,
               status: del.ok ? "deleted" : `r2_error_${del.status}`,
             });
             if (del.ok) {
