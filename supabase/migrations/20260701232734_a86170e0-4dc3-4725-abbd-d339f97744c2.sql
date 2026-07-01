@@ -1,0 +1,1 @@
+ALTER TABLE public.edge_devices ENABLE ROW LEVEL SECURITY;
