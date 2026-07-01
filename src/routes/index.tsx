@@ -195,18 +195,31 @@ function Home() {
             />
           </div>
 
-          {/* Right: Admin Link */}
-          <div className="flex-1 flex justify-end">
-            <Link 
-              to="/admin" 
+          {/* Right: Admin + Logout */}
+          <div className="flex-1 flex justify-end gap-1.5">
+            <Link
+              to="/admin"
               className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
+              title="Admin"
             >
               <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange transition-transform group-hover:scale-110" />
               <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
             </Link>
+            <button
+              onClick={handleLogout}
+              className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-red-400/50"
+              title={userEmail ?? "Sair"}
+            >
+              <UserIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform group-hover:scale-110" />
+              <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Sair</span>
+            </button>
           </div>
         </div>
       </header>
+
+      {!authChecked ? (
+        <div className="flex items-center justify-center py-32 text-gray-500 text-sm">Carregando...</div>
+      ) : (
 
       <main className="mx-auto max-w-2xl space-y-8 px-6 pb-24 pt-10">
         {/* Hero / Dynamic Video Carousel */}
