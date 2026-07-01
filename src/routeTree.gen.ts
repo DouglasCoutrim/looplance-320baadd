@@ -13,6 +13,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
+import { Route as AdminMonitoringRouteImport } from './routes/admin/monitoring'
 import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-boards'
 import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-devices'
 import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
@@ -42,6 +43,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const AdminQuadrasRoute = AdminQuadrasRouteImport.update({
   id: '/quadras',
   path: '/quadras',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminMonitoringRoute = AdminMonitoringRouteImport.update({
+  id: '/monitoring',
+  path: '/monitoring',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminInputBoardsRoute = AdminInputBoardsRouteImport.update({
@@ -104,6 +110,7 @@ export interface FileRoutesByFullPath {
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
@@ -119,6 +126,7 @@ export interface FileRoutesByTo {
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
@@ -136,6 +144,7 @@ export interface FileRoutesById {
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
@@ -154,6 +163,7 @@ export interface FileRouteTypes {
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
+    | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/'
     | '/api/public/cron/cleanup-replays'
@@ -169,6 +179,7 @@ export interface FileRouteTypes {
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
+    | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin'
     | '/api/public/cron/cleanup-replays'
@@ -185,6 +196,7 @@ export interface FileRouteTypes {
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
+    | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/'
     | '/api/public/cron/cleanup-replays'
@@ -234,6 +246,13 @@ declare module '@tanstack/react-router' {
       path: '/quadras'
       fullPath: '/admin/quadras'
       preLoaderRoute: typeof AdminQuadrasRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/monitoring': {
+      id: '/admin/monitoring'
+      path: '/monitoring'
+      fullPath: '/admin/monitoring'
+      preLoaderRoute: typeof AdminMonitoringRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/input-boards': {
@@ -314,6 +333,7 @@ interface AdminRouteChildren {
   AdminCamerasRoute: typeof AdminCamerasRoute
   AdminEdgeDevicesRoute: typeof AdminEdgeDevicesRoute
   AdminInputBoardsRoute: typeof AdminInputBoardsRoute
+  AdminMonitoringRoute: typeof AdminMonitoringRoute
   AdminQuadrasRoute: typeof AdminQuadrasRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -323,6 +343,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminCamerasRoute: AdminCamerasRoute,
   AdminEdgeDevicesRoute: AdminEdgeDevicesRoute,
   AdminInputBoardsRoute: AdminInputBoardsRoute,
+  AdminMonitoringRoute: AdminMonitoringRoute,
   AdminQuadrasRoute: AdminQuadrasRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
