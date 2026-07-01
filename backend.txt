@@ -1,0 +1,206 @@
+Looplance Edge — Especificação Completa do Backend
+Documento para alimentar uma IA / engenheiro backend. Descreve tudo o que o backend precisa entregar para suportar o frontend atual (PWA público de feed de replays + painel administrativo multi-tenant SaaS).
+
+1. Visão geral do produto
+Looplance é uma plataforma SaaS de replays automáticos de vídeo para arenas esportivas.
+
+Fluxo físico:
+
+Câmeras IP (RTSP) instaladas nas quadras transmitem vídeo 24/7.
+Um Edge Device (servidor Ubuntu local na arena) consome o RTSP, mantém um buffer circular de N segundos e roda containers Docker de captura.
+Jogadores apertam uma botoeira física (HID / IO board) conectada ao Edge.
+O Edge corta os últimos X segundos, aplica overlays (sponsors, marca da arena), faz upload do arquivo final para Cloudflare R2 e registra o replay no Supabase.
+O PWA público lista os replays em tempo real (subscription Supabase) para os jogadores baixarem/compartilharem.
+O backend é Supabase (Postgres + Auth + Realtime + Storage) + Cloudflare R2 para os vídeos finais + endpoints HTTP públicos (server routes TanStack) para integração com o Edge.
+
+2. Atores e papéis
+Papel	Acesso
+Anônimo / Jogador	PWA público: lê replays, filtra por arena/quadra, baixa/compartilha vídeo.
+Arena Owner	Painel admin: gerencia apenas sua arena, quadras, câmeras, edges e botoeiras.
+Super Admin	Acesso global a todas as arenas e configurações.
+Edge Device	Cliente máquina-a-máquina autenticado por edge_token. Atualiza heartbeat, status de câmeras e cria registros de replays.
+Botoeira (IoT)	Dispositivo HID local pareado ao Edge. Não fala com o Supabase diretamente; envia trigger ao Edge via USB/rede local.
+Papéis ficam em public.profiles (role, is_super_admin, is_arena_owner, arena_id) e são checados via funções SECURITY DEFINER (is_admin, is_super_admin, is_arena_manager) usadas dentro das policies RLS para evitar recursão.
+
+3. Modelo de dados (schema atual a manter)
+Todas as tabelas vivem em public. Toda CREATE TABLE deve trazer:
+
+GRANT para authenticated e service_role (anon apenas quando houver policy TO anon).
+ENABLE ROW LEVEL SECURITY.
+Policies explícitas.
+3.1 arenas
+Tenant principal. Campos: id, nome, cidade, endereco, telefone, foto_url, final_overlay_url, sponsor_logo_left|center|right, created_at.
+
+Leitura pública (TO anon SELECT) — o PWA lista arenas no filtro.
+Escrita: super admin OU is_arena_manager(auth.uid()) apenas da própria arena.
+3.2 arena_settings
+1:1 com arenas. Campos: arena_id (unique), replay_retention_days (default 30), auto_cleanup_enabled (default true).
+
+Trigger handle_new_arena_settings: ao inserir arena, cria a linha de settings.
+3.3 quadras
+Filha de arenas. Campos: id, arena_id, nome, created_at.
+
+Leitura pública.
+Escrita restrita ao owner da arena ou super admin.
+3.4 edge_devices
+Servidor local. Campos: id, arena_id, name, hostname, local_ip, edge_token (default gen_random_uuid(), secreto), edge_version, status (online|offline), last_seen, uptime_seconds, created_at.
+
+edge_token é a credencial usada pelo Edge para chamar endpoints HTTP.
+RLS: admin da arena lê/escreve; o próprio Edge atualiza heartbeat via endpoint server-side com service role.
+3.5 input_boards
+Botoeiras / placas HID conectadas a um Edge. Campos: id, edge_device_id, name, device_name, vendor_id, product_id, created_at. Usado para o Edge enumerar dispositivos USB e mapeá-los às câmeras.
+
+3.6 botoeiras
+Pareamento físico botão↔câmera. Campos: id, botoeira_id (id local no Edge), camera_id, local_key (botão K1-K12), ip_local, created_at. Permite múltiplos botões disparando câmeras diferentes.
+
+3.7 cameras
+Coração da config. Campos principais:
+
+Identificação/local: id, name, quadra_id, edge_device_id, input_board_id, active.
+Conexão: rtsp_url (gerada no front a partir de marca + ip + porta + user + pwd; manter como string única no DB).
+Captura/replay: buffer_seconds, replay_seconds, aspect_ratio, trigger_button (1-12).
+Overlay/branding: overlay_url, final_overlay_url, sponsor_logo_left|center|right, video_x, video_y, video_width, video_height.
+Estado de streaming: streaming_status, streaming_error.
+RLS por arena (via join quadras→arenas).
+3.8 replays
+Saída final. Campos: id, arena_id, quadra_id, edge_device_id, video_url (URL pública do R2), r2_key, duration_sec, file_size_bytes, created_at.
+
+Leitura pública (PWA consome via select + subscribe).
+Insert: só pelo Edge autenticado (server route com service role após validar edge_token).
+Trigger trig_log_replay_creation grava em debug_logs.
+3.9 profiles
+Perfil de auth.user. Campos: id (=auth.users.id), email, full_name, cpf, birth_date, arena_id, role, is_super_admin, is_arena_owner, consent_accepted, consent_timestamp.
+
+Trigger handle_new_user em auth.users.
+Trigger prevent_role_self_elevation impede usuário comum mudar flags de admin.
+3.10 r2_deletion_logs
+Auditoria de limpeza no R2. Campos: id, replay_id, r2_key, status (pending|success|error), error_message, created_at.
+
+3.11 debug_logs
+Tabela de telemetria simples (id, message, created_at). RLS desligada; usada por triggers e endpoints internos.
+
+4. Storage
+4.1 Supabase Storage (buckets)
+arenas (public) — fotos e overlays gerais.
+overlays (public) — overlays/sponsors enviados por arena.
+son (private) — sons/jingles tocados quando o replay é gerado (acesso por signed URL).
+Policies de upload restritas ao owner da arena (path-based: <arena_id>/...).
+
+4.2 Cloudflare R2 (vídeos)
+Vídeos finais NÃO ficam no Supabase Storage. Eles vão para R2.
+
+Bucket configurado em secrets: R2_BUCKET_NAME, R2_ENDPOINT_URL, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY.
+Convenção de chave: replays/<arena_id>/<quadra_id>/<yyyy-mm-dd>/<replay_id>.mp4.
+Acesso público via custom domain do R2; URL final salva em replays.video_url.
+5. Autenticação & Autorização
+Supabase Auth com email/senha (e Google OAuth opcional via broker Lovable — redirect_uri precisa ser rota pública).
+_authenticated layout no front protege rotas admin (/admin/*).
+RLS é a única linha de defesa para a Data API. Toda tabela tem policies.
+Funções helpers já existentes que devem ser preservadas:
+is_admin(_uid uuid) — checa is_super_admin.
+is_super_admin() — variante sem argumento usando auth.uid().
+is_arena_manager(_uid uuid) — true se super admin OU arena_owner.
+Padrão de policy para tabelas escopadas por arena:
+USING (
+  public.is_super_admin()
+  OR arena_id = (SELECT arena_id FROM public.profiles WHERE id = auth.uid())
+)
+Edge Devices (M2M)
+Edge NÃO usa Supabase Auth. Autentica em endpoints HTTP públicos enviando edge_token no header Authorization: Bearer <token>.
+Endpoint server-side valida o token consultando edge_devices.edge_token com o service role e age em nome do device.
+6. Endpoints HTTP (TanStack server routes, prefixo /api/public/*)
+/api/public/* bypassa o gate de auth do published site. Cada handler valida sua própria credencial.
+
+6.1 GET /api/public/edge-setup/:id — já existe
+Retorna um script Bash de provisionamento Ubuntu (instala ffmpeg/docker, grava /etc/looplance/edge.env, ativa systemd de heartbeat). O script já contém o edge_token daquele device.
+
+6.2 POST /api/public/edge/heartbeat (a implementar via systemd → PATCH direto na Data API)
+Atualiza status, last_seen, hostname, local_ip, uptime_seconds, edge_version. Hoje o script bash faz PATCH direto via REST com a anon key — manter assim, mas adicionar policy UPDATE restrita ao próprio id quando vier autenticado com edge_token.
+
+6.3 POST /api/public/edge/replay
+Recebe metadados quando o Edge termina um replay.
+
+Headers: Authorization: Bearer <edge_token>.
+Body: { quadra_id, r2_key, video_url, duration_sec, file_size_bytes }.
+Server valida token → resolve edge_device_id e arena_id (via quadra) → INSERT em replays com service role.
+6.4 POST /api/public/edge/camera-status
+Edge reporta saúde do stream RTSP. Body: { camera_id, streaming_status, streaming_error? }. Atualiza cameras.
+
+6.5 POST /api/public/edge/trigger (opcional, futuro)
+Permite disparo remoto via web (admin clica "gerar replay agora"). Internamente publica em um canal Realtime que o Edge escuta, OU expõe webhook para o Edge.
+
+6.6 POST /api/public/cron/cleanup-replays
+Cron diário (pg_cron OU Cloudflare cron):
+
+Para cada arena, lê arena_settings.replay_retention_days.
+Deleta do R2 todo replay com created_at < now() - interval 'N days'.
+Marca tentativa em r2_deletion_logs.
+Remove o registro de replays após sucesso.
+Proteção: header x-cron-secret comparado em timing-safe com CRON_SECRET.
+
+6.7 Webhook de signed upload R2 (opcional)
+Endpoint que assina uma URL PUT R2 e devolve para o Edge, caso queiramos evitar credenciais R2 no Edge. Recomendado em produção.
+
+7. Realtime
+O PWA já depende de subscriptions Supabase Realtime em:
+
+replays (INSERT) — atualiza o feed automaticamente.
+edge_devices (UPDATE) — atualiza badge online/offline no admin.
+cameras (UPDATE) — atualiza streaming_status ao vivo.
+→ Habilitar replication para essas três tabelas (alter publication supabase_realtime add table ...).
+
+8. Funções/Triggers Postgres a manter ou criar
+Já existem:
+
+handle_new_user — popula profiles.
+handle_new_arena_settings — cria settings ao criar arena.
+prevent_role_self_elevation — protege escalonamento de privilégio.
+fn_get_camera_for_replay(p_quadra_id) — usado pelo Edge para descobrir a camera ativa da quadra.
+trig_log_replay_creation — auditoria.
+admin_update_user_profile(...) — RPC chamada pelo painel de usuários.
+A criar:
+
+fn_register_replay(edge_token, quadra_id, r2_key, video_url, duration_sec, file_size_bytes) — RPC SECURITY DEFINER alternativa ao endpoint 6.3 caso prefira RPC pura.
+fn_touch_edge_heartbeat(edge_token, hostname, local_ip, version) — análogo.
+fn_expire_replays() — usada pelo cron.
+9. Variáveis de ambiente / Secrets esperados
+Já configurados:
+SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SUPABASE_SERVICE_ROLE_KEY, SUPABASE_ANON_KEY, SUPABASE_JWKS, SUPABASE_DB_URL, R2_BUCKET_NAME, R2_ENDPOINT_URL, R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, LOVABLE_API_KEY.
+
+A adicionar:
+
+CRON_SECRET — header de proteção dos endpoints cron.
+R2_PUBLIC_BASE_URL — base usada para montar video_url final.
+10. Funcionalidades do frontend que o backend precisa suportar
+PWA público (/)
+Listar últimos replays com filtro por arena e quadra (JOIN replays → quadras → arenas).
+Carrossel hero com os 3 replays mais recentes (mesma query, limit 3).
+Download direto (video_url precisa permitir CORS + Content-Disposition: attachment no R2).
+Compartilhamento (Web Share API — só precisa de URL pública estável).
+Subscription realtime em replays.
+Admin (/admin/*)
+Dashboard: contadores (arenas, quadras, câmeras, edges online), gráfico de replays por dia (últimos 7/30 dias) → view materializada vw_replays_daily recomendada.
+Arenas: CRUD + upload de logos/overlays no bucket arenas/overlays.
+Quadras: CRUD aninhado em arena.
+Câmeras: CRUD com geração automática de RTSP por marca (Intelbras/Mibo, Hikvision, Dahua, Giga, Tecvoz, TP-Link Tapo, Axis). Backend só guarda a string final.
+Edge Devices: CRUD + endpoint de script (6.1) + heartbeat. Status derivado de last_seen (< 5 min = online).
+Input Boards: CRUD + listagem dos botões mapeados (botoeiras).
+Usuários (planejado): RPC admin_update_user_profile.
+11. Segurança — checklist obrigatório
+ RLS habilitada em todas as tabelas (hoje arenas, quadras, replays, edge_devices, debug_logs estão com RLS desligada para acelerar dev — reativar antes de produção).
+ Policies escopadas por arena_id usando is_arena_manager.
+ edge_token nunca exposto para anon. Coluna deve ser ocultada via GRANT SELECT (colunas...) TO authenticated excluindo edge_token, ou via view.
+ Endpoints /api/public/* validam assinatura/token antes de qualquer escrita.
+ Service role só dentro de handlers server-side, nunca importado em rotas/componentes (await import('@/integrations/supabase/client.server') dentro do handler).
+ CORS do R2 permitindo apenas os domínios looplance.app, www.looplance.app e preview Lovable.
+ Buckets son privados com signed URLs.
+ prevent_role_self_elevation ativo.
+ Cron de limpeza com CRON_SECRET.
+12. Roadmap sugerido de implementação para a IA
+Reaplicar RLS + policies completas nas tabelas existentes.
+Criar endpoints /api/public/edge/replay, /edge/camera-status, /edge/heartbeat (TanStack server routes) validando edge_token.
+Implementar serviço de upload R2 + função fn_expire_replays + cron /api/public/cron/cleanup-replays.
+Criar view vw_replays_daily para o dashboard.
+Adicionar realtime publication em replays, edge_devices, cameras.
+Escrever testes de integração: fluxo botoeira→edge→replay→PWA.
+Stack alvo: Supabase (Postgres 15, Auth, Realtime, Storage) + Cloudflare R2 + TanStack Start server routes/functions hospedados como Edge Worker. Nada de Edge Functions Supabase para lógica interna do app — apenas server routes/functions do TanStack.

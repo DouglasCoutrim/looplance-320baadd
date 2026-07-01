@@ -1,0 +1,5 @@
+python-dotenv==1.0.1
+httpx==0.27.2
+boto3==1.34.162
+evdev==1.7.1
+watchdog==4.0.2

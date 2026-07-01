@@ -1,0 +1,30 @@
+[Unit]
+Description=Looplance Edge Agent (captura RTSP, buffer RAM, botoeira, upload R2)
+After=network-online.target
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=looplance
+Group=looplance
+WorkingDirectory=/opt/looplance-edge
+EnvironmentFile=/etc/looplance/edge.env
+ExecStart=/opt/looplance-edge/venv/bin/python /opt/looplance-edge/main.py
+
+# Autonomia: reinicia sozinho em qualquer crash, sem limite de tentativas
+Restart=always
+RestartSec=5
+
+# Buffer é em RAM (tmpfs) -- não precisa de muito IO em disco, mas evita
+# que o agente segure demais o sistema em caso de pico de CPU do ffmpeg
+Nice=-5
+LimitNOFILE=65536
+
+# journal
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=looplance-edge
+
+[Install]
+WantedBy=multi-user.target
