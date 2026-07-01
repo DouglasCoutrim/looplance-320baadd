@@ -79,6 +79,11 @@ function AdminLayout() {
     </nav>
   );
 
+  if (authorized === null) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-500 text-sm">Verificando acesso...</div>;
+  }
+  if (!authorized) return null;
+
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">
       {/* Header - Fixed Height & High Impact */}
