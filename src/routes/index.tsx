@@ -28,6 +28,9 @@ interface Replay {
 }
 
 function Home() {
+  const navigate = useNavigate();
+  const [authChecked, setAuthChecked] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [featuredReplays, setFeaturedReplays] = useState<Replay[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [arenas, setArenas] = useState<Arena[]>([]);
@@ -42,12 +45,35 @@ function Home() {
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
 
+  // Gate: require auth to see feed
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        navigate({ to: "/auth" });
+        return;
+      }
+      setUserEmail(data.session.user.email ?? null);
+      setAuthChecked(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (!session) navigate({ to: "/auth" });
+    });
+    return () => { sub.subscription.unsubscribe(); };
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    await supabase.rpc("log_user_action", { p_action: "logout", p_metadata: {} });
+    await supabase.auth.signOut();
+    navigate({ to: "/auth" });
+  };
+
   // Initial load
   useEffect(() => {
+    if (!authChecked) return;
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
     fetchFeatured();
-  }, []);
+  }, [authChecked]);
 
   const fetchFeatured = async () => {
     const { data } = await supabase
