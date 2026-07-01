@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, Link, useLocation } from "@tanstack/react-router";
+import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tanstack/react-router";
 import { 
   Tv, 
   HardDrive, 
@@ -8,12 +8,14 @@ import {
   Settings,
   ArrowLeft,
   Menu,
-  Activity
+  Activity,
+  Users
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { supabase } from "@/integrations/supabase/client";
 
 export const Route = createFileRoute("/admin")({
   component: AdminLayout,
@@ -21,11 +23,26 @@ export const Route = createFileRoute("/admin")({
 
 function AdminLayout() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) { navigate({ to: "/auth" }); return; }
+      const { data: p } = await supabase
+        .from("profiles").select("is_super_admin, is_arena_owner")
+        .eq("id", session.session.user.id).maybeSingle();
+      if (p?.is_super_admin || p?.is_arena_owner) setAuthorized(true);
+      else { setAuthorized(false); navigate({ to: "/" }); }
+    })();
+  }, [navigate]);
   
   const navItems = [
     { to: "/admin", label: "Visão Geral", icon: LayoutDashboard },
     { to: "/admin/monitoring", label: "Monitoramento", icon: Activity },
+    { to: "/admin/users", label: "Usuários", icon: Users },
     { to: "/admin/edge-devices", label: "Edge Devices", icon: HardDrive },
     { to: "/admin/input-boards", label: "Input Boards", icon: Usb },
     { to: "/admin/cameras", label: "Cameras", icon: Camera },
@@ -61,6 +78,11 @@ function AdminLayout() {
       })}
     </nav>
   );
+
+  if (authorized === null) {
+    return <div className="min-h-screen flex items-center justify-center text-gray-500 text-sm">Verificando acesso...</div>;
+  }
+  if (!authorized) return null;
 
   return (
     <div className="min-h-screen bg-background text-foreground flex flex-col">

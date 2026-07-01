@@ -1,7 +1,7 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard } from "lucide-react";
+import { Sparkles, MapPin, Calendar as CalIcon, Play, LogIn, LogOut, Trophy, LayoutDashboard, User as UserIcon } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
@@ -28,6 +28,9 @@ interface Replay {
 }
 
 function Home() {
+  const navigate = useNavigate();
+  const [authChecked, setAuthChecked] = useState(false);
+  const [userEmail, setUserEmail] = useState<string | null>(null);
   const [featuredReplays, setFeaturedReplays] = useState<Replay[]>([]);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [arenas, setArenas] = useState<Arena[]>([]);
@@ -42,12 +45,35 @@ function Home() {
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
 
+  // Gate: require auth to see feed
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      if (!data.session) {
+        navigate({ to: "/auth" });
+        return;
+      }
+      setUserEmail(data.session.user.email ?? null);
+      setAuthChecked(true);
+    });
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
+      if (!session) navigate({ to: "/auth" });
+    });
+    return () => { sub.subscription.unsubscribe(); };
+  }, [navigate]);
+
+  const handleLogout = async () => {
+    await supabase.rpc("log_user_action", { p_action: "logout", p_metadata: {} });
+    await supabase.auth.signOut();
+    navigate({ to: "/auth" });
+  };
+
   // Initial load
   useEffect(() => {
+    if (!authChecked) return;
     supabase.from("arenas").select("*").order("nome").then(({ data }) => setArenas(data ?? []));
     fetchReplays();
     fetchFeatured();
-  }, []);
+  }, [authChecked]);
 
   const fetchFeatured = async () => {
     const { data } = await supabase
@@ -169,18 +195,31 @@ function Home() {
             />
           </div>
 
-          {/* Right: Admin Link */}
-          <div className="flex-1 flex justify-end">
-            <Link 
-              to="/admin" 
+          {/* Right: Admin + Logout */}
+          <div className="flex-1 flex justify-end gap-1.5">
+            <Link
+              to="/admin"
               className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-brand-orange/50"
+              title="Admin"
             >
               <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5 text-brand-orange transition-transform group-hover:scale-110" />
               <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Admin</span>
             </Link>
+            <button
+              onClick={handleLogout}
+              className="group flex flex-col items-center gap-0.5 rounded-xl border border-white/20 bg-white/10 p-1.5 sm:p-2 backdrop-blur-md transition hover:bg-white/20 hover:border-red-400/50"
+              title={userEmail ?? "Sair"}
+            >
+              <UserIcon className="h-4 w-4 sm:h-5 sm:w-5 text-white transition-transform group-hover:scale-110" />
+              <span className="text-[8px] sm:text-[10px] font-black uppercase text-white/90 tracking-widest">Sair</span>
+            </button>
           </div>
         </div>
       </header>
+
+      {!authChecked ? (
+        <div className="flex items-center justify-center py-32 text-gray-500 text-sm">Carregando...</div>
+      ) : (
 
       <main className="mx-auto max-w-2xl space-y-8 px-6 pb-24 pt-10">
         {/* Hero / Dynamic Video Carousel */}
@@ -303,6 +342,7 @@ function Home() {
           )}
         </section>
       </main>
+      )}
     </div>
   );
 }

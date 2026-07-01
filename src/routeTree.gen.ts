@@ -9,9 +9,11 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
 import { Route as AdminMonitoringRouteImport } from './routes/admin/monitoring'
 import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-boards'
@@ -25,6 +27,11 @@ import { Route as ApiPublicEdgeCameraStatusRouteImport } from './routes/api/publ
 import { Route as ApiPublicEdgeSetupIdRouteImport } from './routes/api/public/edge-setup.$id'
 import { Route as ApiPublicCronCleanupReplaysRouteImport } from './routes/api/public/cron/cleanup-replays'
 
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminRoute = AdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -38,6 +45,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminQuadrasRoute = AdminQuadrasRouteImport.update({
@@ -106,12 +118,14 @@ const ApiPublicCronCleanupReplaysRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/auth': typeof AuthRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
@@ -122,12 +136,14 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/auth': typeof AuthRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
@@ -140,12 +156,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/admin': typeof AdminRouteWithChildren
+  '/auth': typeof AuthRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
@@ -159,12 +177,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/admin'
+    | '/auth'
     | '/admin/arenas'
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
     | '/admin/monitoring'
     | '/admin/quadras'
+    | '/admin/users'
     | '/admin/'
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-setup/$id'
@@ -175,12 +195,14 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/auth'
     | '/admin/arenas'
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
     | '/admin/monitoring'
     | '/admin/quadras'
+    | '/admin/users'
     | '/admin'
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-setup/$id'
@@ -192,12 +214,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/admin'
+    | '/auth'
     | '/admin/arenas'
     | '/admin/cameras'
     | '/admin/edge-devices'
     | '/admin/input-boards'
     | '/admin/monitoring'
     | '/admin/quadras'
+    | '/admin/users'
     | '/admin/'
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-setup/$id'
@@ -210,6 +234,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
+  AuthRoute: typeof AuthRoute
   ApiPublicCronCleanupReplaysRoute: typeof ApiPublicCronCleanupReplaysRoute
   ApiPublicEdgeSetupIdRoute: typeof ApiPublicEdgeSetupIdRoute
   ApiPublicEdgeCameraStatusRoute: typeof ApiPublicEdgeCameraStatusRoute
@@ -220,6 +245,13 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/admin': {
       id: '/admin'
       path: '/admin'
@@ -239,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/quadras': {
@@ -335,6 +374,7 @@ interface AdminRouteChildren {
   AdminInputBoardsRoute: typeof AdminInputBoardsRoute
   AdminMonitoringRoute: typeof AdminMonitoringRoute
   AdminQuadrasRoute: typeof AdminQuadrasRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -345,6 +385,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminInputBoardsRoute: AdminInputBoardsRoute,
   AdminMonitoringRoute: AdminMonitoringRoute,
   AdminQuadrasRoute: AdminQuadrasRoute,
+  AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
@@ -353,6 +394,7 @@ const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
+  AuthRoute: AuthRoute,
   ApiPublicCronCleanupReplaysRoute: ApiPublicCronCleanupReplaysRoute,
   ApiPublicEdgeSetupIdRoute: ApiPublicEdgeSetupIdRoute,
   ApiPublicEdgeCameraStatusRoute: ApiPublicEdgeCameraStatusRoute,
@@ -363,13 +405,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
