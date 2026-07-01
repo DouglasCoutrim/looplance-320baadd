@@ -13,6 +13,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
 import { Route as AdminMonitoringRouteImport } from './routes/admin/monitoring'
 import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-boards'
@@ -44,6 +45,11 @@ const IndexRoute = IndexRouteImport.update({
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminQuadrasRoute = AdminQuadrasRouteImport.update({
@@ -119,6 +125,7 @@ export interface FileRoutesByFullPath {
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
@@ -155,6 +163,7 @@ export interface FileRoutesById {
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
+  '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
@@ -175,6 +184,7 @@ export interface FileRouteTypes {
     | '/admin/input-boards'
     | '/admin/monitoring'
     | '/admin/quadras'
+    | '/admin/users'
     | '/admin/'
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-setup/$id'
@@ -192,6 +202,7 @@ export interface FileRouteTypes {
     | '/admin/input-boards'
     | '/admin/monitoring'
     | '/admin/quadras'
+    | '/admin/users'
     | '/admin'
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-setup/$id'
@@ -210,6 +221,7 @@ export interface FileRouteTypes {
     | '/admin/input-boards'
     | '/admin/monitoring'
     | '/admin/quadras'
+    | '/admin/users'
     | '/admin/'
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-setup/$id'
@@ -259,6 +271,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/quadras': {
@@ -355,6 +374,7 @@ interface AdminRouteChildren {
   AdminInputBoardsRoute: typeof AdminInputBoardsRoute
   AdminMonitoringRoute: typeof AdminMonitoringRoute
   AdminQuadrasRoute: typeof AdminQuadrasRoute
+  AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
 
@@ -365,6 +385,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminInputBoardsRoute: AdminInputBoardsRoute,
   AdminMonitoringRoute: AdminMonitoringRoute,
   AdminQuadrasRoute: AdminQuadrasRoute,
+  AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }
 
