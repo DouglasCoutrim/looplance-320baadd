@@ -206,6 +206,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "cameras_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "cameras_input_board_id_fkey"
             columns: ["input_board_id"]
             isOneToOne: false
@@ -323,6 +330,13 @@ export type Database = {
             columns: ["edge_device_id"]
             isOneToOne: false
             referencedRelation: "edge_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "input_boards_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices_public"
             referencedColumns: ["id"]
           },
         ]
@@ -482,6 +496,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "replays_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices_public"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "replays_quadra_id_fkey"
             columns: ["quadra_id"]
             isOneToOne: false
@@ -492,7 +513,53 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      edge_devices_public: {
+        Row: {
+          arena_id: string | null
+          created_at: string | null
+          edge_version: string | null
+          hostname: string | null
+          id: string | null
+          last_seen: string | null
+          local_ip: string | null
+          name: string | null
+          status: string | null
+          uptime_seconds: number | null
+        }
+        Insert: {
+          arena_id?: string | null
+          created_at?: string | null
+          edge_version?: string | null
+          hostname?: string | null
+          id?: string | null
+          last_seen?: string | null
+          local_ip?: string | null
+          name?: string | null
+          status?: string | null
+          uptime_seconds?: number | null
+        }
+        Update: {
+          arena_id?: string | null
+          created_at?: string | null
+          edge_version?: string | null
+          hostname?: string | null
+          id?: string | null
+          last_seen?: string | null
+          local_ip?: string | null
+          name?: string | null
+          status?: string | null
+          uptime_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "edge_devices_arena_id_fkey"
+            columns: ["arena_id"]
+            isOneToOne: false
+            referencedRelation: "arenas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       admin_update_user_profile:
@@ -515,7 +582,51 @@ export type Database = {
             }
             Returns: undefined
           }
+      fn_expire_replays: {
+        Args: never
+        Returns: {
+          r2_key: string
+          replay_id: string
+        }[]
+      }
       fn_get_camera_for_replay: { Args: { p_quadra_id: string }; Returns: Json }
+      fn_register_replay: {
+        Args: {
+          p_duration_sec: number
+          p_edge_token: string
+          p_file_size_bytes: number
+          p_quadra_id: string
+          p_r2_key: string
+          p_video_url: string
+        }
+        Returns: {
+          arena_id: string | null
+          created_at: string
+          duration_sec: number | null
+          edge_device_id: string | null
+          file_size_bytes: number | null
+          id: string
+          quadra_id: string
+          r2_key: string | null
+          video_url: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "replays"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      fn_touch_edge_heartbeat: {
+        Args: {
+          p_edge_token: string
+          p_hostname: string
+          p_local_ip: string
+          p_uptime_seconds?: number
+          p_version: string
+        }
+        Returns: undefined
+      }
       is_admin: { Args: { _uid: string }; Returns: boolean }
       is_arena_manager: { Args: { _uid: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
