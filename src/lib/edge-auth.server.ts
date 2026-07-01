@@ -1,73 +1,92 @@
-// Server-only helpers to authenticate Edge Devices calling /api/public/edge/*.
-// Two things are checked on every call:
-//   1. `Authorization: Bearer <edge_token>` matches a row in edge_devices.
-//   2. `X-Edge-Timestamp` + `X-Edge-Signature` = HMAC-SHA256(body) with EDGE_SHARED_SECRET,
-//      inside a 5 minute window (prevents replay if edge_token leaks).
-import { createHmac, timingSafeEqual } from "node:crypto";
+// Autenticação de Edge Devices para /api/public/edge/*.
+// Baseado em backend/server-routes/_lib/edgeAuth.server.ts.
+//
+// Camadas:
+//   1. Authorization: Bearer <edge_token>  -> match em edge_devices.edge_token
+//   2. X-Edge-Timestamp + X-Edge-Signature -> HMAC_SHA256(EDGE_SHARED_SECRET, `${ts}.${rawBody}`)
+//      dentro de 5 min (janela contra replay).
+//
+// GET não tem body: rawBody = ''.
 
-const MAX_SKEW_MS = 5 * 60 * 1000;
+export class EdgeAuthError extends Error {
+  status: number;
+  constructor(message: string, status = 401) {
+    super(message);
+    this.status = status;
+  }
+}
 
-export type EdgeDeviceRow = {
+export interface EdgeDeviceRow {
   id: string;
-  name: string;
   arena_id: string | null;
+  name: string;
   edge_token: string | null;
-};
-
-function safeEqualStr(a: string, b: string): boolean {
-  const ab = Buffer.from(a);
-  const bb = Buffer.from(b);
-  if (ab.length !== bb.length) return false;
-  return timingSafeEqual(ab, bb);
+  status: string | null;
 }
 
-export function verifyHmac(rawBody: string, timestamp: string, signature: string): boolean {
-  const secret = process.env.EDGE_SHARED_SECRET;
-  if (!secret) throw new Error("EDGE_SHARED_SECRET not configured");
-
-  const ts = Number(timestamp);
-  if (!Number.isFinite(ts)) return false;
-  if (Math.abs(Date.now() - ts) > MAX_SKEW_MS) return false;
-
-  const expected = createHmac("sha256", secret).update(`${ts}.${rawBody}`).digest("hex");
-  return safeEqualStr(expected, signature);
+function timingSafeEqual(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
 }
 
-export async function authenticateEdge(request: Request): Promise<
-  { ok: true; device: EdgeDeviceRow; rawBody: string } | { ok: false; status: number; message: string }
-> {
-  const auth = request.headers.get("authorization") || "";
-  if (!auth.toLowerCase().startsWith("bearer ")) {
-    return { ok: false, status: 401, message: "Missing bearer token" };
-  }
-  const token = auth.slice(7).trim();
-  if (!token) return { ok: false, status: 401, message: "Empty bearer token" };
+async function hmacSha256Hex(secret: string, payload: string): Promise<string> {
+  const enc = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    enc.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(payload));
+  return [...new Uint8Array(sig)].map((b) => b.toString(16).padStart(2, "0")).join("");
+}
 
-  const rawBody = request.method === "GET" ? "" : await request.text();
-
-  // HMAC required only for state-changing methods
-  if (request.method !== "GET") {
-    const ts = request.headers.get("x-edge-timestamp") || "";
-    const sig = request.headers.get("x-edge-signature") || "";
-    if (!ts || !sig) return { ok: false, status: 401, message: "Missing HMAC headers" };
-    if (!verifyHmac(rawBody, ts, sig)) return { ok: false, status: 401, message: "Invalid HMAC" };
-  }
+export async function requireEdgeDevice(request: Request): Promise<EdgeDeviceRow> {
+  const authHeader = request.headers.get("authorization") ?? "";
+  const match = authHeader.match(/^Bearer\s+(.+)$/i);
+  const token = match?.[1]?.trim();
+  if (!token) throw new EdgeAuthError("Header Authorization: Bearer <edge_token> ausente");
 
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data, error } = await supabaseAdmin
     .from("edge_devices")
-    .select("id, name, arena_id, edge_token")
+    .select("id, arena_id, name, edge_token, status")
     .eq("edge_token", token)
     .maybeSingle();
 
-  if (error || !data) return { ok: false, status: 401, message: "Unknown edge token" };
-  return { ok: true, device: data as EdgeDeviceRow, rawBody };
+  if (error) throw new EdgeAuthError(`Erro validando edge_token: ${error.message}`, 500);
+  if (!data) throw new EdgeAuthError("edge_token inválido", 401);
+  return data as EdgeDeviceRow;
 }
 
-export function verifyCronSecret(request: Request): boolean {
-  const secret = process.env.CRON_SECRET;
-  if (!secret) return false;
-  const provided = request.headers.get("x-cron-secret") || "";
-  if (!provided) return false;
-  return safeEqualStr(provided, secret);
+export async function requireEdgeSignature(request: Request, rawBody: string): Promise<void> {
+  const secret = process.env.EDGE_SHARED_SECRET;
+  if (!secret) throw new EdgeAuthError("EDGE_SHARED_SECRET não configurado no servidor", 500);
+
+  const timestamp = request.headers.get("x-edge-timestamp");
+  const signature = request.headers.get("x-edge-signature");
+  if (!timestamp || !signature) {
+    throw new EdgeAuthError("Headers X-Edge-Timestamp / X-Edge-Signature ausentes", 401);
+  }
+
+  const skewMs = Math.abs(Date.now() - Number(timestamp));
+  if (!Number.isFinite(skewMs) || skewMs > 5 * 60 * 1000) {
+    throw new EdgeAuthError("X-Edge-Timestamp fora da janela permitida (relógio dessincronizado?)", 401);
+  }
+
+  const expected = await hmacSha256Hex(secret, `${timestamp}.${rawBody}`);
+  if (!timingSafeEqual(expected, signature.toLowerCase())) {
+    throw new EdgeAuthError("X-Edge-Signature inválida", 401);
+  }
+}
+
+export function requireCronSecret(request: Request): void {
+  const expected = process.env.CRON_SECRET ?? "";
+  const provided = request.headers.get("x-cron-secret") ?? "";
+  if (!expected || !timingSafeEqual(provided, expected)) {
+    throw new EdgeAuthError("x-cron-secret inválido ou ausente", 401);
+  }
 }

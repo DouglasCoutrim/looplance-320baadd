@@ -1,39 +1,69 @@
+// POST /api/public/edge/camera-status  (spec 6.4)
+// Body: { camera_id, streaming_status, streaming_error? }
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod";
-import { authenticateEdge } from "@/lib/edge-auth.server";
+import { requireEdgeDevice, requireEdgeSignature, EdgeAuthError } from "@/lib/edge-auth.server";
 
-const bodySchema = z.object({
-  camera_id: z.string().uuid(),
-  streaming_status: z.enum(["online", "offline", "error", "starting", "stopped"]),
-  streaming_error: z.string().max(1000).nullable().optional(),
-});
+const VALID_STATUSES = new Set(["online", "offline", "error", "starting"]);
 
 export const Route = createFileRoute("/api/public/edge/camera-status")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const auth = await authenticateEdge(request);
-        if (!auth.ok) return new Response(auth.message, { status: auth.status });
-
-        let parsed: z.infer<typeof bodySchema>;
         try {
-          parsed = bodySchema.parse(JSON.parse(auth.rawBody));
+          const device = await requireEdgeDevice(request);
+          const rawBody = await request.text();
+          await requireEdgeSignature(request, rawBody);
+          const body = JSON.parse(rawBody) as {
+            camera_id?: string;
+            streaming_status?: string;
+            streaming_error?: string | null;
+          };
+
+          if (!body.camera_id || !body.streaming_status) {
+            return Response.json(
+              { error: "campos obrigatórios: camera_id, streaming_status" },
+              { status: 400 },
+            );
+          }
+          if (!VALID_STATUSES.has(body.streaming_status)) {
+            return Response.json({ error: "streaming_status inválido" }, { status: 400 });
+          }
+
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+          const { data: camera, error: camErr } = await supabaseAdmin
+            .from("cameras")
+            .select("id, edge_device_id")
+            .eq("id", body.camera_id)
+            .maybeSingle();
+
+          if (camErr) throw new EdgeAuthError(`Erro lendo camera: ${camErr.message}`, 500);
+          if (!camera) return Response.json({ error: "camera_id não encontrada" }, { status: 404 });
+          if (camera.edge_device_id !== device.id) {
+            return Response.json(
+              { error: "câmera não pertence a este edge device" },
+              { status: 403 },
+            );
+          }
+
+          const { error: updateErr } = await supabaseAdmin
+            .from("cameras")
+            .update({
+              streaming_status: body.streaming_status,
+              streaming_error: body.streaming_error ?? null,
+            })
+            .eq("id", body.camera_id);
+
+          if (updateErr) throw new EdgeAuthError(`Erro atualizando camera: ${updateErr.message}`, 500);
+
+          return Response.json({ ok: true });
         } catch (err) {
-          return new Response(`Invalid body: ${(err as Error).message}`, { status: 400 });
+          if (err instanceof EdgeAuthError) {
+            return Response.json({ error: err.message }, { status: err.status });
+          }
+          console.error(err);
+          return Response.json({ error: "internal_error" }, { status: 500 });
         }
-
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { error } = await supabaseAdmin
-          .from("cameras")
-          .update({
-            streaming_status: parsed.streaming_status,
-            streaming_error: parsed.streaming_error ?? null,
-          })
-          .eq("id", parsed.camera_id)
-          .eq("edge_device_id", auth.device.id);
-
-        if (error) return new Response(error.message, { status: 500 });
-        return Response.json({ ok: true });
       },
     },
   },

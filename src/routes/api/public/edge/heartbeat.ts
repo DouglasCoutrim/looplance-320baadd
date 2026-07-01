@@ -1,45 +1,44 @@
+// POST /api/public/edge/heartbeat  (spec 6.2 — rota roteada, alternativa ao PATCH direto).
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod";
-import { authenticateEdge } from "@/lib/edge-auth.server";
-
-const bodySchema = z.object({
-  hostname: z.string().max(255).optional(),
-  local_ip: z.string().max(64).optional(),
-  edge_version: z.string().max(64).optional(),
-  uptime_seconds: z.number().int().nonnegative().optional(),
-});
+import { requireEdgeDevice, requireEdgeSignature, EdgeAuthError } from "@/lib/edge-auth.server";
 
 export const Route = createFileRoute("/api/public/edge/heartbeat")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const auth = await authenticateEdge(request);
-        if (!auth.ok) return new Response(auth.message, { status: auth.status });
+        try {
+          const device = await requireEdgeDevice(request);
+          const rawBody = await request.text();
+          await requireEdgeSignature(request, rawBody);
+          const body = JSON.parse(rawBody || "{}") as {
+            hostname?: string;
+            local_ip?: string;
+            uptime_seconds?: number;
+            edge_version?: string;
+          };
 
-        let parsed: z.infer<typeof bodySchema> = {};
-        if (auth.rawBody) {
-          try {
-            parsed = bodySchema.parse(JSON.parse(auth.rawBody));
-          } catch (err) {
-            return new Response(`Invalid body: ${(err as Error).message}`, { status: 400 });
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+          const { error } = await supabaseAdmin
+            .from("edge_devices")
+            .update({
+              status: "online",
+              last_seen: new Date().toISOString(),
+              hostname: body.hostname ?? undefined,
+              local_ip: body.local_ip ?? undefined,
+              uptime_seconds: body.uptime_seconds ?? undefined,
+              edge_version: body.edge_version ?? undefined,
+            })
+            .eq("id", device.id);
+
+          if (error) throw new EdgeAuthError(`Erro atualizando heartbeat: ${error.message}`, 500);
+          return Response.json({ ok: true });
+        } catch (err) {
+          if (err instanceof EdgeAuthError) {
+            return Response.json({ error: err.message }, { status: err.status });
           }
+          console.error(err);
+          return Response.json({ error: "internal_error" }, { status: 500 });
         }
-
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { error } = await supabaseAdmin
-          .from("edge_devices")
-          .update({
-            status: "online",
-            last_seen: new Date().toISOString(),
-            hostname: parsed.hostname ?? undefined,
-            local_ip: parsed.local_ip ?? undefined,
-            edge_version: parsed.edge_version ?? undefined,
-            uptime_seconds: parsed.uptime_seconds ?? undefined,
-          })
-          .eq("id", auth.device.id);
-
-        if (error) return new Response(error.message, { status: 500 });
-        return Response.json({ ok: true, ts: new Date().toISOString() });
       },
     },
   },
