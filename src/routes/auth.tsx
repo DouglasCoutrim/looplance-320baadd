@@ -72,9 +72,6 @@ function AuthPage() {
     if (error) return toast.error(error.message);
     await supabase.rpc("log_user_action", {
       p_action: "login",
-      p_resource_type: null,
-      p_resource_id: null,
-      p_arena_id: null,
       p_metadata: {},
     });
     toast.success("Bem-vindo!");
