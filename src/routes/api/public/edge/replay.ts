@@ -1,47 +1,83 @@
+// POST /api/public/edge/replay
+// Registra replay finalizado (spec 6.3).
+// Body: { quadra_id, r2_key, video_url, duration_sec, file_size_bytes }
 import { createFileRoute } from "@tanstack/react-router";
-import { z } from "zod";
-import { authenticateEdge } from "@/lib/edge-auth.server";
+import { requireEdgeDevice, requireEdgeSignature, EdgeAuthError } from "@/lib/edge-auth.server";
 
-const bodySchema = z.object({
-  quadra_id: z.string().uuid(),
-  video_url: z.string().url(),
-  r2_key: z.string().min(1).optional(),
-  duration_sec: z.number().positive().optional(),
-  file_size_bytes: z.number().int().nonnegative().optional(),
-  arena_id: z.string().uuid().optional(),
-});
+interface ReplayBody {
+  quadra_id: string;
+  r2_key: string;
+  video_url: string;
+  duration_sec: number;
+  file_size_bytes: number;
+}
 
 export const Route = createFileRoute("/api/public/edge/replay")({
   server: {
     handlers: {
       POST: async ({ request }) => {
-        const auth = await authenticateEdge(request);
-        if (!auth.ok) return new Response(auth.message, { status: auth.status });
-
-        let parsed: z.infer<typeof bodySchema>;
         try {
-          parsed = bodySchema.parse(JSON.parse(auth.rawBody));
+          const device = await requireEdgeDevice(request);
+          const rawBody = await request.text();
+          await requireEdgeSignature(request, rawBody);
+          const body = JSON.parse(rawBody) as Partial<ReplayBody>;
+
+          for (const field of [
+            "quadra_id",
+            "r2_key",
+            "video_url",
+            "duration_sec",
+            "file_size_bytes",
+          ] as const) {
+            if (body[field] === undefined || body[field] === null) {
+              return Response.json(
+                { error: `campo obrigatório ausente: ${field}` },
+                { status: 400 },
+              );
+            }
+          }
+
+          const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+          const { data: quadra, error: quadraErr } = await supabaseAdmin
+            .from("quadras")
+            .select("id, arena_id")
+            .eq("id", body.quadra_id!)
+            .maybeSingle();
+
+          if (quadraErr) throw new EdgeAuthError(`Erro lendo quadra: ${quadraErr.message}`, 500);
+          if (!quadra) return Response.json({ error: "quadra_id não encontrada" }, { status: 404 });
+          if (quadra.arena_id !== device.arena_id) {
+            return Response.json(
+              { error: "quadra não pertence à arena deste edge device" },
+              { status: 403 },
+            );
+          }
+
+          const { data: replay, error: insertErr } = await supabaseAdmin
+            .from("replays")
+            .insert({
+              arena_id: quadra.arena_id,
+              quadra_id: quadra.id,
+              edge_device_id: device.id,
+              video_url: body.video_url!,
+              r2_key: body.r2_key!,
+              duration_sec: body.duration_sec!,
+              file_size_bytes: body.file_size_bytes!,
+            })
+            .select()
+            .single();
+
+          if (insertErr) throw new EdgeAuthError(`Erro inserindo replay: ${insertErr.message}`, 500);
+
+          return Response.json({ replay }, { status: 201 });
         } catch (err) {
-          return new Response(`Invalid body: ${(err as Error).message}`, { status: 400 });
+          if (err instanceof EdgeAuthError) {
+            return Response.json({ error: err.message }, { status: err.status });
+          }
+          console.error(err);
+          return Response.json({ error: "internal_error" }, { status: 500 });
         }
-
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data, error } = await supabaseAdmin
-          .from("replays")
-          .insert({
-            quadra_id: parsed.quadra_id,
-            video_url: parsed.video_url,
-            r2_key: parsed.r2_key ?? null,
-            duration_sec: parsed.duration_sec ?? null,
-            file_size_bytes: parsed.file_size_bytes ?? null,
-            arena_id: parsed.arena_id ?? auth.device.arena_id,
-            edge_device_id: auth.device.id,
-          })
-          .select("id, created_at")
-          .single();
-
-        if (error) return new Response(error.message, { status: 500 });
-        return Response.json({ id: data.id, created_at: data.created_at }, { status: 201 });
       },
     },
   },
