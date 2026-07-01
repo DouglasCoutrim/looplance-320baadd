@@ -101,20 +101,30 @@ cat > /usr/local/bin/looplance-heartbeat.sh <<'HEART'
 #!/usr/bin/env bash
 set -e
 source /etc/looplance/edge.env
-HOSTNAME_LOCAL="$(hostname)"
-IP_LOCAL="$(hostname -I | awk '{print $1}')"
 while true; do
-  curl -sS -X PATCH \
-    -H "apikey: $SUPABASE_ANON_KEY" \
-    -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+  HOSTNAME_LOCAL="$(hostname)"
+  IP_LOCAL="$(hostname -I | awk '{print $1}')"
+  UPTIME_SEC="$(awk '{print int($1)}' /proc/uptime)"
+  BODY=$(jq -cn \
+    --arg h "$HOSTNAME_LOCAL" \
+    --arg ip "$IP_LOCAL" \
+    --arg v "edge-0.1.0" \
+    --argjson u "$UPTIME_SEC" \
+    '{hostname:$h, local_ip:$ip, edge_version:$v, uptime_seconds:$u}')
+  TS="$(date +%s000)"
+  SIG=$(printf '%s' "$TS.$BODY" | openssl dgst -sha256 -hmac "$EDGE_SHARED_SECRET" -hex | awk '{print $2}')
+  curl -sS -X POST \
+    -H "Authorization: Bearer $EDGE_TOKEN" \
+    -H "X-Edge-Timestamp: $TS" \
+    -H "X-Edge-Signature: $SIG" \
     -H "Content-Type: application/json" \
-    -H "Prefer: return=minimal" \
-    "$SUPABASE_URL/rest/v1/edge_devices?id=eq.$DEVICE_ID" \
-    -d "{\\"status\\":\\"online\\",\\"last_seen\\":\\"$(date -u +%Y-%m-%dT%H:%M:%SZ)\\",\\"hostname\\":\\"$HOSTNAME_LOCAL\\",\\"ip_address\\":\\"$IP_LOCAL\\"}" \
+    "$LOOPLANCE_API/api/public/edge/heartbeat" \
+    --data-raw "$BODY" \
     >> /var/log/looplance/heartbeat.log 2>&1 || true
   sleep 60
 done
 HEART
+
 chmod +x /usr/local/bin/looplance-heartbeat.sh
 
 cat > /etc/systemd/system/looplance-heartbeat.service <<EOF
