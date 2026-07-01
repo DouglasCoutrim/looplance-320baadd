@@ -23,6 +23,15 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
     month: "short",
   });
 
+  const logAction = (action: string) => {
+    supabase.rpc("log_user_action", {
+      p_action: action,
+      p_resource_type: "replay",
+      p_resource_id: replay.id,
+      p_metadata: { quadra: replay.quadras?.nome ?? null },
+    });
+  };
+
   const handleDownload = async () => {
     try {
       const res = await fetch(replay.video_url);
@@ -34,10 +43,12 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
       a.click();
       URL.revokeObjectURL(url);
       onReward();
+      logAction("download_replay");
       toast.success("Download iniciado!");
     } catch {
       window.open(replay.video_url, "_blank");
       onReward();
+      logAction("download_replay");
     }
   };
 
@@ -54,6 +65,7 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
         await navigator.clipboard.writeText(replay.video_url);
         toast.success("Link copiado!");
       }
+      logAction("share_replay");
     } catch {
       /* user cancelled */
     }
