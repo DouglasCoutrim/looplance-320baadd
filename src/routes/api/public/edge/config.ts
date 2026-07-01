@@ -18,16 +18,14 @@ export const Route = createFileRoute("/api/public/edge/config")({
             await Promise.all([
               supabaseAdmin
                 .from("cameras")
-                .select(
-                  "id, name, quadra_id, rtsp_url, buffer_seconds, replay_seconds, trigger_button, " +
-                    "overlay_url, final_overlay_url, video_x, video_y, video_width, video_height, active",
-                )
+                .select("*")
                 .eq("edge_device_id", device.id),
               supabaseAdmin
                 .from("input_boards")
                 .select("id, name, device_name, vendor_id, product_id")
                 .eq("edge_device_id", device.id),
             ]);
+
 
           if (camErr) throw new EdgeAuthError(`Erro lendo cameras: ${camErr.message}`, 500);
           if (boardErr) throw new EdgeAuthError(`Erro lendo input_boards: ${boardErr.message}`, 500);
