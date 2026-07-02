@@ -22,10 +22,12 @@ log = logging.getLogger("looplance.trigger")
 # Mapeamento evdev -> "K1".."K12" — validado no frontend com as placas Zero Delay
 # (arcade USB encoder). NÃO alterar sem re-testar no admin.
 KEYCODE_TO_LOCAL_KEY = {
-    2: "K1", 3: "K2", 4: "K3", 5: "K4", 6: "K5", 6: "K5",
-    7: "K6", 8: "K7", 9: "K8", 10: "K9", 11: "K10",
-    12: "K11", 13: "K12",
+    2: "K1", 3: "K2", 4: "K3", 5: "K4", 6: "K5", 7: "K6",
+    8: "K7", 9: "K8", 10: "K9", 11: "K10", 12: "K11", 13: "K12",
 }
+
+OnTrigger = Callable[[str], None]  # recebe local_key ("K1"...)
+
 
 # Assinaturas conhecidas de placas Zero Delay / arcade USB encoders.
 # (vendor_id, product_id) em inteiros. Detectadas automaticamente sem precisar
