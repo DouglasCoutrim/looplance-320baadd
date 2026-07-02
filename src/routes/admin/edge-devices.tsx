@@ -424,7 +424,8 @@ function EdgeDevices() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>
