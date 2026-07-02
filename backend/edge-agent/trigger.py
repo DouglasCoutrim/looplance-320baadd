@@ -19,13 +19,35 @@ from typing import Callable
 
 log = logging.getLogger("looplance.trigger")
 
-# Mapeamento padrão de keycode evdev -> "K1".."K12" (ajuste conforme a placa real)
+# Mapeamento evdev -> "K1".."K12" — validado no frontend com as placas Zero Delay
+# (arcade USB encoder). NÃO alterar sem re-testar no admin.
 KEYCODE_TO_LOCAL_KEY = {
     2: "K1", 3: "K2", 4: "K3", 5: "K4", 6: "K5", 7: "K6",
     8: "K7", 9: "K8", 10: "K9", 11: "K10", 12: "K11", 13: "K12",
 }
 
 OnTrigger = Callable[[str], None]  # recebe local_key ("K1"...)
+
+
+# Assinaturas conhecidas de placas Zero Delay / arcade USB encoders.
+# (vendor_id, product_id) em inteiros. Detectadas automaticamente sem precisar
+# cadastrar no banco.
+ZERO_DELAY_SIGNATURES: set[tuple[int, int]] = {
+    (0x0079, 0x0006),  # DragonRise Inc. Generic USB Joystick — Zero Delay clássico
+    (0x0079, 0x0011),  # DragonRise Gamepad
+    (0x0810, 0xE501),  # NEXT SNES-like encoder
+    (0x0583, 0xA009),  # Padix arcade encoder
+    (0x081F, 0xE401),  # iNNEXT / Zero Delay Encoder
+}
+ZERO_DELAY_NAME_HINTS = ("zero delay", "dragonrise", "arcade", "usb gamepad", "usb joystick", "generic usb")
+
+
+def _looks_like_zero_delay(dev) -> bool:
+    info = dev.info
+    if (info.vendor, info.product) in ZERO_DELAY_SIGNATURES:
+        return True
+    name = (dev.name or "").lower()
+    return any(hint in name for hint in ZERO_DELAY_NAME_HINTS)
 
 
 def _find_input_boards_devices(vendor_ids: set[int], product_ids: set[tuple[int, int]]):
@@ -38,9 +60,15 @@ def _find_input_boards_devices(vendor_ids: set[int], product_ids: set[tuple[int,
         except OSError:
             continue
         info = dev.info
+        # 1) match explícito do banco (opcional)
         if (info.vendor, info.product) in product_ids or info.vendor in vendor_ids:
             devices.append(dev)
+            continue
+        # 2) auto-detecção Zero Delay (independente do que está cadastrado)
+        if _looks_like_zero_delay(dev):
+            devices.append(dev)
     return devices
+
 
 
 def start_trigger_listener(on_trigger: OnTrigger, input_boards: list[dict]) -> threading.Thread:
@@ -68,28 +96,42 @@ def _fake_stdin_loop(on_trigger: OnTrigger) -> None:
             on_trigger(key)
 
 
+def _parse_hex(v) -> int | None:
+    if v in (None, ""):
+        return None
+    if isinstance(v, int):
+        return v
+    try:
+        return int(str(v), 16)
+    except (TypeError, ValueError):
+        return None
+
+
 def _evdev_loop(on_trigger: OnTrigger, input_boards: list[dict]) -> None:
     import select
-    from evdev import categorize, ecodes, list_devices, InputDevice
+    from evdev import categorize, ecodes
 
-    vendor_ids = {b["vendor_id"] for b in input_boards if b.get("vendor_id")}
-    product_pairs = {
-        (b["vendor_id"], b["product_id"])
-        for b in input_boards
-        if b.get("vendor_id") and b.get("product_id")
-    }
+    vendor_ids: set[int] = set()
+    product_pairs: set[tuple[int, int]] = set()
+    for b in input_boards or []:
+        vid = _parse_hex(b.get("vendor_id"))
+        pid = _parse_hex(b.get("product_id"))
+        if vid is not None:
+            vendor_ids.add(vid)
+        if vid is not None and pid is not None:
+            product_pairs.add((vid, pid))
 
     while True:
-        devices = _find_input_boards_devices(vendor_ids, product_pairs) if (vendor_ids or product_pairs) else [
-            InputDevice(p) for p in list_devices()
-        ]
+        # Sempre passa pela detecção com fallback Zero Delay automático.
+        devices = _find_input_boards_devices(vendor_ids, product_pairs)
         if not devices:
-            log.warning("nenhuma botoeira encontrada em /dev/input, tentando de novo em 5s")
+            log.warning("nenhuma botoeira/Zero Delay encontrada em /dev/input, tentando de novo em 5s")
             import time
             time.sleep(5)
             continue
 
-        log.info("escutando botoeiras: %s", [d.name for d in devices])
+        log.info("escutando botoeiras: %s", [f"{d.name} [{d.info.vendor:04x}:{d.info.product:04x}]" for d in devices])
+
         devices_by_fd = {d.fd: d for d in devices}
         try:
             while True:
