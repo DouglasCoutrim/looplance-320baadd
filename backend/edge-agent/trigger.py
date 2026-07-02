@@ -96,28 +96,42 @@ def _fake_stdin_loop(on_trigger: OnTrigger) -> None:
             on_trigger(key)
 
 
+def _parse_hex(v) -> int | None:
+    if v in (None, ""):
+        return None
+    if isinstance(v, int):
+        return v
+    try:
+        return int(str(v), 16)
+    except (TypeError, ValueError):
+        return None
+
+
 def _evdev_loop(on_trigger: OnTrigger, input_boards: list[dict]) -> None:
     import select
-    from evdev import categorize, ecodes, list_devices, InputDevice
+    from evdev import categorize, ecodes
 
-    vendor_ids = {b["vendor_id"] for b in input_boards if b.get("vendor_id")}
-    product_pairs = {
-        (b["vendor_id"], b["product_id"])
-        for b in input_boards
-        if b.get("vendor_id") and b.get("product_id")
-    }
+    vendor_ids: set[int] = set()
+    product_pairs: set[tuple[int, int]] = set()
+    for b in input_boards or []:
+        vid = _parse_hex(b.get("vendor_id"))
+        pid = _parse_hex(b.get("product_id"))
+        if vid is not None:
+            vendor_ids.add(vid)
+        if vid is not None and pid is not None:
+            product_pairs.add((vid, pid))
 
     while True:
-        devices = _find_input_boards_devices(vendor_ids, product_pairs) if (vendor_ids or product_pairs) else [
-            InputDevice(p) for p in list_devices()
-        ]
+        # Sempre passa pela detecção com fallback Zero Delay automático.
+        devices = _find_input_boards_devices(vendor_ids, product_pairs)
         if not devices:
-            log.warning("nenhuma botoeira encontrada em /dev/input, tentando de novo em 5s")
+            log.warning("nenhuma botoeira/Zero Delay encontrada em /dev/input, tentando de novo em 5s")
             import time
             time.sleep(5)
             continue
 
-        log.info("escutando botoeiras: %s", [d.name for d in devices])
+        log.info("escutando botoeiras: %s", [f"{d.name} [{d.info.vendor:04x}:{d.info.product:04x}]" for d in devices])
+
         devices_by_fd = {d.fd: d for d in devices}
         try:
             while True:
