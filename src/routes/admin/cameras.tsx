@@ -152,48 +152,6 @@ function Cameras() {
     fetchData();
   }, []);
 
-  const handleCreate = async () => {
-    if (!formData.name || !formData.quadra_id) {
-      toast.error("Nome e Quadra são obrigatórios");
-      return;
-    }
-
-    const { error } = await supabase
-      .from("cameras")
-      .insert([{
-        name: formData.name,
-        rtsp_url: formData.rtsp_url,
-        quadra_id: formData.quadra_id,
-        edge_device_id: formData.edge_device_id || null,
-        input_board_id: formData.input_board_id || null,
-        trigger_button: parseInt(formData.trigger_button),
-        replay_seconds: parseInt(formData.replay_seconds),
-        active: formData.active,
-      }]);
-
-    if (error) {
-      toast.error("Erro ao criar câmera");
-    } else {
-      toast.success("Câmera criada com sucesso");
-      setIsDialogOpen(false);
-      setFormData({
-        name: "",
-        rtsp_url: "",
-        quadra_id: "",
-        edge_device_id: "",
-        input_board_id: "",
-        trigger_button: "0",
-        replay_seconds: "15",
-        active: true,
-        brand: "custom",
-        username: "admin",
-        password: "",
-        ip: "",
-        port: "554",
-      });
-      fetchData();
-    }
-  };
 
   const handleSubmit = async () => {
     if (!formData.name || !formData.quadra_id) {
