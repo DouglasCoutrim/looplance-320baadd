@@ -74,6 +74,24 @@ function Cameras() {
   const [quadras, setQuadras] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<CameraType | null>(null);
+  const [deleting, setDeleting] = useState<CameraType | null>(null);
+
+  const emptyForm = {
+    name: "",
+    rtsp_url: "",
+    quadra_id: "",
+    edge_device_id: "",
+    input_board_id: "",
+    trigger_button: "0",
+    replay_seconds: "15",
+    active: true,
+    brand: "custom",
+    username: "admin",
+    password: "",
+    ip: "",
+    port: "554",
+  };
 
   // Form state
   const [formData, setFormData] = useState({
@@ -177,11 +195,71 @@ function Cameras() {
     }
   };
 
-  const filteredBoards = formData.edge_device_id 
-    ? boards.filter(b => b.edge_device_id === formData.edge_device_id)
-    : boards;
+  const handleSubmit = async () => {
+    if (!formData.name || !formData.quadra_id) {
+      toast.error("Nome e Quadra são obrigatórios");
+      return;
+    }
 
-  return (
+    const payload = {
+      name: formData.name,
+      rtsp_url: formData.rtsp_url,
+      quadra_id: formData.quadra_id,
+      edge_device_id: formData.edge_device_id || null,
+      input_board_id: formData.input_board_id || null,
+      trigger_button: parseInt(formData.trigger_button),
+      replay_seconds: parseInt(formData.replay_seconds),
+      active: formData.active,
+    };
+
+    const { error } = editing
+      ? await supabase.from("cameras").update(payload).eq("id", editing.id)
+      : await supabase.from("cameras").insert([payload]);
+
+    if (error) {
+      toast.error(editing ? "Erro ao atualizar câmera" : "Erro ao criar câmera");
+    } else {
+      toast.success(editing ? "Câmera atualizada" : "Câmera criada com sucesso");
+      setIsDialogOpen(false);
+      setEditing(null);
+      setFormData(emptyForm);
+      fetchData();
+    }
+  };
+
+  const openCreate = () => {
+    setEditing(null);
+    setFormData(emptyForm);
+    setIsDialogOpen(true);
+  };
+
+  const openEdit = (c: CameraType) => {
+    setEditing(c);
+    setFormData({
+      ...emptyForm,
+      name: c.name,
+      rtsp_url: c.rtsp_url ?? "",
+      quadra_id: c.quadra_id ?? "",
+      edge_device_id: c.edge_device_id ?? "",
+      input_board_id: c.input_board_id ?? "",
+      trigger_button: String(c.trigger_button ?? 0),
+      replay_seconds: String(c.replay_seconds ?? 15),
+      active: c.active ?? true,
+    });
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleting) return;
+    const { error } = await supabase.from("cameras").delete().eq("id", deleting.id);
+    if (error) toast.error("Erro ao excluir câmera");
+    else {
+      toast.success("Câmera excluída");
+      fetchData();
+    }
+    setDeleting(null);
+  };
+
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
