@@ -311,7 +311,7 @@ function UsersAdmin() {
       {tab === "users" ? (
         <>
           <div className="flex flex-wrap gap-2">
-            {(["all", "super_admin", "client_owner", "arena_owner", "arena_user"] as const).map((r) => {
+            {(["all", "super_admin", "arena_owner"] as const).map((r) => {
               const isActive = roleFilter === r;
               const label = r === "all" ? "Todos" : ROLE_META[r].label;
               return (
