@@ -65,8 +65,8 @@ export const inviteUser = createServerFn({ method: "POST" })
       await supabaseAdmin.rpc("admin_assign_role", {
         p_user_id: existing.id,
         p_role: data.role,
-        p_arena_id: data.arena_id ?? null,
-        p_client_id: data.client_id ?? null,
+        p_arena_id: data.arena_id ?? undefined,
+        p_client_id: data.client_id ?? undefined,
       });
       return { ok: true, reused: true, user_id: existing.id };
     }
@@ -76,8 +76,8 @@ export const inviteUser = createServerFn({ method: "POST" })
       await supabaseAdmin.rpc("admin_assign_role", {
         p_user_id: newId,
         p_role: data.role,
-        p_arena_id: data.arena_id ?? null,
-        p_client_id: data.client_id ?? null,
+        p_arena_id: data.arena_id ?? undefined,
+        p_client_id: data.client_id ?? undefined,
       });
     }
 
