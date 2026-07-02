@@ -206,6 +206,27 @@ function EdgeDevices() {
           </DialogHeader>
           <div className="grid gap-6 py-6">
             <div className="grid gap-2">
+              <Label htmlFor="client" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cliente Responsável *</Label>
+              <select
+                id="client"
+                value={newClientId}
+                onChange={(e) => setNewClientId(e.target.value)}
+                className="rounded-xl border border-gray-100 bg-gray-50 h-12 px-3 text-sm font-medium focus:border-brand-orange focus:ring-brand-orange"
+              >
+                <option value="">Selecione um cliente</option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome}{c.is_frozen ? " (congelado)" : ""}
+                  </option>
+                ))}
+              </select>
+              {clients.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Nenhum cliente cadastrado. <a href="/admin/clients" className="text-brand-orange font-bold underline">Cadastre um cliente primeiro</a>.
+                </p>
+              )}
+            </div>
+            <div className="grid gap-2">
               <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome do Dispositivo</Label>
               <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex: Edge Server Arena 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
             </div>
