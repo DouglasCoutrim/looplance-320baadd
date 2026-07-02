@@ -42,6 +42,8 @@ function AuthPage() {
   const navigate = useNavigate();
   const [tab, setTab] = useState<"login" | "signup">("login");
   const [loading, setLoading] = useState(false);
+  const [showTerms, setShowTerms] = useState(false);
+
 
   // Redirect if already logged in
   useEffect(() => {
