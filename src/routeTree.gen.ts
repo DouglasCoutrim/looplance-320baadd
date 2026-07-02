@@ -19,6 +19,7 @@ import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
 import { Route as AdminMonitoringRouteImport } from './routes/admin/monitoring'
 import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-boards'
 import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-devices'
+import { Route as AdminClientsRouteImport } from './routes/admin/clients'
 import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
 import { Route as AdminArenasRouteImport } from './routes/admin/arenas'
 import { Route as ApiPublicInstallRouteImport } from './routes/api/public/install'
@@ -79,6 +80,11 @@ const AdminEdgeDevicesRoute = AdminEdgeDevicesRouteImport.update({
   path: '/edge-devices',
   getParentRoute: () => AdminRoute,
 } as any)
+const AdminClientsRoute = AdminClientsRouteImport.update({
+  id: '/clients',
+  path: '/clients',
+  getParentRoute: () => AdminRoute,
+} as any)
 const AdminCamerasRoute = AdminCamerasRouteImport.update({
   id: '/cameras',
   path: '/cameras',
@@ -134,6 +140,7 @@ export interface FileRoutesByFullPath {
   '/install': typeof InstallRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
+  '/admin/clients': typeof AdminClientsRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
@@ -154,6 +161,7 @@ export interface FileRoutesByTo {
   '/install': typeof InstallRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
+  '/admin/clients': typeof AdminClientsRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
@@ -176,6 +184,7 @@ export interface FileRoutesById {
   '/install': typeof InstallRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
+  '/admin/clients': typeof AdminClientsRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
@@ -199,6 +208,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/admin/arenas'
     | '/admin/cameras'
+    | '/admin/clients'
     | '/admin/edge-devices'
     | '/admin/input-boards'
     | '/admin/monitoring'
@@ -219,6 +229,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/admin/arenas'
     | '/admin/cameras'
+    | '/admin/clients'
     | '/admin/edge-devices'
     | '/admin/input-boards'
     | '/admin/monitoring'
@@ -240,6 +251,7 @@ export interface FileRouteTypes {
     | '/install'
     | '/admin/arenas'
     | '/admin/cameras'
+    | '/admin/clients'
     | '/admin/edge-devices'
     | '/admin/input-boards'
     | '/admin/monitoring'
@@ -341,6 +353,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEdgeDevicesRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/clients': {
+      id: '/admin/clients'
+      path: '/clients'
+      fullPath: '/admin/clients'
+      preLoaderRoute: typeof AdminClientsRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/cameras': {
       id: '/admin/cameras'
       path: '/cameras'
@@ -410,6 +429,7 @@ declare module '@tanstack/react-router' {
 interface AdminRouteChildren {
   AdminArenasRoute: typeof AdminArenasRoute
   AdminCamerasRoute: typeof AdminCamerasRoute
+  AdminClientsRoute: typeof AdminClientsRoute
   AdminEdgeDevicesRoute: typeof AdminEdgeDevicesRoute
   AdminInputBoardsRoute: typeof AdminInputBoardsRoute
   AdminMonitoringRoute: typeof AdminMonitoringRoute
@@ -421,6 +441,7 @@ interface AdminRouteChildren {
 const AdminRouteChildren: AdminRouteChildren = {
   AdminArenasRoute: AdminArenasRoute,
   AdminCamerasRoute: AdminCamerasRoute,
+  AdminClientsRoute: AdminClientsRoute,
   AdminEdgeDevicesRoute: AdminEdgeDevicesRoute,
   AdminInputBoardsRoute: AdminInputBoardsRoute,
   AdminMonitoringRoute: AdminMonitoringRoute,
