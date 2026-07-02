@@ -200,8 +200,8 @@ function UsersAdmin() {
   }, [users]);
 
   const availableRoles: AppRole[] = isSuperAdmin
-    ? ["super_admin", "client_owner", "arena_owner", "arena_user"]
-    : ["arena_owner", "arena_user"];
+    ? ["super_admin", "arena_owner"]
+    : ["arena_owner"];
 
   return (
     <div className="space-y-6">
