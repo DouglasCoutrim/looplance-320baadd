@@ -260,6 +260,11 @@ function Cameras() {
     setDeleting(null);
   };
 
+  const filteredBoards = formData.edge_device_id
+    ? boards.filter(b => b.edge_device_id === formData.edge_device_id)
+    : boards;
+
+  return (
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
         <div>
@@ -274,15 +279,15 @@ function Cameras() {
           <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-12 w-12 shadow-sm bg-white hover:bg-gray-50">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(o) => { setIsDialogOpen(o); if (!o) { setEditing(null); setFormData(emptyForm); } }}>
             <DialogTrigger asChild>
-              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
+              <Button onClick={openCreate} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-6 h-12 rounded-xl transition-transform hover:scale-[1.02]">
                 <Plus className="mr-2 h-5 w-5" /> Nova Câmera
               </Button>
             </DialogTrigger>
             <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl overflow-hidden p-0">
               <div className="brand-gradient p-6 text-white">
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight">Configurar Câmera</DialogTitle>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight">{editing ? "Editar Câmera" : "Configurar Câmera"}</DialogTitle>
                 <p className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">Integração RTSP & Edge</p>
               </div>
               
