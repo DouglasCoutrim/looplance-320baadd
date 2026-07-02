@@ -74,9 +74,17 @@ function EdgeDevices() {
     fetchDevices();
   }, []);
 
+  const fetchClients = async () => {
+    const { data } = await supabase.from("clients").select("id, nome, is_frozen").order("nome");
+    setClients((data ?? []) as ClientLite[]);
+  };
+
+  useEffect(() => { fetchClients(); }, []);
+
   const resetForm = () => {
     setNewName("");
     setNewHostname("");
+    setNewClientId("");
     setEditingDevice(null);
   };
 
