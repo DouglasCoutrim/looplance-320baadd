@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
-import { LogIn, UserPlus, Loader2 } from "lucide-react";
+import { LogIn, UserPlus, Loader2, X } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
