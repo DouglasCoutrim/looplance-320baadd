@@ -13,7 +13,7 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
 
         const { data: device, error } = await supabase
           .from("edge_devices")
-          .select("id, name, hostname, edge_token")
+          .select("id, name, hostname, edge_token, install_passphrase")
           .eq("id", params.id)
           .maybeSingle();
 
@@ -22,6 +22,21 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
             status: 404,
             headers: { "Content-Type": "text/plain; charset=utf-8" },
           });
+        }
+
+        // Exige palavra-chave de instalação (enviada pelo installer interativo)
+        const providedPassphrase = request.headers.get("x-install-passphrase") || "";
+        const expected = (device as any).install_passphrase || "";
+        if (!providedPassphrase || providedPassphrase !== expected) {
+          return new Response(
+            "# Palavra-chave de instalação ausente ou incorreta.\n" +
+              "# Use: curl -fsSL " + new URL(request.url).origin + "/install | sudo bash\n" +
+              "exit 1\n",
+            {
+              status: 401,
+              headers: { "Content-Type": "text/plain; charset=utf-8" },
+            },
+          );
         }
 
         const origin = new URL(request.url).origin;

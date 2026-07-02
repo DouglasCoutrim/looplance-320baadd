@@ -254,6 +254,7 @@ export type Database = {
           edge_version: string | null
           hostname: string | null
           id: string
+          install_passphrase: string
           last_seen: string | null
           local_ip: string | null
           name: string
@@ -267,6 +268,7 @@ export type Database = {
           edge_version?: string | null
           hostname?: string | null
           id?: string
+          install_passphrase?: string
           last_seen?: string | null
           local_ip?: string | null
           name: string
@@ -280,6 +282,7 @@ export type Database = {
           edge_version?: string | null
           hostname?: string | null
           id?: string
+          install_passphrase?: string
           last_seen?: string | null
           local_ip?: string | null
           name?: string
@@ -652,6 +655,7 @@ export type Database = {
           replay_id: string
         }[]
       }
+      fn_generate_install_passphrase: { Args: never; Returns: string }
       fn_get_camera_for_replay: { Args: { p_quadra_id: string }; Returns: Json }
       fn_register_replay: {
         Args: {
