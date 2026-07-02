@@ -218,16 +218,51 @@ function EdgeDevices() {
             <div className="space-y-5 py-4">
               <div>
                 <p className="text-sm text-muted-foreground font-medium mb-2">
-                  Cole o comando abaixo no terminal do servidor Ubuntu (como root ou com sudo). Ele instala dependências, configura o serviço de heartbeat e vincula este device automaticamente.
+                  Cole o comando abaixo no terminal do servidor Ubuntu (como root ou com sudo). Ele vai pedir <strong>o token do device</strong> e <strong>a palavra-chave</strong> exibidos aqui embaixo, validar e então instalar tudo automaticamente.
                 </p>
               </div>
               <div className="rounded-xl bg-gray-900 p-4 font-mono text-xs text-green-400 overflow-x-auto">
-                <code>{setupCommand(scriptDevice.id)}</code>
+                <code>{installCommand()}</code>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="rounded-xl border border-gray-200 p-3 bg-gray-50">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Token do device</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs font-mono text-gray-900 break-all flex-1">{scriptDevice.id}</code>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => { navigator.clipboard.writeText(scriptDevice.id); toast.success("Token copiado!"); }}
+                      className="h-7 w-7 shrink-0"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="rounded-xl border border-orange-200 p-3 bg-orange-50">
+                  <p className="text-[10px] font-bold uppercase tracking-widest text-orange-700 mb-1">Palavra-chave</p>
+                  <div className="flex items-center gap-2">
+                    <code className="text-base font-mono font-black text-orange-900 tracking-widest flex-1">{scriptDevice.install_passphrase ?? "—"}</code>
+                    <Button
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => {
+                        if (scriptDevice.install_passphrase) {
+                          navigator.clipboard.writeText(scriptDevice.install_passphrase);
+                          toast.success("Palavra-chave copiada!");
+                        }
+                      }}
+                      className="h-7 w-7 shrink-0"
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
+                </div>
               </div>
               <div className="flex gap-2 flex-wrap">
                 <Button
                   onClick={() => {
-                    navigator.clipboard.writeText(setupCommand(scriptDevice.id));
+                    navigator.clipboard.writeText(installCommand());
                     toast.success("Comando copiado!");
                   }}
                   className="brand-gradient text-white font-black uppercase tracking-widest rounded-xl flex-1"
@@ -236,7 +271,7 @@ function EdgeDevices() {
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => window.open(setupUrl(scriptDevice.id), "_blank")}
+                  onClick={() => window.open(`${window.location.origin}/install`, "_blank")}
                   className="rounded-xl font-bold border-gray-200"
                 >
                   <Terminal className="h-4 w-4 mr-2" /> Ver Script
@@ -244,7 +279,7 @@ function EdgeDevices() {
               </div>
               <div className="rounded-xl bg-orange-50 border border-orange-100 p-3">
                 <p className="text-xs font-bold text-orange-900 uppercase tracking-widest mb-1">⚠ Importante</p>
-                <p className="text-xs text-orange-800">O script contém o token único deste device. Não compartilhe publicamente.</p>
+                <p className="text-xs text-orange-800">A palavra-chave é única deste device. Guarde-a em local seguro — sem ela a instalação não é concluída.</p>
               </div>
             </div>
           )}
