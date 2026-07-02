@@ -345,6 +345,7 @@ function EdgeDevices() {
           <TableHeader className="bg-gray-50/50 border-b border-gray-100">
             <TableRow className="hover:bg-transparent">
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Dispositivo</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Cliente</TableHead>
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Endereço (Hostname)</TableHead>
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Status</TableHead>
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-right">Ações</TableHead>
@@ -353,12 +354,14 @@ function EdgeDevices() {
           <TableBody>
             {devices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-medium italic">
+                <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium italic">
                   Nenhum dispositivo provisionado. Use o botão acima para começar.
                 </TableCell>
               </TableRow>
             ) : (
-              devices.map((device) => (
+              devices.map((device) => {
+                const client = clients.find((c) => c.id === device.client_id);
+                return (
                 <TableRow key={device.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-4">
@@ -370,6 +373,18 @@ function EdgeDevices() {
                         <p className="text-xs font-medium text-muted-foreground">Token: {device.edge_token?.slice(0, 8)}...</p>
                       </div>
                     </div>
+                  </TableCell>
+                  <TableCell className="py-5 px-6">
+                    {client ? (
+                      <div>
+                        <div className="font-bold text-sm text-gray-900">{client.nome}</div>
+                        {client.is_frozen && (
+                          <Badge className="mt-1 bg-blue-100 text-blue-800 border-blue-200 text-[9px]">Congelado</Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">sem cliente</span>
+                    )}
                   </TableCell>
                   <TableCell className="py-5 px-6 font-mono text-xs font-bold text-gray-500">
                     {device.hostname || "não configurado"}
