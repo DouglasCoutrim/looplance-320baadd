@@ -5,6 +5,16 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -26,9 +36,11 @@ function Quadras() {
   const [arenas, setArenas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+
   const [name, setName] = useState("");
   const [arenaId, setArenaId] = useState("");
+  const [editing, setEditing] = useState<Quadra | null>(null);
+  const [deleting, setDeleting] = useState<Quadra | null>(null);
 
   const fetchData = async () => {
     setLoading(true);
@@ -45,19 +57,52 @@ function Quadras() {
     fetchData();
   }, []);
 
-  const handleCreate = async () => {
+  const resetForm = () => {
+    setName("");
+    setArenaId("");
+    setEditing(null);
+  };
+
+  const openCreate = () => {
+    resetForm();
+    setIsDialogOpen(true);
+  };
+
+  const openEdit = (q: Quadra) => {
+    setEditing(q);
+    setName(q.nome);
+    setArenaId(q.arena_id);
+    setIsDialogOpen(true);
+  };
+
+  const handleSubmit = async () => {
     if (!name || !arenaId) {
       toast.error("Nome e Arena são obrigatórios");
       return;
     }
-    const { error } = await supabase.from("quadras").insert([{ nome: name, arena_id: arenaId }]);
-    if (error) toast.error("Erro ao criar quadra");
-    else {
+    if (editing) {
+      const { error } = await supabase.from("quadras").update({ nome: name, arena_id: arenaId }).eq("id", editing.id);
+      if (error) return toast.error("Erro ao atualizar quadra");
+      toast.success("Quadra atualizada");
+    } else {
+      const { error } = await supabase.from("quadras").insert([{ nome: name, arena_id: arenaId }]);
+      if (error) return toast.error("Erro ao criar quadra");
       toast.success("Quadra criada");
-      setIsDialogOpen(false);
-      setName("");
+    }
+    setIsDialogOpen(false);
+    resetForm();
+    fetchData();
+  };
+
+  const handleDelete = async () => {
+    if (!deleting) return;
+    const { error } = await supabase.from("quadras").delete().eq("id", deleting.id);
+    if (error) toast.error("Erro ao excluir quadra");
+    else {
+      toast.success("Quadra excluída");
       fetchData();
     }
+    setDeleting(null);
   };
 
   return (
@@ -75,15 +120,17 @@ function Quadras() {
           <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-10 sm:h-12 w-10 sm:w-12 shadow-sm bg-white hover:bg-gray-50 shrink-0">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
           </Button>
-          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+          <Dialog open={isDialogOpen} onOpenChange={(o) => { setIsDialogOpen(o); if (!o) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
+              <Button onClick={openCreate} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
                 <Plus className="mr-2 h-5 w-5" /> Nova Quadra
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-2xl border-none shadow-2xl">
               <DialogHeader>
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">Configurar Quadra</DialogTitle>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
+                  {editing ? "Editar Quadra" : "Configurar Quadra"}
+                </DialogTitle>
               </DialogHeader>
               <div className="grid gap-6 py-6">
                 <div className="grid gap-2">
@@ -104,7 +151,7 @@ function Quadras() {
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleCreate} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
+                <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -149,10 +196,10 @@ function Quadras() {
                   </TableCell>
                   <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
                     <div className="flex justify-end gap-1 sm:gap-2">
-                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(q)} className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
                         <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                      <Button variant="ghost" size="icon" onClick={() => setDeleting(q)} className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
                         <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </Button>
                     </div>
@@ -163,6 +210,21 @@ function Quadras() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir quadra?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A quadra "{deleting?.nome}" será removida permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="rounded-xl bg-red-500 hover:bg-red-600 font-black uppercase tracking-widest">Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
