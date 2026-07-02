@@ -114,7 +114,7 @@ function AuthPage() {
       </div>
 
 
-      <div className="-mt-2 w-full max-w-sm rounded-3xl bg-white shadow-lg border border-gray-200 p-6">
+      <div className="-mt-10 w-full max-w-sm rounded-3xl bg-white shadow-lg border border-gray-200 p-6">
         <div className="grid grid-cols-2 rounded-full bg-gray-100 p-1 text-sm font-bold mb-6">
           <button
             onClick={() => setTab("login")}
