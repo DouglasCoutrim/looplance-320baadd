@@ -65,31 +65,29 @@ def report_camera_status(
 
 def send_heartbeat(settings: Settings, *, local_ip: str, uptime_seconds: int) -> None:
     """
-    PATCH direto na Data API do Supabase (REST /rest/v1), como já feito hoje
-    pelo script bash de provisionamento (6.1/6.2). Ver sql/002_rpc_functions.sql
-    para a policy que autoriza este UPDATE via header x-edge-token.
+    Envia heartbeat com telemetria completa (CPU, memória, disco, temperatura,
+    rede) via rota assinada /api/public/edge/heartbeat. A rota atualiza o row
+    do edge_devices com service_role no backend — sem depender de policy RLS
+    para colunas novas.
     """
-    url = f"{settings.supabase_url}/rest/v1/edge_devices?id=eq.{settings.edge_device_id}"
-    headers = {
-        "apikey": settings.supabase_anon_key,
-        "Authorization": f"Bearer {settings.supabase_anon_key}",
-        "x-edge-token": settings.edge_token,
-        "Content-Type": "application/json",
-        "Prefer": "return=minimal",
-    }
-    body = {
-        "status": "online",
-        "last_seen": _iso_now(),
+    from metrics import collect as collect_metrics  # import tardio: opcional
+
+    body: dict = {
         "hostname": settings.hostname,
         "local_ip": local_ip,
         "uptime_seconds": uptime_seconds,
         "edge_version": settings.edge_version,
     }
     try:
-        resp = httpx.patch(url, json=body, headers=headers, timeout=10)
-        resp.raise_for_status()
+        body.update(collect_metrics())
+    except Exception:  # noqa: BLE001
+        log.exception("Falha ao coletar métricas de sistema")
+
+    try:
+        _post_signed(settings, "/api/public/edge/heartbeat", body, timeout=10)
     except Exception:  # noqa: BLE001
         log.exception("Falha ao enviar heartbeat")
+
 
 
 def _iso_now() -> str:
