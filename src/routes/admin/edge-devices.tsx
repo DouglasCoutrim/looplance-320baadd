@@ -97,6 +97,7 @@ function EdgeDevices() {
     setEditingDevice(device);
     setNewName(device.name);
     setNewHostname(device.hostname || "");
+    setNewClientId(device.client_id || "");
     setIsDialogOpen(true);
   };
 
@@ -105,29 +106,30 @@ function EdgeDevices() {
       toast.error("Nome é obrigatório");
       return;
     }
+    if (!newClientId) {
+      toast.error("Selecione o cliente responsável por este edge");
+      return;
+    }
+
+    const payload: any = {
+      name: newName,
+      hostname: newHostname || null,
+      client_id: newClientId,
+    };
 
     if (editingDevice) {
-      const { error } = await supabase
-        .from("edge_devices")
-        .update({ name: newName, hostname: newHostname })
-        .eq("id", editingDevice.id);
-
-      if (error) {
-        toast.error("Erro ao atualizar dispositivo");
-      } else {
+      const { error } = await supabase.from("edge_devices").update(payload).eq("id", editingDevice.id);
+      if (error) toast.error("Erro ao atualizar dispositivo");
+      else {
         toast.success("Dispositivo atualizado com sucesso");
         setIsDialogOpen(false);
         resetForm();
         fetchDevices();
       }
     } else {
-      const { error } = await supabase
-        .from("edge_devices")
-        .insert([{ name: newName, hostname: newHostname, status: "offline" }]);
-
-      if (error) {
-        toast.error("Erro ao criar dispositivo");
-      } else {
+      const { error } = await supabase.from("edge_devices").insert([{ ...payload, status: "offline" }]);
+      if (error) toast.error("Erro ao criar dispositivo");
+      else {
         toast.success("Dispositivo criado com sucesso");
         setIsDialogOpen(false);
         resetForm();
