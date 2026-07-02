@@ -19,13 +19,33 @@ from typing import Callable
 
 log = logging.getLogger("looplance.trigger")
 
-# Mapeamento padrão de keycode evdev -> "K1".."K12" (ajuste conforme a placa real)
+# Mapeamento evdev -> "K1".."K12" — validado no frontend com as placas Zero Delay
+# (arcade USB encoder). NÃO alterar sem re-testar no admin.
 KEYCODE_TO_LOCAL_KEY = {
-    2: "K1", 3: "K2", 4: "K3", 5: "K4", 6: "K5", 7: "K6",
-    8: "K7", 9: "K8", 10: "K9", 11: "K10", 12: "K11", 13: "K12",
+    2: "K1", 3: "K2", 4: "K3", 5: "K4", 6: "K5", 6: "K5",
+    7: "K6", 8: "K7", 9: "K8", 10: "K9", 11: "K10",
+    12: "K11", 13: "K12",
 }
 
-OnTrigger = Callable[[str], None]  # recebe local_key ("K1"...)
+# Assinaturas conhecidas de placas Zero Delay / arcade USB encoders.
+# (vendor_id, product_id) em inteiros. Detectadas automaticamente sem precisar
+# cadastrar no banco.
+ZERO_DELAY_SIGNATURES: set[tuple[int, int]] = {
+    (0x0079, 0x0006),  # DragonRise Inc. Generic USB Joystick — Zero Delay clássico
+    (0x0079, 0x0011),  # DragonRise Gamepad
+    (0x0810, 0xE501),  # NEXT SNES-like encoder
+    (0x0583, 0xA009),  # Padix arcade encoder
+    (0x081F, 0xE401),  # iNNEXT / Zero Delay Encoder
+}
+ZERO_DELAY_NAME_HINTS = ("zero delay", "dragonrise", "arcade", "usb gamepad", "usb joystick", "generic usb")
+
+
+def _looks_like_zero_delay(dev) -> bool:
+    info = dev.info
+    if (info.vendor, info.product) in ZERO_DELAY_SIGNATURES:
+        return True
+    name = (dev.name or "").lower()
+    return any(hint in name for hint in ZERO_DELAY_NAME_HINTS)
 
 
 def _find_input_boards_devices(vendor_ids: set[int], product_ids: set[tuple[int, int]]):
@@ -38,9 +58,15 @@ def _find_input_boards_devices(vendor_ids: set[int], product_ids: set[tuple[int,
         except OSError:
             continue
         info = dev.info
+        # 1) match explícito do banco (opcional)
         if (info.vendor, info.product) in product_ids or info.vendor in vendor_ids:
             devices.append(dev)
+            continue
+        # 2) auto-detecção Zero Delay (independente do que está cadastrado)
+        if _looks_like_zero_delay(dev):
+            devices.append(dev)
     return devices
+
 
 
 def start_trigger_listener(on_trigger: OnTrigger, input_boards: list[dict]) -> threading.Thread:
