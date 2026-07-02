@@ -229,18 +229,21 @@ function MonitoringPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-500">
               <tr>
-                <th className="px-5 py-3 text-left">Status</th>
-                <th className="px-5 py-3 text-left">Nome</th>
-                <th className="px-5 py-3 text-left">Hostname / IP</th>
-                <th className="px-5 py-3 text-left">Versão</th>
-                <th className="px-5 py-3 text-left">Uptime</th>
-                <th className="px-5 py-3 text-left">Último heartbeat</th>
+                <th className="px-4 py-3 text-left">Status</th>
+                <th className="px-4 py-3 text-left">Nome / IP</th>
+                <th className="px-4 py-3 text-left"><Cpu className="inline h-3 w-3 mr-1" />CPU</th>
+                <th className="px-4 py-3 text-left"><MemoryStick className="inline h-3 w-3 mr-1" />Memória</th>
+                <th className="px-4 py-3 text-left"><HardDrive className="inline h-3 w-3 mr-1" />Disco</th>
+                <th className="px-4 py-3 text-left"><Thermometer className="inline h-3 w-3 mr-1" />Temp.</th>
+                <th className="px-4 py-3 text-left"><ArrowDownUp className="inline h-3 w-3 mr-1" />Rede</th>
+                <th className="px-4 py-3 text-left">Uptime</th>
+                <th className="px-4 py-3 text-left">Heartbeat</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {devices.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-gray-400">
+                  <td colSpan={9} className="px-5 py-8 text-center text-gray-400">
                     Nenhum Edge Device cadastrado ainda.
                   </td>
                 </tr>
@@ -248,8 +251,8 @@ function MonitoringPage() {
               {devices.map((d) => {
                 const online = isOnline(d.last_seen);
                 return (
-                  <tr key={d.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-5 py-3">
+                  <tr key={d.id} className="hover:bg-gray-50/50 transition-colors align-top">
+                    <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                           online
@@ -261,16 +264,44 @@ function MonitoringPage() {
                         {online ? "Online" : "Offline"}
                       </span>
                     </td>
-                    <td className="px-5 py-3 font-bold text-gray-900">{d.name}</td>
-                    <td className="px-5 py-3 text-gray-600">
-                      <div className="font-mono text-xs">{d.hostname || "—"}</div>
+                    <td className="px-4 py-3">
+                      <div className="font-bold text-gray-900 text-sm">{d.name}</div>
+                      <div className="font-mono text-[11px] text-gray-500">{d.hostname || "—"}</div>
                       <div className="font-mono text-[11px] text-gray-400">{d.local_ip || "—"}</div>
+                      <div className="font-mono text-[10px] text-gray-400 mt-0.5">v{d.edge_version || "?"}</div>
                     </td>
-                    <td className="px-5 py-3 font-mono text-xs text-gray-600">
-                      {d.edge_version || "—"}
+                    <td className="px-4 py-3">
+                      <MetricBar value={d.cpu_percent} label="CPU" />
+                      {d.load_avg_1m != null && (
+                        <div className="text-[10px] text-gray-400 mt-1 font-mono">load {d.load_avg_1m}</div>
+                      )}
                     </td>
-                    <td className="px-5 py-3 text-gray-600">{formatUptime(d.uptime_seconds)}</td>
-                    <td className="px-5 py-3 text-gray-500">
+                    <td className="px-4 py-3">
+                      <MetricBar value={d.memory_percent} label="RAM" />
+                      {d.memory_total_mb && (
+                        <div className="text-[10px] text-gray-400 mt-1 font-mono">
+                          {d.memory_used_mb ?? 0}/{d.memory_total_mb} MB
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <MetricBar value={d.disk_percent} label="Disco" />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className={`text-lg font-black ${tempColor(d.temperature_c)}`}>
+                        {d.temperature_c != null ? `${d.temperature_c}°C` : "—"}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-[11px] font-mono text-gray-700">
+                        <span className="text-emerald-600">↓ {formatBps(d.net_rx_bps)}</span>
+                      </div>
+                      <div className="text-[11px] font-mono text-gray-700">
+                        <span className="text-blue-600">↑ {formatBps(d.net_tx_bps)}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600 text-xs">{formatUptime(d.uptime_seconds)}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">
                       {d.last_seen
                         ? formatDistanceToNow(new Date(d.last_seen), {
                             addSuffix: true,
@@ -282,6 +313,7 @@ function MonitoringPage() {
                 );
               })}
             </tbody>
+
           </table>
         </div>
       </section>
