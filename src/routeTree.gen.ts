@@ -20,6 +20,7 @@ import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-board
 import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-devices'
 import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
 import { Route as AdminArenasRouteImport } from './routes/admin/arenas'
+import { Route as ApiPublicInstallRouteImport } from './routes/api/public/install'
 import { Route as ApiPublicEdgeReplayRouteImport } from './routes/api/public/edge/replay'
 import { Route as ApiPublicEdgeHeartbeatRouteImport } from './routes/api/public/edge/heartbeat'
 import { Route as ApiPublicEdgeConfigRouteImport } from './routes/api/public/edge/config'
@@ -82,6 +83,11 @@ const AdminArenasRoute = AdminArenasRouteImport.update({
   path: '/arenas',
   getParentRoute: () => AdminRoute,
 } as any)
+const ApiPublicInstallRoute = ApiPublicInstallRouteImport.update({
+  id: '/api/public/install',
+  path: '/api/public/install',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicEdgeReplayRoute = ApiPublicEdgeReplayRouteImport.update({
   id: '/api/public/edge/replay',
   path: '/api/public/edge/replay',
@@ -127,6 +133,7 @@ export interface FileRoutesByFullPath {
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/install': typeof ApiPublicInstallRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
@@ -145,6 +152,7 @@ export interface FileRoutesByTo {
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin': typeof AdminIndexRoute
+  '/api/public/install': typeof ApiPublicInstallRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
@@ -165,6 +173,7 @@ export interface FileRoutesById {
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/users': typeof AdminUsersRoute
   '/admin/': typeof AdminIndexRoute
+  '/api/public/install': typeof ApiPublicInstallRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
@@ -186,6 +195,7 @@ export interface FileRouteTypes {
     | '/admin/quadras'
     | '/admin/users'
     | '/admin/'
+    | '/api/public/install'
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-setup/$id'
     | '/api/public/edge/camera-status'
@@ -204,6 +214,7 @@ export interface FileRouteTypes {
     | '/admin/quadras'
     | '/admin/users'
     | '/admin'
+    | '/api/public/install'
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-setup/$id'
     | '/api/public/edge/camera-status'
@@ -223,6 +234,7 @@ export interface FileRouteTypes {
     | '/admin/quadras'
     | '/admin/users'
     | '/admin/'
+    | '/api/public/install'
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-setup/$id'
     | '/api/public/edge/camera-status'
@@ -235,6 +247,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
+  ApiPublicInstallRoute: typeof ApiPublicInstallRoute
   ApiPublicCronCleanupReplaysRoute: typeof ApiPublicCronCleanupReplaysRoute
   ApiPublicEdgeSetupIdRoute: typeof ApiPublicEdgeSetupIdRoute
   ApiPublicEdgeCameraStatusRoute: typeof ApiPublicEdgeCameraStatusRoute
@@ -322,6 +335,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminArenasRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/api/public/install': {
+      id: '/api/public/install'
+      path: '/api/public/install'
+      fullPath: '/api/public/install'
+      preLoaderRoute: typeof ApiPublicInstallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/edge/replay': {
       id: '/api/public/edge/replay'
       path: '/api/public/edge/replay'
@@ -395,6 +415,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
+  ApiPublicInstallRoute: ApiPublicInstallRoute,
   ApiPublicCronCleanupReplaysRoute: ApiPublicCronCleanupReplaysRoute,
   ApiPublicEdgeSetupIdRoute: ApiPublicEdgeSetupIdRoute,
   ApiPublicEdgeCameraStatusRoute: ApiPublicEdgeCameraStatusRoute,
