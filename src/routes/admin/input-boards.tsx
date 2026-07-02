@@ -5,7 +5,17 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, RefreshCw, Usb, Edit2, Trash2, HardDrive } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -36,7 +46,9 @@ function InputBoards() {
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  
+  const [editing, setEditing] = useState<InputBoard | null>(null);
+  const [deleting, setDeleting] = useState<InputBoard | null>(null);
+
   // Form state
   const [name, setName] = useState("");
   const [edgeDeviceId, setEdgeDeviceId] = useState("");
@@ -64,26 +76,28 @@ function InputBoards() {
     fetchData();
   }, []);
 
-  const handleCreate = async () => {
+  const handleSubmit = async () => {
     if (!name || !edgeDeviceId) {
       toast.error("Nome e Edge Device são obrigatórios");
       return;
     }
 
-    const { error } = await supabase
-      .from("input_boards")
-      .insert([{ 
-        name, 
-        edge_device_id: edgeDeviceId, 
-        vendor_id: vendorId, 
-        product_id: productId, 
-        device_name: deviceName 
-      }]);
+    const payload = {
+      name,
+      edge_device_id: edgeDeviceId,
+      vendor_id: vendorId,
+      product_id: productId,
+      device_name: deviceName,
+    };
+
+    const { error } = editing
+      ? await supabase.from("input_boards").update(payload).eq("id", editing.id)
+      : await supabase.from("input_boards").insert([payload]);
 
     if (error) {
-      toast.error("Erro ao criar placa");
+      toast.error(editing ? "Erro ao atualizar placa" : "Erro ao criar placa");
     } else {
-      toast.success("Placa criada com sucesso");
+      toast.success(editing ? "Placa atualizada" : "Placa criada com sucesso");
       setIsDialogOpen(false);
       resetForm();
       fetchData();
@@ -96,6 +110,33 @@ function InputBoards() {
     setVendorId("");
     setProductId("");
     setDeviceName("");
+    setEditing(null);
+  };
+
+  const openCreate = () => {
+    resetForm();
+    setIsDialogOpen(true);
+  };
+
+  const openEdit = (b: InputBoard) => {
+    setEditing(b);
+    setName(b.name);
+    setEdgeDeviceId(b.edge_device_id ?? "");
+    setVendorId(b.vendor_id ?? "");
+    setProductId(b.product_id ?? "");
+    setDeviceName(b.device_name ?? "");
+    setIsDialogOpen(true);
+  };
+
+  const handleDelete = async () => {
+    if (!deleting) return;
+    const { error } = await supabase.from("input_boards").delete().eq("id", deleting.id);
+    if (error) toast.error("Erro ao excluir placa");
+    else {
+      toast.success("Placa excluída");
+      fetchData();
+    }
+    setDeleting(null);
   };
 
   return (
