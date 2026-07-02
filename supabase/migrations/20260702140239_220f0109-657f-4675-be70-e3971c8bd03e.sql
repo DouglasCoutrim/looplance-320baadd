@@ -1,0 +1,2 @@
+ALTER TABLE public.arenas ADD COLUMN IF NOT EXISTS edge_device_id uuid REFERENCES public.edge_devices(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_arenas_edge_device_id ON public.arenas(edge_device_id);
