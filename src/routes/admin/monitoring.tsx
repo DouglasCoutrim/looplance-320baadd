@@ -67,6 +67,48 @@ function formatUptime(seconds: number | null) {
   return `${m}m`;
 }
 
+function formatBps(bps: number | null) {
+  if (bps == null) return "—";
+  if (bps < 1024) return `${bps} B/s`;
+  if (bps < 1024 * 1024) return `${(bps / 1024).toFixed(1)} KB/s`;
+  if (bps < 1024 * 1024 * 1024) return `${(bps / (1024 * 1024)).toFixed(1)} MB/s`;
+  return `${(bps / (1024 * 1024 * 1024)).toFixed(2)} GB/s`;
+}
+
+function pctColor(v: number | null | undefined) {
+  if (v == null) return "bg-gray-200";
+  if (v >= 90) return "bg-red-500";
+  if (v >= 75) return "bg-amber-500";
+  if (v >= 50) return "bg-yellow-400";
+  return "bg-emerald-500";
+}
+
+function tempColor(v: number | null | undefined) {
+  if (v == null) return "text-gray-400";
+  if (v >= 80) return "text-red-600";
+  if (v >= 65) return "text-amber-600";
+  return "text-emerald-600";
+}
+
+function MetricBar({ value, label }: { value: number | null; label: string }) {
+  const v = value ?? 0;
+  return (
+    <div className="min-w-[110px]">
+      <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">
+        <span>{label}</span>
+        <span className="text-gray-900">{value == null ? "—" : `${v.toFixed(0)}%`}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+        <div
+          className={`h-full ${pctColor(value)} transition-all`}
+          style={{ width: `${Math.min(100, Math.max(0, v))}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
+
 function MonitoringPage() {
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
   const [replays, setReplays] = useState<Replay[]>([]);
