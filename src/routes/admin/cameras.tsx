@@ -354,7 +354,7 @@ function Cameras() {
               </div>
               <DialogFooter className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="font-bold rounded-xl">Cancelar</Button>
-                <Button onClick={handleCreate} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">Salvar Configuração</Button>
+                <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">{editing ? "Salvar Alterações" : "Salvar Configuração"}</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -416,10 +416,10 @@ function Cameras() {
                   </TableCell>
                   <TableCell className="text-right py-5 px-6">
                     <div className="flex justify-end gap-2">
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(camera)} className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
                         <Edit2 className="h-4 w-4" />
                       </Button>
-                      <Button variant="ghost" size="icon" className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50">
+                      <Button variant="ghost" size="icon" onClick={() => setDeleting(camera)} className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
@@ -430,6 +430,21 @@ function Cameras() {
           </TableBody>
         </Table>
       </div>
+
+      <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
+        <AlertDialogContent className="rounded-2xl">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir câmera?</AlertDialogTitle>
+            <AlertDialogDescription>
+              A câmera "{deleting?.name}" será removida permanentemente.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel className="rounded-xl">Cancelar</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete} className="rounded-xl bg-red-500 hover:bg-red-600 font-black uppercase tracking-widest">Excluir</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
