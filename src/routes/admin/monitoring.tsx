@@ -20,7 +20,17 @@ type EdgeDevice = {
   last_seen: string | null;
   uptime_seconds: number | null;
   arena_id: string | null;
+  cpu_percent: number | null;
+  memory_percent: number | null;
+  memory_total_mb: number | null;
+  memory_used_mb: number | null;
+  disk_percent: number | null;
+  temperature_c: number | null;
+  net_rx_bps: number | null;
+  net_tx_bps: number | null;
+  load_avg_1m: number | null;
 };
+
 
 type Replay = {
   id: string;
