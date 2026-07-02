@@ -34,11 +34,15 @@ interface EdgeDevice {
   last_seen: string | null;
   edge_token: string | null;
   install_passphrase: string | null;
+  client_id: string | null;
   created_at: string | null;
 }
 
+interface ClientLite { id: string; nome: string; is_frozen: boolean }
+
 function EdgeDevices() {
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
+  const [clients, setClients] = useState<ClientLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<EdgeDevice | null>(null);
@@ -46,8 +50,10 @@ function EdgeDevices() {
   const [scriptDevice, setScriptDevice] = useState<EdgeDevice | null>(null);
   const [newName, setNewName] = useState("");
   const [newHostname, setNewHostname] = useState("");
+  const [newClientId, setNewClientId] = useState<string>("");
 
   const installCommand = () => `curl -fsSL ${window.location.origin}/install | sudo bash`;
+  const clientNameOf = (id: string | null) => id ? (clients.find((c) => c.id === id)?.nome ?? "—") : "—";
 
   const fetchDevices = async () => {
     setLoading(true);
