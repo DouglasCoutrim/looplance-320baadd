@@ -109,9 +109,10 @@ function AuthPage() {
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-10">
       <Toaster theme="light" position="top-center" />
-      <div className="bg-black rounded-3xl w-full max-w-sm py-4 flex justify-center shadow-xl">
-        <img src={logoUrl} alt="Looplance" className="h-24 w-auto" />
+      <div className="w-full max-w-sm flex justify-center">
+        <img src={logoUrl} alt="Looplance" className="w-full h-auto" />
       </div>
+
 
       <div className="mt-8 w-full max-w-sm rounded-3xl bg-white shadow-lg border border-gray-200 p-6">
         <div className="grid grid-cols-2 rounded-full bg-gray-100 p-1 text-sm font-bold mb-6">
