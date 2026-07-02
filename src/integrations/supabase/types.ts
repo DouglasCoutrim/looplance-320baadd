@@ -319,46 +319,73 @@ export type Database = {
         Row: {
           arena_id: string | null
           client_id: string | null
+          cpu_percent: number | null
           created_at: string | null
+          disk_percent: number | null
           edge_token: string | null
           edge_version: string | null
           hostname: string | null
           id: string
           install_passphrase: string
           last_seen: string | null
+          load_avg_1m: number | null
           local_ip: string | null
+          memory_percent: number | null
+          memory_total_mb: number | null
+          memory_used_mb: number | null
           name: string
+          net_rx_bps: number | null
+          net_tx_bps: number | null
           status: string | null
+          temperature_c: number | null
           uptime_seconds: number | null
         }
         Insert: {
           arena_id?: string | null
           client_id?: string | null
+          cpu_percent?: number | null
           created_at?: string | null
+          disk_percent?: number | null
           edge_token?: string | null
           edge_version?: string | null
           hostname?: string | null
           id?: string
           install_passphrase?: string
           last_seen?: string | null
+          load_avg_1m?: number | null
           local_ip?: string | null
+          memory_percent?: number | null
+          memory_total_mb?: number | null
+          memory_used_mb?: number | null
           name: string
+          net_rx_bps?: number | null
+          net_tx_bps?: number | null
           status?: string | null
+          temperature_c?: number | null
           uptime_seconds?: number | null
         }
         Update: {
           arena_id?: string | null
           client_id?: string | null
+          cpu_percent?: number | null
           created_at?: string | null
+          disk_percent?: number | null
           edge_token?: string | null
           edge_version?: string | null
           hostname?: string | null
           id?: string
           install_passphrase?: string
           last_seen?: string | null
+          load_avg_1m?: number | null
           local_ip?: string | null
+          memory_percent?: number | null
+          memory_total_mb?: number | null
+          memory_used_mb?: number | null
           name?: string
+          net_rx_bps?: number | null
+          net_tx_bps?: number | null
           status?: string | null
+          temperature_c?: number | null
           uptime_seconds?: number | null
         }
         Relationships: [

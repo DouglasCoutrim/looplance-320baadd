@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, HardDrive, Play, Wifi, WifiOff, Clock } from "lucide-react";
+import { Activity, HardDrive, Play, Wifi, WifiOff, Clock, Cpu, MemoryStick, Thermometer, ArrowDownUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
 
 export const Route = createFileRoute("/admin/monitoring")({
   component: MonitoringPage,
@@ -19,7 +20,17 @@ type EdgeDevice = {
   last_seen: string | null;
   uptime_seconds: number | null;
   arena_id: string | null;
+  cpu_percent: number | null;
+  memory_percent: number | null;
+  memory_total_mb: number | null;
+  memory_used_mb: number | null;
+  disk_percent: number | null;
+  temperature_c: number | null;
+  net_rx_bps: number | null;
+  net_tx_bps: number | null;
+  load_avg_1m: number | null;
 };
+
 
 type Replay = {
   id: string;
@@ -55,6 +66,48 @@ function formatUptime(seconds: number | null) {
   if (h > 0) return `${h}h ${m}m`;
   return `${m}m`;
 }
+
+function formatBps(bps: number | null) {
+  if (bps == null) return "—";
+  if (bps < 1024) return `${bps} B/s`;
+  if (bps < 1024 * 1024) return `${(bps / 1024).toFixed(1)} KB/s`;
+  if (bps < 1024 * 1024 * 1024) return `${(bps / (1024 * 1024)).toFixed(1)} MB/s`;
+  return `${(bps / (1024 * 1024 * 1024)).toFixed(2)} GB/s`;
+}
+
+function pctColor(v: number | null | undefined) {
+  if (v == null) return "bg-gray-200";
+  if (v >= 90) return "bg-red-500";
+  if (v >= 75) return "bg-amber-500";
+  if (v >= 50) return "bg-yellow-400";
+  return "bg-emerald-500";
+}
+
+function tempColor(v: number | null | undefined) {
+  if (v == null) return "text-gray-400";
+  if (v >= 80) return "text-red-600";
+  if (v >= 65) return "text-amber-600";
+  return "text-emerald-600";
+}
+
+function MetricBar({ value, label }: { value: number | null; label: string }) {
+  const v = value ?? 0;
+  return (
+    <div className="min-w-[110px]">
+      <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">
+        <span>{label}</span>
+        <span className="text-gray-900">{value == null ? "—" : `${v.toFixed(0)}%`}</span>
+      </div>
+      <div className="h-1.5 rounded-full bg-gray-100 overflow-hidden">
+        <div
+          className={`h-full ${pctColor(value)} transition-all`}
+          style={{ width: `${Math.min(100, Math.max(0, v))}%` }}
+        />
+      </div>
+    </div>
+  );
+}
+
 
 function MonitoringPage() {
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
@@ -176,18 +229,21 @@ function MonitoringPage() {
           <table className="w-full text-sm">
             <thead className="bg-gray-50 text-[10px] font-black uppercase tracking-widest text-gray-500">
               <tr>
-                <th className="px-5 py-3 text-left">Status</th>
-                <th className="px-5 py-3 text-left">Nome</th>
-                <th className="px-5 py-3 text-left">Hostname / IP</th>
-                <th className="px-5 py-3 text-left">Versão</th>
-                <th className="px-5 py-3 text-left">Uptime</th>
-                <th className="px-5 py-3 text-left">Último heartbeat</th>
+                <th className="px-4 py-3 text-left">Status</th>
+                <th className="px-4 py-3 text-left">Nome / IP</th>
+                <th className="px-4 py-3 text-left"><Cpu className="inline h-3 w-3 mr-1" />CPU</th>
+                <th className="px-4 py-3 text-left"><MemoryStick className="inline h-3 w-3 mr-1" />Memória</th>
+                <th className="px-4 py-3 text-left"><HardDrive className="inline h-3 w-3 mr-1" />Disco</th>
+                <th className="px-4 py-3 text-left"><Thermometer className="inline h-3 w-3 mr-1" />Temp.</th>
+                <th className="px-4 py-3 text-left"><ArrowDownUp className="inline h-3 w-3 mr-1" />Rede</th>
+                <th className="px-4 py-3 text-left">Uptime</th>
+                <th className="px-4 py-3 text-left">Heartbeat</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {devices.length === 0 && !loading && (
                 <tr>
-                  <td colSpan={6} className="px-5 py-8 text-center text-gray-400">
+                  <td colSpan={9} className="px-5 py-8 text-center text-gray-400">
                     Nenhum Edge Device cadastrado ainda.
                   </td>
                 </tr>
@@ -195,8 +251,8 @@ function MonitoringPage() {
               {devices.map((d) => {
                 const online = isOnline(d.last_seen);
                 return (
-                  <tr key={d.id} className="hover:bg-gray-50/50 transition-colors">
-                    <td className="px-5 py-3">
+                  <tr key={d.id} className="hover:bg-gray-50/50 transition-colors align-top">
+                    <td className="px-4 py-3">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
                           online
@@ -208,16 +264,44 @@ function MonitoringPage() {
                         {online ? "Online" : "Offline"}
                       </span>
                     </td>
-                    <td className="px-5 py-3 font-bold text-gray-900">{d.name}</td>
-                    <td className="px-5 py-3 text-gray-600">
-                      <div className="font-mono text-xs">{d.hostname || "—"}</div>
+                    <td className="px-4 py-3">
+                      <div className="font-bold text-gray-900 text-sm">{d.name}</div>
+                      <div className="font-mono text-[11px] text-gray-500">{d.hostname || "—"}</div>
                       <div className="font-mono text-[11px] text-gray-400">{d.local_ip || "—"}</div>
+                      <div className="font-mono text-[10px] text-gray-400 mt-0.5">v{d.edge_version || "?"}</div>
                     </td>
-                    <td className="px-5 py-3 font-mono text-xs text-gray-600">
-                      {d.edge_version || "—"}
+                    <td className="px-4 py-3">
+                      <MetricBar value={d.cpu_percent} label="CPU" />
+                      {d.load_avg_1m != null && (
+                        <div className="text-[10px] text-gray-400 mt-1 font-mono">load {d.load_avg_1m}</div>
+                      )}
                     </td>
-                    <td className="px-5 py-3 text-gray-600">{formatUptime(d.uptime_seconds)}</td>
-                    <td className="px-5 py-3 text-gray-500">
+                    <td className="px-4 py-3">
+                      <MetricBar value={d.memory_percent} label="RAM" />
+                      {d.memory_total_mb && (
+                        <div className="text-[10px] text-gray-400 mt-1 font-mono">
+                          {d.memory_used_mb ?? 0}/{d.memory_total_mb} MB
+                        </div>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <MetricBar value={d.disk_percent} label="Disco" />
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className={`text-lg font-black ${tempColor(d.temperature_c)}`}>
+                        {d.temperature_c != null ? `${d.temperature_c}°C` : "—"}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="text-[11px] font-mono text-gray-700">
+                        <span className="text-emerald-600">↓ {formatBps(d.net_rx_bps)}</span>
+                      </div>
+                      <div className="text-[11px] font-mono text-gray-700">
+                        <span className="text-blue-600">↑ {formatBps(d.net_tx_bps)}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600 text-xs">{formatUptime(d.uptime_seconds)}</td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">
                       {d.last_seen
                         ? formatDistanceToNow(new Date(d.last_seen), {
                             addSuffix: true,
@@ -229,6 +313,7 @@ function MonitoringPage() {
                 );
               })}
             </tbody>
+
           </table>
         </div>
       </section>
