@@ -53,6 +53,7 @@ export type Database = {
         Row: {
           cidade: string | null
           created_at: string
+          edge_device_id: string | null
           endereco: string | null
           final_overlay_url: string | null
           foto_url: string | null
@@ -66,6 +67,7 @@ export type Database = {
         Insert: {
           cidade?: string | null
           created_at?: string
+          edge_device_id?: string | null
           endereco?: string | null
           final_overlay_url?: string | null
           foto_url?: string | null
@@ -79,6 +81,7 @@ export type Database = {
         Update: {
           cidade?: string | null
           created_at?: string
+          edge_device_id?: string | null
           endereco?: string | null
           final_overlay_url?: string | null
           foto_url?: string | null
@@ -89,7 +92,22 @@ export type Database = {
           sponsor_logo_right?: string | null
           telefone?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "arenas_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "arenas_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices_public"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       botoeiras: {
         Row: {
