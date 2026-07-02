@@ -187,8 +187,19 @@ function AuthPage() {
                 type="checkbox" checked={sConsent} onChange={(e) => setSConsent(e.target.checked)}
                 className="mt-0.5"
               />
-              <span>Aceito os termos de uso e a política de privacidade da Looplance.</span>
+              <span>
+                Li e aceito os{" "}
+                <button
+                  type="button"
+                  onClick={() => setShowTerms(true)}
+                  className="font-bold text-orange-600 underline underline-offset-2 hover:text-orange-700"
+                >
+                  Termos de Uso e Política de Privacidade
+                </button>{" "}
+                da Looplance, e me responsabilizo integralmente pelos meus atos na plataforma.
+              </span>
             </label>
+
             <button type="submit" disabled={loading} className="btn-primary">
               {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><UserPlus className="h-5 w-5" /> Criar conta</>}
             </button>
