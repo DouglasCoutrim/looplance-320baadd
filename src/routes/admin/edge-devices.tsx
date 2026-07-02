@@ -33,6 +33,7 @@ interface EdgeDevice {
   status: string | null;
   last_seen: string | null;
   edge_token: string | null;
+  install_passphrase: string | null;
   created_at: string | null;
 }
 
@@ -46,8 +47,7 @@ function EdgeDevices() {
   const [newName, setNewName] = useState("");
   const [newHostname, setNewHostname] = useState("");
 
-  const setupUrl = (id: string) => `${window.location.origin}/api/public/edge-setup/${id}`;
-  const setupCommand = (id: string) => `curl -fsSL ${setupUrl(id)} | sudo bash`;
+  const installCommand = () => `curl -fsSL ${window.location.origin}/install | sudo bash`;
 
   const fetchDevices = async () => {
     setLoading(true);
