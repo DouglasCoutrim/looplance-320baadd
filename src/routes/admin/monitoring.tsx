@@ -1,9 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, HardDrive, Play, Wifi, WifiOff, Clock } from "lucide-react";
+import { Activity, HardDrive, Play, Wifi, WifiOff, Clock, Cpu, MemoryStick, Thermometer, ArrowDownUp } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+
 
 export const Route = createFileRoute("/admin/monitoring")({
   component: MonitoringPage,
