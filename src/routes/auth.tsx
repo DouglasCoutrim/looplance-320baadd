@@ -207,6 +207,83 @@ function AuthPage() {
         )}
       </div>
 
+      {showTerms && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
+          onClick={() => setShowTerms(false)}
+        >
+          <div
+            className="relative bg-white rounded-3xl w-full max-w-lg max-h-[85vh] flex flex-col shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between p-5 border-b border-gray-200">
+              <h2 className="text-lg font-black text-gray-900">Termos de Uso e Privacidade</h2>
+              <button
+                onClick={() => setShowTerms(false)}
+                className="rounded-full p-1.5 hover:bg-gray-100 text-gray-500"
+                aria-label="Fechar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto text-sm text-gray-700 space-y-4 leading-relaxed">
+              <section>
+                <h3 className="font-bold text-gray-900 mb-1">1. Aceitação dos Termos</h3>
+                <p>Ao criar uma conta na Looplance, você declara ter lido, compreendido e concordado integralmente com estes Termos de Uso e com a Política de Privacidade. Caso não concorde, não conclua o cadastro.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-gray-900 mb-1">2. Cadastro e Veracidade das Informações</h3>
+                <p>Você se compromete a fornecer dados verdadeiros, completos e atualizados (nome completo, CPF, e-mail). O uso de dados falsos, de terceiros ou fraudulentos poderá resultar no bloqueio imediato da conta e nas medidas legais cabíveis.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-gray-900 mb-1">3. Responsabilidade do Usuário</h3>
+                <p>Você é o único e integral responsável por todos os atos praticados a partir da sua conta, incluindo acessos, downloads, compartilhamentos e qualquer uso dos vídeos disponibilizados na plataforma. Isso abrange responsabilidade civil e criminal pelo uso indevido, redistribuição não autorizada, edição, exposição de terceiros sem consentimento ou qualquer conduta que viole a legislação vigente.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-gray-900 mb-1">4. Uso dos Vídeos e Direitos Autorais</h3>
+                <p>Os replays disponibilizados destinam-se ao uso pessoal e recreativo. É vedada a comercialização, veiculação em mídia paga, uso publicitário ou qualquer exploração comercial sem autorização expressa da Looplance e da arena responsável.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-gray-900 mb-1">5. Segurança da Conta</h3>
+                <p>Mantenha sua senha em sigilo. Toda atividade realizada com suas credenciais será presumida como sua. Comunique imediatamente qualquer suspeita de uso indevido.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-gray-900 mb-1">6. Registro de Ações (Logs)</h3>
+                <p>Para fins de segurança, auditoria e cumprimento legal, a Looplance registra ações realizadas na plataforma — como logins, downloads e compartilhamentos — vinculadas ao seu cadastro (nome, CPF e e-mail). Esses registros podem ser fornecidos às autoridades competentes mediante requisição legal.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-gray-900 mb-1">7. Política de Privacidade (LGPD)</h3>
+                <p>Seus dados pessoais são tratados conforme a Lei nº 13.709/2018 (LGPD), utilizados exclusivamente para autenticação, controle de acesso, prevenção a fraudes e melhoria da experiência. Não vendemos seus dados a terceiros. Você pode solicitar acesso, correção ou exclusão dos seus dados através dos canais oficiais.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-gray-900 mb-1">8. Condutas Proibidas</h3>
+                <p>É proibido: (i) tentar burlar mecanismos de segurança; (ii) compartilhar sua conta; (iii) baixar vídeos em massa por meios automatizados; (iv) utilizar a plataforma para constranger, difamar ou expor terceiros; (v) qualquer conduta ilegal.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-gray-900 mb-1">9. Sanções</h3>
+                <p>O descumprimento destes termos pode resultar em advertência, suspensão ou exclusão definitiva da conta, sem prejuízo das medidas judiciais aplicáveis.</p>
+              </section>
+              <section>
+                <h3 className="font-bold text-gray-900 mb-1">10. Alterações</h3>
+                <p>A Looplance pode atualizar estes termos periodicamente. O uso continuado da plataforma após alterações significa concordância com a nova versão.</p>
+              </section>
+              <p className="text-xs text-gray-500 pt-2 border-t border-gray-100">
+                Ao marcar a caixa de aceite, você reconhece ter lido este documento e assume total responsabilidade pelos seus atos na plataforma Looplance.
+              </p>
+            </div>
+            <div className="p-4 border-t border-gray-200">
+              <button
+                onClick={() => setShowTerms(false)}
+                className="btn-primary"
+              >
+                Entendi
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
       <style>{`
         .input {
           width: 100%;
