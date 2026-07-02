@@ -454,6 +454,7 @@ export type Database = {
         Row: {
           arena_id: string | null
           birth_date: string | null
+          client_id: string | null
           consent_accepted: boolean | null
           consent_timestamp: string | null
           cpf: string | null
@@ -469,6 +470,7 @@ export type Database = {
         Insert: {
           arena_id?: string | null
           birth_date?: string | null
+          client_id?: string | null
           consent_accepted?: boolean | null
           consent_timestamp?: string | null
           cpf?: string | null
@@ -484,6 +486,7 @@ export type Database = {
         Update: {
           arena_id?: string | null
           birth_date?: string | null
+          client_id?: string | null
           consent_accepted?: boolean | null
           consent_timestamp?: string | null
           cpf?: string | null
@@ -502,6 +505,13 @@ export type Database = {
             columns: ["arena_id"]
             isOneToOne: false
             referencedRelation: "arenas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
@@ -667,6 +677,51 @@ export type Database = {
           },
         ]
       }
+      user_roles: {
+        Row: {
+          arena_id: string | null
+          client_id: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          arena_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          arena_id?: string | null
+          client_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_arena_id_fkey"
+            columns: ["arena_id"]
+            isOneToOne: false
+            referencedRelation: "arenas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_roles_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       edge_devices_public: {
@@ -718,12 +773,23 @@ export type Database = {
       }
     }
     Functions: {
+      admin_assign_role: {
+        Args: {
+          p_arena_id?: string
+          p_client_id?: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
+      }
       admin_delete_user: { Args: { p_user_id: string }; Returns: undefined }
       admin_list_users: {
         Args: never
         Returns: {
           arena_id: string
           arena_nome: string
+          client_id: string
+          client_nome: string
           cpf: string
           created_at: string
           email: string
@@ -731,8 +797,17 @@ export type Database = {
           id: string
           is_arena_owner: boolean
           is_super_admin: boolean
-          role: string
+          roles: Json
         }[]
+      }
+      admin_revoke_role: {
+        Args: {
+          p_arena_id?: string
+          p_client_id?: string
+          p_role: Database["public"]["Enums"]["app_role"]
+          p_user_id: string
+        }
+        Returns: undefined
       }
       admin_update_user_profile:
         | {
@@ -804,6 +879,13 @@ export type Database = {
         }
         Returns: undefined
       }
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
       is_admin: { Args: { _uid: string }; Returns: boolean }
       is_arena_manager: { Args: { _uid: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
@@ -819,7 +901,7 @@ export type Database = {
       }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin" | "client_owner" | "arena_owner" | "arena_user"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -946,6 +1028,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin", "client_owner", "arena_owner", "arena_user"],
+    },
   },
 } as const
