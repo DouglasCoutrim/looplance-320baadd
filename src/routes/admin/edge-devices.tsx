@@ -34,11 +34,15 @@ interface EdgeDevice {
   last_seen: string | null;
   edge_token: string | null;
   install_passphrase: string | null;
+  client_id: string | null;
   created_at: string | null;
 }
 
+interface ClientLite { id: string; nome: string; is_frozen: boolean }
+
 function EdgeDevices() {
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
+  const [clients, setClients] = useState<ClientLite[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingDevice, setEditingDevice] = useState<EdgeDevice | null>(null);
@@ -46,8 +50,10 @@ function EdgeDevices() {
   const [scriptDevice, setScriptDevice] = useState<EdgeDevice | null>(null);
   const [newName, setNewName] = useState("");
   const [newHostname, setNewHostname] = useState("");
+  const [newClientId, setNewClientId] = useState<string>("");
 
   const installCommand = () => `curl -fsSL ${window.location.origin}/install | sudo bash`;
+  const clientNameOf = (id: string | null) => id ? (clients.find((c) => c.id === id)?.nome ?? "—") : "—";
 
   const fetchDevices = async () => {
     setLoading(true);
@@ -68,9 +74,17 @@ function EdgeDevices() {
     fetchDevices();
   }, []);
 
+  const fetchClients = async () => {
+    const { data } = await supabase.from("clients").select("id, nome, is_frozen").order("nome");
+    setClients((data ?? []) as ClientLite[]);
+  };
+
+  useEffect(() => { fetchClients(); }, []);
+
   const resetForm = () => {
     setNewName("");
     setNewHostname("");
+    setNewClientId("");
     setEditingDevice(null);
   };
 
@@ -83,6 +97,7 @@ function EdgeDevices() {
     setEditingDevice(device);
     setNewName(device.name);
     setNewHostname(device.hostname || "");
+    setNewClientId(device.client_id || "");
     setIsDialogOpen(true);
   };
 
@@ -91,29 +106,30 @@ function EdgeDevices() {
       toast.error("Nome é obrigatório");
       return;
     }
+    if (!newClientId) {
+      toast.error("Selecione o cliente responsável por este edge");
+      return;
+    }
+
+    const payload: any = {
+      name: newName,
+      hostname: newHostname || null,
+      client_id: newClientId,
+    };
 
     if (editingDevice) {
-      const { error } = await supabase
-        .from("edge_devices")
-        .update({ name: newName, hostname: newHostname })
-        .eq("id", editingDevice.id);
-
-      if (error) {
-        toast.error("Erro ao atualizar dispositivo");
-      } else {
+      const { error } = await supabase.from("edge_devices").update(payload).eq("id", editingDevice.id);
+      if (error) toast.error("Erro ao atualizar dispositivo");
+      else {
         toast.success("Dispositivo atualizado com sucesso");
         setIsDialogOpen(false);
         resetForm();
         fetchDevices();
       }
     } else {
-      const { error } = await supabase
-        .from("edge_devices")
-        .insert([{ name: newName, hostname: newHostname, status: "offline" }]);
-
-      if (error) {
-        toast.error("Erro ao criar dispositivo");
-      } else {
+      const { error } = await supabase.from("edge_devices").insert([{ ...payload, status: "offline" }]);
+      if (error) toast.error("Erro ao criar dispositivo");
+      else {
         toast.success("Dispositivo criado com sucesso");
         setIsDialogOpen(false);
         resetForm();
@@ -189,6 +205,27 @@ function EdgeDevices() {
             </DialogTitle>
           </DialogHeader>
           <div className="grid gap-6 py-6">
+            <div className="grid gap-2">
+              <Label htmlFor="client" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cliente Responsável *</Label>
+              <select
+                id="client"
+                value={newClientId}
+                onChange={(e) => setNewClientId(e.target.value)}
+                className="rounded-xl border border-gray-100 bg-gray-50 h-12 px-3 text-sm font-medium focus:border-brand-orange focus:ring-brand-orange"
+              >
+                <option value="">Selecione um cliente</option>
+                {clients.map((c) => (
+                  <option key={c.id} value={c.id}>
+                    {c.nome}{c.is_frozen ? " (congelado)" : ""}
+                  </option>
+                ))}
+              </select>
+              {clients.length === 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Nenhum cliente cadastrado. <a href="/admin/clients" className="text-brand-orange font-bold underline">Cadastre um cliente primeiro</a>.
+                </p>
+              )}
+            </div>
             <div className="grid gap-2">
               <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome do Dispositivo</Label>
               <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex: Edge Server Arena 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
@@ -308,6 +345,7 @@ function EdgeDevices() {
           <TableHeader className="bg-gray-50/50 border-b border-gray-100">
             <TableRow className="hover:bg-transparent">
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Dispositivo</TableHead>
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Cliente</TableHead>
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Endereço (Hostname)</TableHead>
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Status</TableHead>
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-right">Ações</TableHead>
@@ -316,12 +354,14 @@ function EdgeDevices() {
           <TableBody>
             {devices.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={4} className="h-40 text-center text-muted-foreground font-medium italic">
+                <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium italic">
                   Nenhum dispositivo provisionado. Use o botão acima para começar.
                 </TableCell>
               </TableRow>
             ) : (
-              devices.map((device) => (
+              devices.map((device) => {
+                const client = clients.find((c) => c.id === device.client_id);
+                return (
                 <TableRow key={device.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-4">
@@ -333,6 +373,18 @@ function EdgeDevices() {
                         <p className="text-xs font-medium text-muted-foreground">Token: {device.edge_token?.slice(0, 8)}...</p>
                       </div>
                     </div>
+                  </TableCell>
+                  <TableCell className="py-5 px-6">
+                    {client ? (
+                      <div>
+                        <div className="font-bold text-sm text-gray-900">{client.nome}</div>
+                        {client.is_frozen && (
+                          <Badge className="mt-1 bg-blue-100 text-blue-800 border-blue-200 text-[9px]">Congelado</Badge>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-xs text-muted-foreground italic">sem cliente</span>
+                    )}
                   </TableCell>
                   <TableCell className="py-5 px-6 font-mono text-xs font-bold text-gray-500">
                     {device.hostname || "não configurado"}
@@ -372,7 +424,8 @@ function EdgeDevices() {
                     </div>
                   </TableCell>
                 </TableRow>
-              ))
+                );
+              })
             )}
           </TableBody>
         </Table>

@@ -228,6 +228,57 @@ export type Database = {
           },
         ]
       }
+      clients: {
+        Row: {
+          cidade: string | null
+          created_at: string
+          documento: string | null
+          documento_tipo: string | null
+          email: string | null
+          endereco: string | null
+          estado: string | null
+          frozen_at: string | null
+          frozen_reason: string | null
+          id: string
+          is_frozen: boolean
+          nome: string
+          telefone: string | null
+          updated_at: string
+        }
+        Insert: {
+          cidade?: string | null
+          created_at?: string
+          documento?: string | null
+          documento_tipo?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          frozen_at?: string | null
+          frozen_reason?: string | null
+          id?: string
+          is_frozen?: boolean
+          nome: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          cidade?: string | null
+          created_at?: string
+          documento?: string | null
+          documento_tipo?: string | null
+          email?: string | null
+          endereco?: string | null
+          estado?: string | null
+          frozen_at?: string | null
+          frozen_reason?: string | null
+          id?: string
+          is_frozen?: boolean
+          nome?: string
+          telefone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       debug_logs: {
         Row: {
           created_at: string | null
@@ -249,6 +300,7 @@ export type Database = {
       edge_devices: {
         Row: {
           arena_id: string | null
+          client_id: string | null
           created_at: string | null
           edge_token: string | null
           edge_version: string | null
@@ -263,6 +315,7 @@ export type Database = {
         }
         Insert: {
           arena_id?: string | null
+          client_id?: string | null
           created_at?: string | null
           edge_token?: string | null
           edge_version?: string | null
@@ -277,6 +330,7 @@ export type Database = {
         }
         Update: {
           arena_id?: string | null
+          client_id?: string | null
           created_at?: string | null
           edge_token?: string | null
           edge_version?: string | null
@@ -295,6 +349,13 @@ export type Database = {
             columns: ["arena_id"]
             isOneToOne: false
             referencedRelation: "arenas"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "edge_devices_client_id_fkey"
+            columns: ["client_id"]
+            isOneToOne: false
+            referencedRelation: "clients"
             referencedColumns: ["id"]
           },
         ]
@@ -657,6 +718,10 @@ export type Database = {
       }
       fn_generate_install_passphrase: { Args: never; Returns: string }
       fn_get_camera_for_replay: { Args: { p_quadra_id: string }; Returns: Json }
+      fn_is_edge_client_active: {
+        Args: { p_edge_token: string }
+        Returns: boolean
+      }
       fn_register_replay: {
         Args: {
           p_duration_sec: number

@@ -1,15 +1,16 @@
 import { createFileRoute, Outlet, Link, useLocation, useNavigate } from "@tanstack/react-router";
-import { 
-  Tv, 
-  HardDrive, 
-  Usb, 
-  Camera, 
+import {
+  Tv,
+  HardDrive,
+  Usb,
+  Camera,
   LayoutDashboard,
   Settings,
   ArrowLeft,
   Menu,
   Activity,
-  Users
+  Users,
+  Building2,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
@@ -38,11 +39,12 @@ function AdminLayout() {
       else { setAuthorized(false); navigate({ to: "/" }); }
     })();
   }, [navigate]);
-  
+
   const navItems = [
     { to: "/admin", label: "Visão Geral", icon: LayoutDashboard },
     { to: "/admin/monitoring", label: "Monitoramento", icon: Activity },
     { to: "/admin/users", label: "Usuários", icon: Users },
+    { to: "/admin/clients", label: "Clientes", icon: Building2 },
     { to: "/admin/edge-devices", label: "Edge Devices", icon: HardDrive },
     { to: "/admin/input-boards", label: "Input Boards", icon: Usb },
     { to: "/admin/cameras", label: "Cameras", icon: Camera },
