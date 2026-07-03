@@ -121,6 +121,129 @@ function MetricBar({ value, label }: { value: number | null; label: string }) {
 }
 
 
+function DeviceGridCard({ device }: { device: EdgeDevice }) {
+  const online = isOnline(device.last_seen);
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative group flex flex-col items-center gap-2 p-3 rounded-xl border border-gray-100 bg-gray-50/50 hover:bg-gray-100 transition-colors">
+      {/* Hover balloon (CSS only) */}
+      <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 w-60 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50 pointer-events-none">
+        <div className="bg-gray-900 text-white rounded-xl shadow-xl p-3 text-xs space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="font-bold truncate">{device.name}</span>
+            <span className={`ml-2 inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${online ? "bg-emerald-500/20 text-emerald-300" : "bg-gray-700 text-gray-400"}`}>
+              {online ? <Wifi className="h-2.5 w-2.5" /> : <WifiOff className="h-2.5 w-2.5" />}
+              {online ? "Online" : "Offline"}
+            </span>
+          </div>
+          <div className="space-y-1">
+            <MetricBar value={device.cpu_percent} label="CPU" />
+            <MetricBar value={device.memory_percent} label="RAM" />
+            <MetricBar value={device.disk_percent} label="Disco" />
+          </div>
+          <div className="flex items-center justify-between text-[10px] text-gray-400 font-mono">
+            <span>{device.local_ip || "—"}</span>
+            <span>v{device.edge_version || "?"}</span>
+          </div>
+          {/* Arrow */}
+          <div className="absolute left-1/2 -translate-x-1/2 -bottom-1 w-2 h-2 bg-gray-900 rotate-45" />
+        </div>
+      </div>
+
+      {/* Click popover */}
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger asChild>
+          <button className="flex flex-col items-center gap-1.5 w-full focus:outline-none">
+            <div
+              className={`relative flex items-center justify-center h-14 w-14 rounded-2xl transition-colors ${
+                online
+                  ? "bg-emerald-50 text-emerald-600 ring-2 ring-emerald-200"
+                  : "bg-gray-100 text-gray-400 ring-2 ring-gray-200"
+              }`}
+            >
+              <Server className="h-7 w-7" />
+              {online && (
+                <span className="absolute top-1 right-1 h-2.5 w-2.5 rounded-full bg-emerald-500 ring-2 ring-white" />
+              )}
+            </div>
+            <span className="text-[10px] font-black uppercase tracking-wider text-gray-700 text-center leading-tight truncate w-full">
+              {device.name}
+            </span>
+          </button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80 p-0" side="top" align="center">
+          <div className="p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="font-bold text-gray-900">{device.name}</div>
+                <div className="font-mono text-[11px] text-gray-500">{device.hostname || "—"}</div>
+                <div className="font-mono text-[11px] text-gray-400">{device.local_ip || "—"}</div>
+              </div>
+              <span
+                className={`inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-black uppercase tracking-widest ${
+                  online ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-500"
+                }`}
+              >
+                {online ? <Wifi className="h-3 w-3" /> : <WifiOff className="h-3 w-3" />}
+                {online ? "Online" : "Offline"}
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              <MetricBar value={device.cpu_percent} label="CPU" />
+              {device.load_avg_1m != null && (
+                <div className="text-[10px] text-gray-400 font-mono">load {device.load_avg_1m}</div>
+              )}
+              <MetricBar value={device.memory_percent} label="RAM" />
+              {device.memory_total_mb && (
+                <div className="text-[10px] text-gray-400 font-mono">
+                  {device.memory_used_mb ?? 0}/{device.memory_total_mb} MB
+                </div>
+              )}
+              <MetricBar value={device.disk_percent} label="Disco" />
+            </div>
+
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Temperatura</div>
+                <div className={`text-lg font-black ${tempColor(device.temperature_c)}`}>
+                  {device.temperature_c != null ? `${device.temperature_c}°C` : "—"}
+                </div>
+              </div>
+              <div>
+                <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Uptime</div>
+                <div className="text-gray-900 font-bold">{formatUptime(device.uptime_seconds)}</div>
+              </div>
+            </div>
+
+            <div>
+              <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Rede</div>
+              <div className="flex items-center gap-4 text-[11px] font-mono text-gray-700">
+                <span className="text-emerald-600">↓ {formatBps(device.net_rx_bps)}</span>
+                <span className="text-blue-600">↑ {formatBps(device.net_tx_bps)}</span>
+              </div>
+            </div>
+
+            <div className="pt-2 border-t border-gray-100">
+              <div className="text-[10px] font-black uppercase tracking-widest text-gray-500 mb-1">Heartbeat</div>
+              <div className="text-xs text-gray-600">
+                {device.last_seen
+                  ? formatDistanceToNow(new Date(device.last_seen), {
+                      addSuffix: true,
+                      locale: ptBR,
+                    })
+                  : "Nunca"}
+              </div>
+              <div className="text-[10px] text-gray-400 font-mono mt-0.5">v{device.edge_version || "?"}</div>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+}
+
 function MonitoringPage() {
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
   const [replays, setReplays] = useState<Replay[]>([]);
