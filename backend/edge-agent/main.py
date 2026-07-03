@@ -81,6 +81,7 @@ class EdgeAgent:
 
         threading.Thread(target=self._heartbeat_loop, daemon=True).start()
         threading.Thread(target=self._health_loop, daemon=True).start()
+        threading.Thread(target=self._manual_trigger_loop, daemon=True).start()
 
     def stop(self) -> None:
         for buf in self.buffers.values():
