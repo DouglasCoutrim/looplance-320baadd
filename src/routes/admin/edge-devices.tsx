@@ -265,11 +265,16 @@ function EdgeDevices() {
                 <div className="rounded-xl border border-gray-200 p-3 bg-gray-50">
                   <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground mb-1">Token do device</p>
                   <div className="flex items-center gap-2">
-                    <code className="text-xs font-mono text-gray-900 break-all flex-1">{scriptDevice.id}</code>
+                    <code className="text-base font-mono font-black text-gray-900 tracking-widest flex-1">{scriptDevice.edge_token ?? "—"}</code>
                     <Button
                       size="icon"
                       variant="ghost"
-                      onClick={() => { navigator.clipboard.writeText(scriptDevice.id); toast.success("Token copiado!"); }}
+                      onClick={() => {
+                        if (scriptDevice.edge_token) {
+                          navigator.clipboard.writeText(scriptDevice.edge_token);
+                          toast.success("Token copiado!");
+                        }
+                      }}
                       className="h-7 w-7 shrink-0"
                     >
                       <Copy className="h-3.5 w-3.5" />
