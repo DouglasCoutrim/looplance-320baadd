@@ -8,7 +8,7 @@ import { createFileRoute } from "@tanstack/react-router";
  * e substitui apenas os arquivos que mudaram. Reinicia o
  * serviço looplance-edge se algo foi atualizado.
  */
-export const Route = createFileRoute("/api/public/edge-agent/updater.sh")({
+export const Route = createFileRoute("/api/public/edge-agent/updater/sh")({
   server: {
     handlers: {
       GET: async ({ request }) => {
