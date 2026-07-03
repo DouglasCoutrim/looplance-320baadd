@@ -99,11 +99,18 @@ def load_settings() -> Settings:
         r2_access_key_id=req("R2_ACCESS_KEY_ID"),
         r2_secret_access_key=req("R2_SECRET_ACCESS_KEY"),
         r2_public_base_url=req("R2_PUBLIC_BASE_URL").rstrip("/"),
+        r2_live_bucket_name=os.environ.get("R2_LIVE_BUCKET_NAME", "looplance-live"),
+        r2_live_public_base_url=os.environ.get(
+            "R2_LIVE_PUBLIC_BASE_URL", "https://download.looplance.app"
+        ).rstrip("/"),
         ram_buffer_dir=Path(os.environ.get("RAM_BUFFER_DIR", "/dev/shm/looplance")),
         segment_seconds=int(os.environ.get("SEGMENT_SECONDS", "2")),
+        hls_segment_seconds=int(os.environ.get("HLS_SEGMENT_SECONDS", "2")),
+        hls_list_size=int(os.environ.get("HLS_LIST_SIZE", "6")),
         heartbeat_interval_seconds=int(os.environ.get("HEARTBEAT_INTERVAL_SECONDS", "30")),
         edge_version=os.environ.get("EDGE_VERSION", "1.0.0"),
     )
+
 
 
 def fetch_remote_config(settings: Settings, retries: int = 5) -> None:
