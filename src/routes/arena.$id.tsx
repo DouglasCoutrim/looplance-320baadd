@@ -54,6 +54,7 @@ interface CameraStatus {
 
 function ArenaView() {
   const { id: arenaId } = Route.useParams();
+  const { live: liveParam } = Route.useSearch();
   const [authChecked, setAuthChecked] = useState(false);
   const [arena, setArena] = useState<Arena | null>(null);
   const [quadras, setQuadras] = useState<Quadra[]>([]);
@@ -61,6 +62,8 @@ function ArenaView() {
   const [cameras, setCameras] = useState<CameraStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [liveQuadra, setLiveQuadra] = useState<Quadra | null>(null);
+  const [defaultTab, setDefaultTab] = useState<string>(liveParam ? "live" : "replays");
+
 
   // Auth gate
   useEffect(() => {
