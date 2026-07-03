@@ -25,6 +25,7 @@ import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
 import { Route as AdminArenasRouteImport } from './routes/admin/arenas'
 import { Route as ApiPublicInstallRouteImport } from './routes/api/public/install'
 import { Route as ApiPublicEdgeReplayRouteImport } from './routes/api/public/edge/replay'
+import { Route as ApiPublicEdgePendingTriggersRouteImport } from './routes/api/public/edge/pending-triggers'
 import { Route as ApiPublicEdgeHeartbeatRouteImport } from './routes/api/public/edge/heartbeat'
 import { Route as ApiPublicEdgeConfigRouteImport } from './routes/api/public/edge/config'
 import { Route as ApiPublicEdgeCameraStatusRouteImport } from './routes/api/public/edge/camera-status'
@@ -114,6 +115,12 @@ const ApiPublicEdgeReplayRoute = ApiPublicEdgeReplayRouteImport.update({
   path: '/api/public/edge/replay',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicEdgePendingTriggersRoute =
+  ApiPublicEdgePendingTriggersRouteImport.update({
+    id: '/api/public/edge/pending-triggers',
+    path: '/api/public/edge/pending-triggers',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicEdgeHeartbeatRoute = ApiPublicEdgeHeartbeatRouteImport.update({
   id: '/api/public/edge/heartbeat',
   path: '/api/public/edge/heartbeat',
@@ -183,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
   '/api/public/edge/config': typeof ApiPublicEdgeConfigRoute
   '/api/public/edge/heartbeat': typeof ApiPublicEdgeHeartbeatRoute
+  '/api/public/edge/pending-triggers': typeof ApiPublicEdgePendingTriggersRoute
   '/api/public/edge/replay': typeof ApiPublicEdgeReplayRoute
 }
 export interface FileRoutesByTo {
@@ -208,6 +216,7 @@ export interface FileRoutesByTo {
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
   '/api/public/edge/config': typeof ApiPublicEdgeConfigRoute
   '/api/public/edge/heartbeat': typeof ApiPublicEdgeHeartbeatRoute
+  '/api/public/edge/pending-triggers': typeof ApiPublicEdgePendingTriggersRoute
   '/api/public/edge/replay': typeof ApiPublicEdgeReplayRoute
 }
 export interface FileRoutesById {
@@ -235,6 +244,7 @@ export interface FileRoutesById {
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
   '/api/public/edge/config': typeof ApiPublicEdgeConfigRoute
   '/api/public/edge/heartbeat': typeof ApiPublicEdgeHeartbeatRoute
+  '/api/public/edge/pending-triggers': typeof ApiPublicEdgePendingTriggersRoute
   '/api/public/edge/replay': typeof ApiPublicEdgeReplayRoute
 }
 export interface FileRouteTypes {
@@ -263,6 +273,7 @@ export interface FileRouteTypes {
     | '/api/public/edge/camera-status'
     | '/api/public/edge/config'
     | '/api/public/edge/heartbeat'
+    | '/api/public/edge/pending-triggers'
     | '/api/public/edge/replay'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -288,6 +299,7 @@ export interface FileRouteTypes {
     | '/api/public/edge/camera-status'
     | '/api/public/edge/config'
     | '/api/public/edge/heartbeat'
+    | '/api/public/edge/pending-triggers'
     | '/api/public/edge/replay'
   id:
     | '__root__'
@@ -314,6 +326,7 @@ export interface FileRouteTypes {
     | '/api/public/edge/camera-status'
     | '/api/public/edge/config'
     | '/api/public/edge/heartbeat'
+    | '/api/public/edge/pending-triggers'
     | '/api/public/edge/replay'
   fileRoutesById: FileRoutesById
 }
@@ -332,6 +345,7 @@ export interface RootRouteChildren {
   ApiPublicEdgeCameraStatusRoute: typeof ApiPublicEdgeCameraStatusRoute
   ApiPublicEdgeConfigRoute: typeof ApiPublicEdgeConfigRoute
   ApiPublicEdgeHeartbeatRoute: typeof ApiPublicEdgeHeartbeatRoute
+  ApiPublicEdgePendingTriggersRoute: typeof ApiPublicEdgePendingTriggersRoute
   ApiPublicEdgeReplayRoute: typeof ApiPublicEdgeReplayRoute
 }
 
@@ -449,6 +463,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicEdgeReplayRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/edge/pending-triggers': {
+      id: '/api/public/edge/pending-triggers'
+      path: '/api/public/edge/pending-triggers'
+      fullPath: '/api/public/edge/pending-triggers'
+      preLoaderRoute: typeof ApiPublicEdgePendingTriggersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/edge/heartbeat': {
       id: '/api/public/edge/heartbeat'
       path: '/api/public/edge/heartbeat'
@@ -549,6 +570,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicEdgeCameraStatusRoute: ApiPublicEdgeCameraStatusRoute,
   ApiPublicEdgeConfigRoute: ApiPublicEdgeConfigRoute,
   ApiPublicEdgeHeartbeatRoute: ApiPublicEdgeHeartbeatRoute,
+  ApiPublicEdgePendingTriggersRoute: ApiPublicEdgePendingTriggersRoute,
   ApiPublicEdgeReplayRoute: ApiPublicEdgeReplayRoute,
 }
 export const routeTree = rootRouteImport

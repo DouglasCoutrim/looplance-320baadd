@@ -81,6 +81,7 @@ class EdgeAgent:
 
         threading.Thread(target=self._heartbeat_loop, daemon=True).start()
         threading.Thread(target=self._health_loop, daemon=True).start()
+        threading.Thread(target=self._manual_trigger_loop, daemon=True).start()
 
     def stop(self) -> None:
         for buf in self.buffers.values():
@@ -105,6 +106,14 @@ class EdgeAgent:
         if not cam:
             log.warning("câmera %s do mapeamento %s não encontrada/ativa", mapping.camera_id, local_key)
             return
+        threading.Thread(target=self._handle_replay, args=(cam,), daemon=True).start()
+
+    def _trigger_by_camera_id(self, camera_id: str) -> None:
+        cam = next((c for c in self.settings.cameras if c.id == camera_id), None)
+        if not cam:
+            log.warning("manual trigger: camera %s não encontrada nas ativas", camera_id)
+            return
+        log.info("manual trigger recebido para camera %s (%s)", cam.name, camera_id)
         threading.Thread(target=self._handle_replay, args=(cam,), daemon=True).start()
 
     def _handle_replay(self, cam: cfg.CameraConfig) -> None:
@@ -186,6 +195,19 @@ class EdgeAgent:
                     except Exception:  # noqa: BLE001
                         log.exception("[%s] falha ao reiniciar live HLS", cam.name)
             _shutdown.wait(15)
+
+    def _manual_trigger_loop(self) -> None:
+        """Polling curto para disparos manuais via painel (sem botoeira física)."""
+        while not _shutdown.is_set():
+            try:
+                triggers = api_client.fetch_pending_triggers(self.settings)
+                for t in triggers:
+                    cam_id = t.get("camera_id")
+                    if cam_id:
+                        self._trigger_by_camera_id(cam_id)
+            except Exception:  # noqa: BLE001
+                log.exception("erro no _manual_trigger_loop")
+            _shutdown.wait(3)
 
 
 

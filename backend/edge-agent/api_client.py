@@ -20,15 +20,30 @@ log = logging.getLogger("looplance.api")
 
 
 def _post_signed(settings: Settings, path: str, body: dict, timeout: float) -> httpx.Response:
-    # Serializa uma única vez: o corpo assinado (raw_body) precisa ser
-    # EXATAMENTE o mesmo texto enviado, senão a verificação HMAC no
-    # servidor não bate.
     raw_body = json.dumps(body)
     url = f"{settings.api_base_url}{path}"
     headers = {**settings.signed_headers(raw_body), "Content-Type": "application/json"}
     resp = httpx.post(url, content=raw_body, headers=headers, timeout=timeout)
     resp.raise_for_status()
     return resp
+
+
+def _get_signed(settings: Settings, path: str, timeout: float) -> httpx.Response:
+    url = f"{settings.api_base_url}{path}"
+    headers = settings.signed_headers("")
+    resp = httpx.get(url, headers=headers, timeout=timeout)
+    resp.raise_for_status()
+    return resp
+
+
+def fetch_pending_triggers(settings: Settings) -> list[dict]:
+    """Retorna disparos manuais pendentes. Backend já marca como consumed."""
+    try:
+        resp = _get_signed(settings, "/api/public/edge/pending-triggers", timeout=10)
+        return resp.json().get("triggers", []) or []
+    except Exception:  # noqa: BLE001
+        log.exception("Falha ao consultar pending-triggers")
+        return []
 
 
 def register_replay(

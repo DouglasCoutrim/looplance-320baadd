@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, Camera, Video, Edit2, Trash2 } from "lucide-react";
+import { Plus, RefreshCw, Camera, Video, Edit2, Trash2, Zap } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -218,6 +218,31 @@ function Cameras() {
     setDeleting(null);
   };
 
+  const [triggering, setTriggering] = useState<string | null>(null);
+  const handleManualTrigger = async (camera: CameraType) => {
+    if (!camera.active) {
+      toast.error("Ative a câmera antes de disparar um replay");
+      return;
+    }
+    if (!camera.edge_device_id) {
+      toast.error("Câmera sem edge device vinculado");
+      return;
+    }
+    setTriggering(camera.id);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("manual_replay_triggers").insert([{
+      camera_id: camera.id,
+      edge_device_id: camera.edge_device_id,
+      requested_by: user?.id ?? null,
+    }]);
+    setTriggering(null);
+    if (error) {
+      toast.error("Falha ao disparar replay: " + error.message);
+    } else {
+      toast.success(`Replay disparado! O edge captura em até 3s (${camera.replay_seconds ?? 15}s de vídeo).`);
+    }
+  };
+
   const filteredBoards = formData.edge_device_id
     ? boards.filter(b => b.edge_device_id === formData.edge_device_id)
     : boards;
@@ -416,6 +441,16 @@ function Cameras() {
                   </TableCell>
                   <TableCell className="text-right py-5 px-6">
                     <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleManualTrigger(camera)}
+                        disabled={triggering === camera.id}
+                        title="Disparar replay manual (sem botoeira)"
+                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5"
+                      >
+                        <Zap className={`h-4 w-4 ${triggering === camera.id ? "animate-pulse" : ""}`} />
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(camera)} className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
                         <Edit2 className="h-4 w-4" />
                       </Button>
