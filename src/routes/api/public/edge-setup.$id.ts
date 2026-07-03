@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createClient } from "@supabase/supabase-js";
 
 export const Route = createFileRoute("/api/public/edge-setup/$id")({
   server: {
@@ -7,11 +6,9 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
       GET: async ({ params, request }) => {
         const supabaseUrl = process.env.SUPABASE_URL!;
         const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY!;
-        const supabase = createClient(supabaseUrl, supabaseKey, {
-          auth: { persistSession: false, autoRefreshToken: false },
-        });
+        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        const { data: device, error } = await supabase
+        const { data: device, error } = await supabaseAdmin
           .from("edge_devices")
           .select("id, name, hostname, edge_token, install_passphrase")
           .eq("id", params.id)
