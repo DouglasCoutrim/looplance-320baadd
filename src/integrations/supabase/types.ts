@@ -450,6 +450,58 @@ export type Database = {
           },
         ]
       }
+      manual_replay_triggers: {
+        Row: {
+          camera_id: string
+          consumed_at: string | null
+          created_at: string
+          edge_device_id: string | null
+          id: string
+          requested_by: string | null
+          status: string
+        }
+        Insert: {
+          camera_id: string
+          consumed_at?: string | null
+          created_at?: string
+          edge_device_id?: string | null
+          id?: string
+          requested_by?: string | null
+          status?: string
+        }
+        Update: {
+          camera_id?: string
+          consumed_at?: string | null
+          created_at?: string
+          edge_device_id?: string | null
+          id?: string
+          requested_by?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "manual_replay_triggers_camera_id_fkey"
+            columns: ["camera_id"]
+            isOneToOne: false
+            referencedRelation: "cameras"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_replay_triggers_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "manual_replay_triggers_edge_device_id_fkey"
+            columns: ["edge_device_id"]
+            isOneToOne: false
+            referencedRelation: "edge_devices_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           arena_id: string | null
