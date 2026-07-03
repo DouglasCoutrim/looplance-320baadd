@@ -142,7 +142,9 @@ def fetch_remote_config(settings: Settings, retries: int = 5) -> None:
                     video_width=c.get("video_width", 0),
                     video_height=c.get("video_height", 0),
                     active=c.get("active", True),
+                    arena_id=c.get("arena_id"),
                 )
+
                 for c in data["cameras"]
                 if c.get("active", True)
             ]
