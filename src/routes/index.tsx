@@ -37,6 +37,8 @@ function Home() {
   const [liveList, setLiveList] = useState<Array<{ quadra_id: string; quadra_nome: string; arena_id: string; arena_nome: string }>>([]);
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
+  const [aspects, setAspects] = useState<Record<string, number>>({});
+
 
 
   // Gate: require auth to see feed
