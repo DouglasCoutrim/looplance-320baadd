@@ -108,6 +108,14 @@ class EdgeAgent:
             return
         threading.Thread(target=self._handle_replay, args=(cam,), daemon=True).start()
 
+    def _trigger_by_camera_id(self, camera_id: str) -> None:
+        cam = next((c for c in self.settings.cameras if c.id == camera_id), None)
+        if not cam:
+            log.warning("manual trigger: camera %s não encontrada nas ativas", camera_id)
+            return
+        log.info("manual trigger recebido para camera %s (%s)", cam.name, camera_id)
+        threading.Thread(target=self._handle_replay, args=(cam,), daemon=True).start()
+
     def _handle_replay(self, cam: cfg.CameraConfig) -> None:
         buf = self.buffers.get(cam.id)
         if not buf:
