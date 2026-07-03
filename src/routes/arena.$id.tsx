@@ -13,6 +13,9 @@ import { Toaster, toast } from "sonner";
 
 export const Route = createFileRoute("/arena/$id")({
   component: ArenaView,
+  validateSearch: (s: Record<string, unknown>) => ({
+    live: typeof s.live === "string" ? (s.live as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Arena — Looplance" },
@@ -20,6 +23,7 @@ export const Route = createFileRoute("/arena/$id")({
     ],
   }),
 });
+
 
 interface Arena {
   id: string;
@@ -50,6 +54,7 @@ interface CameraStatus {
 
 function ArenaView() {
   const { id: arenaId } = Route.useParams();
+  const { live: liveParam } = Route.useSearch();
   const [authChecked, setAuthChecked] = useState(false);
   const [arena, setArena] = useState<Arena | null>(null);
   const [quadras, setQuadras] = useState<Quadra[]>([]);
@@ -57,6 +62,8 @@ function ArenaView() {
   const [cameras, setCameras] = useState<CameraStatus[]>([]);
   const [loading, setLoading] = useState(true);
   const [liveQuadra, setLiveQuadra] = useState<Quadra | null>(null);
+  const [defaultTab, setDefaultTab] = useState<string>(liveParam ? "live" : "replays");
+
 
   // Auth gate
   useEffect(() => {
@@ -86,6 +93,18 @@ function ArenaView() {
       setLoading(false);
     })();
   }, [authChecked, arenaId]);
+
+  // Auto-open live dialog when ?live=<quadraId>
+  useEffect(() => {
+    if (!liveParam || !quadras.length) return;
+    const q = quadras.find((x) => x.id === liveParam);
+    if (q) {
+      setDefaultTab("live");
+      setLiveQuadra(q);
+    }
+  }, [liveParam, quadras]);
+
+
 
   // Realtime: new replays for this arena
   useEffect(() => {
@@ -172,7 +191,7 @@ function ArenaView() {
         </section>
 
         {/* Tabs */}
-        <Tabs defaultValue="replays" className="w-full">
+        <Tabs value={defaultTab} onValueChange={setDefaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 rounded-2xl border border-white/10 bg-white/5 p-1 backdrop-blur">
             <TabsTrigger
               value="replays"

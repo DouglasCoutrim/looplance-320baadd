@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { Sparkles, Play, Trophy, LayoutDashboard, User as UserIcon } from "lucide-react";
+import { Sparkles, Play, Trophy, LayoutDashboard, User as UserIcon, Radio } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
+
 
 export const Route = createFileRoute("/")({
   component: Home,
@@ -33,8 +34,10 @@ function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [replays, setReplays] = useState<Replay[]>([]);
   const [sponsors, setSponsors] = useState<string[]>([]);
+  const [liveList, setLiveList] = useState<Array<{ quadra_id: string; quadra_nome: string; arena_id: string; arena_nome: string }>>([]);
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
+
 
   // Gate: require auth to see feed
   useEffect(() => {
@@ -64,7 +67,29 @@ function Home() {
     fetchReplays();
     fetchFeatured();
     fetchSponsors();
+    fetchLive();
+    const iv = setInterval(fetchLive, 30000);
+    return () => clearInterval(iv);
   }, [authChecked]);
+
+  const fetchLive = async () => {
+    const { data } = await supabase
+      .from("cameras")
+      .select("quadra_id, streaming_status, quadras(id, nome, arena_id, arenas(id, nome))")
+      .in("streaming_status", ["online", "streaming", "live"]);
+    const list = (data ?? [])
+      .map((c: any) => {
+        const q = c.quadras;
+        const a = q?.arenas;
+        if (!q || !a) return null;
+        return { quadra_id: q.id, quadra_nome: q.nome, arena_id: a.id, arena_nome: a.nome };
+      })
+      .filter(Boolean) as Array<{ quadra_id: string; quadra_nome: string; arena_id: string; arena_nome: string }>;
+    // Dedup por quadra
+    const seen = new Set<string>();
+    setLiveList(list.filter((x) => (seen.has(x.quadra_id) ? false : seen.add(x.quadra_id))));
+  };
+
 
   const fetchFeatured = async () => {
     const { data } = await supabase
@@ -179,9 +204,9 @@ function Home() {
       ) : (
 
       <main className="mx-auto max-w-2xl space-y-8 px-6 pb-24 pt-10">
-        {/* Hero */}
-        <section className="relative overflow-hidden rounded-3xl bg-black shadow-2xl ring-1 ring-white/10">
-          <div className="aspect-[9/16] w-full overflow-hidden relative">
+        {/* Hero compact banner */}
+        <section className="relative overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10">
+          <div className="h-32 sm:h-40 w-full overflow-hidden relative">
             {featuredReplays.length > 0 ? (
               featuredReplays.map((replay, idx) => (
                 <div
@@ -202,29 +227,80 @@ function Home() {
               <div className="absolute inset-0 brand-gradient opacity-20" />
             )}
 
-            <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/20 to-black/80" />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-black/70" />
 
-            <div className="absolute inset-0 flex flex-col items-center justify-end p-8 text-center pb-12">
-              <h1 className="text-4xl font-black leading-tight tracking-tight text-white drop-shadow-lg">
+            <div className="absolute inset-0 flex flex-col justify-center px-5">
+              <h1 className="text-xl sm:text-2xl font-black leading-tight tracking-tight text-white drop-shadow">
                 Seus lances <span className="brand-text">em loop.</span>
               </h1>
-              <p className="mt-3 text-base text-white/80 leading-relaxed font-medium max-w-[280px]">
+              <p className="mt-1 text-xs sm:text-sm text-white/80 font-medium">
                 Reviva cada jogada, compartilhe cada vitória.
               </p>
             </div>
 
             {featuredReplays.length > 1 && (
-              <div className="absolute bottom-6 left-1/2 flex -translate-x-1/2 gap-2">
+              <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5">
                 {featuredReplays.map((_, idx) => (
                   <div
                     key={idx}
-                    className={`h-1.5 transition-all duration-300 rounded-full ${idx === currentSlide ? "w-6 bg-brand-orange" : "w-1.5 bg-white/30"}`}
+                    className={`h-1 transition-all duration-300 rounded-full ${idx === currentSlide ? "w-5 bg-brand-orange" : "w-1 bg-white/30"}`}
                   />
                 ))}
               </div>
             )}
           </div>
         </section>
+
+        {/* Live now — horizontal scroll */}
+        <section className="space-y-3">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="flex items-center gap-2 text-base font-black text-gray-900">
+              🎥 Assista Ao Vivo
+            </h2>
+            {liveList.length > 0 && (
+              <span className="text-xs font-medium text-muted-foreground">{liveList.length} ao vivo</span>
+            )}
+          </div>
+
+          {liveList.length === 0 ? (
+            <div className="rounded-2xl border border-dashed border-gray-200 bg-white/60 px-4 py-6 text-center">
+              <p className="text-xs font-medium text-muted-foreground">
+                Nenhuma transmissão ao vivo agora. Volte em breve!
+              </p>
+            </div>
+          ) : (
+            <div className="-mx-6 overflow-x-auto px-6 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex gap-3 w-max">
+                {liveList.map((l) => (
+                  <Link
+                    key={l.quadra_id}
+                    to="/arena/$id"
+                    params={{ id: l.arena_id }}
+                    search={{ live: l.quadra_id }}
+                    className="group relative flex min-w-[200px] max-w-[220px] flex-col justify-between overflow-hidden rounded-2xl border border-white/10 bg-black p-3 shadow-lg ring-1 ring-black/5 transition hover:border-brand-orange/60 hover:shadow-[0_0_25px_-8px_var(--brand-orange)]"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-br from-brand-orange/10 via-transparent to-transparent opacity-70" />
+                    <div className="relative flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white">
+                        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                        AO VIVO
+                      </span>
+                      <Radio className="h-4 w-4 text-brand-orange" />
+                    </div>
+                    <div className="relative mt-6">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-white/50">
+                        {l.arena_nome}
+                      </p>
+                      <p className="mt-0.5 truncate text-sm font-black text-white">{l.quadra_nome}</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          )}
+        </section>
+
+
 
         {/* Sponsors Carousel */}
         {sponsors.length > 0 && (
