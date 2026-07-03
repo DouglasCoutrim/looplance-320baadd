@@ -29,6 +29,9 @@ import { Route as ApiPublicEdgeHeartbeatRouteImport } from './routes/api/public/
 import { Route as ApiPublicEdgeConfigRouteImport } from './routes/api/public/edge/config'
 import { Route as ApiPublicEdgeCameraStatusRouteImport } from './routes/api/public/edge/camera-status'
 import { Route as ApiPublicEdgeSetupIdRouteImport } from './routes/api/public/edge-setup.$id'
+import { Route as ApiPublicEdgeAgentUpdaterRouteImport } from './routes/api/public/edge-agent/updater'
+import { Route as ApiPublicEdgeAgentManifestRouteImport } from './routes/api/public/edge-agent/manifest'
+import { Route as ApiPublicEdgeAgentFileRouteImport } from './routes/api/public/edge-agent/file'
 import { Route as ApiPublicCronCleanupReplaysRouteImport } from './routes/api/public/cron/cleanup-replays'
 
 const InstallRoute = InstallRouteImport.update({
@@ -132,6 +135,23 @@ const ApiPublicEdgeSetupIdRoute = ApiPublicEdgeSetupIdRouteImport.update({
   path: '/api/public/edge-setup/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicEdgeAgentUpdaterRoute =
+  ApiPublicEdgeAgentUpdaterRouteImport.update({
+    id: '/api/public/edge-agent/updater',
+    path: '/api/public/edge-agent/updater',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicEdgeAgentManifestRoute =
+  ApiPublicEdgeAgentManifestRouteImport.update({
+    id: '/api/public/edge-agent/manifest',
+    path: '/api/public/edge-agent/manifest',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPublicEdgeAgentFileRoute = ApiPublicEdgeAgentFileRouteImport.update({
+  id: '/api/public/edge-agent/file',
+  path: '/api/public/edge-agent/file',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiPublicCronCleanupReplaysRoute =
   ApiPublicCronCleanupReplaysRouteImport.update({
     id: '/api/public/cron/cleanup-replays',
@@ -156,6 +176,9 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AdminIndexRoute
   '/api/public/install': typeof ApiPublicInstallRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
+  '/api/public/edge-agent/file': typeof ApiPublicEdgeAgentFileRoute
+  '/api/public/edge-agent/manifest': typeof ApiPublicEdgeAgentManifestRoute
+  '/api/public/edge-agent/updater': typeof ApiPublicEdgeAgentUpdaterRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
   '/api/public/edge/config': typeof ApiPublicEdgeConfigRoute
@@ -178,6 +201,9 @@ export interface FileRoutesByTo {
   '/admin': typeof AdminIndexRoute
   '/api/public/install': typeof ApiPublicInstallRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
+  '/api/public/edge-agent/file': typeof ApiPublicEdgeAgentFileRoute
+  '/api/public/edge-agent/manifest': typeof ApiPublicEdgeAgentManifestRoute
+  '/api/public/edge-agent/updater': typeof ApiPublicEdgeAgentUpdaterRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
   '/api/public/edge/config': typeof ApiPublicEdgeConfigRoute
@@ -202,6 +228,9 @@ export interface FileRoutesById {
   '/admin/': typeof AdminIndexRoute
   '/api/public/install': typeof ApiPublicInstallRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
+  '/api/public/edge-agent/file': typeof ApiPublicEdgeAgentFileRoute
+  '/api/public/edge-agent/manifest': typeof ApiPublicEdgeAgentManifestRoute
+  '/api/public/edge-agent/updater': typeof ApiPublicEdgeAgentUpdaterRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
   '/api/public/edge/config': typeof ApiPublicEdgeConfigRoute
@@ -227,6 +256,9 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/public/install'
     | '/api/public/cron/cleanup-replays'
+    | '/api/public/edge-agent/file'
+    | '/api/public/edge-agent/manifest'
+    | '/api/public/edge-agent/updater'
     | '/api/public/edge-setup/$id'
     | '/api/public/edge/camera-status'
     | '/api/public/edge/config'
@@ -249,6 +281,9 @@ export interface FileRouteTypes {
     | '/admin'
     | '/api/public/install'
     | '/api/public/cron/cleanup-replays'
+    | '/api/public/edge-agent/file'
+    | '/api/public/edge-agent/manifest'
+    | '/api/public/edge-agent/updater'
     | '/api/public/edge-setup/$id'
     | '/api/public/edge/camera-status'
     | '/api/public/edge/config'
@@ -272,6 +307,9 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/api/public/install'
     | '/api/public/cron/cleanup-replays'
+    | '/api/public/edge-agent/file'
+    | '/api/public/edge-agent/manifest'
+    | '/api/public/edge-agent/updater'
     | '/api/public/edge-setup/$id'
     | '/api/public/edge/camera-status'
     | '/api/public/edge/config'
@@ -287,6 +325,9 @@ export interface RootRouteChildren {
   ArenaIdRoute: typeof ArenaIdRoute
   ApiPublicInstallRoute: typeof ApiPublicInstallRoute
   ApiPublicCronCleanupReplaysRoute: typeof ApiPublicCronCleanupReplaysRoute
+  ApiPublicEdgeAgentFileRoute: typeof ApiPublicEdgeAgentFileRoute
+  ApiPublicEdgeAgentManifestRoute: typeof ApiPublicEdgeAgentManifestRoute
+  ApiPublicEdgeAgentUpdaterRoute: typeof ApiPublicEdgeAgentUpdaterRoute
   ApiPublicEdgeSetupIdRoute: typeof ApiPublicEdgeSetupIdRoute
   ApiPublicEdgeCameraStatusRoute: typeof ApiPublicEdgeCameraStatusRoute
   ApiPublicEdgeConfigRoute: typeof ApiPublicEdgeConfigRoute
@@ -436,6 +477,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicEdgeSetupIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/edge-agent/updater': {
+      id: '/api/public/edge-agent/updater'
+      path: '/api/public/edge-agent/updater'
+      fullPath: '/api/public/edge-agent/updater'
+      preLoaderRoute: typeof ApiPublicEdgeAgentUpdaterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/edge-agent/manifest': {
+      id: '/api/public/edge-agent/manifest'
+      path: '/api/public/edge-agent/manifest'
+      fullPath: '/api/public/edge-agent/manifest'
+      preLoaderRoute: typeof ApiPublicEdgeAgentManifestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/public/edge-agent/file': {
+      id: '/api/public/edge-agent/file'
+      path: '/api/public/edge-agent/file'
+      fullPath: '/api/public/edge-agent/file'
+      preLoaderRoute: typeof ApiPublicEdgeAgentFileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/cron/cleanup-replays': {
       id: '/api/public/cron/cleanup-replays'
       path: '/api/public/cron/cleanup-replays'
@@ -480,6 +542,9 @@ const rootRouteChildren: RootRouteChildren = {
   ArenaIdRoute: ArenaIdRoute,
   ApiPublicInstallRoute: ApiPublicInstallRoute,
   ApiPublicCronCleanupReplaysRoute: ApiPublicCronCleanupReplaysRoute,
+  ApiPublicEdgeAgentFileRoute: ApiPublicEdgeAgentFileRoute,
+  ApiPublicEdgeAgentManifestRoute: ApiPublicEdgeAgentManifestRoute,
+  ApiPublicEdgeAgentUpdaterRoute: ApiPublicEdgeAgentUpdaterRoute,
   ApiPublicEdgeSetupIdRoute: ApiPublicEdgeSetupIdRoute,
   ApiPublicEdgeCameraStatusRoute: ApiPublicEdgeCameraStatusRoute,
   ApiPublicEdgeConfigRoute: ApiPublicEdgeConfigRoute,
