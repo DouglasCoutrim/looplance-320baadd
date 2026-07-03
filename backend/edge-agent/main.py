@@ -28,9 +28,11 @@ import uuid
 import api_client
 import config as cfg
 from clip_builder import ClipBuildError, build_clip
+from live_streamer import LiveStreamer
 from ram_buffer import CameraBuffer
 from trigger import start_trigger_listener
 from uploader import upload_clip
+
 
 logging.basicConfig(
     level=logging.INFO,
@@ -57,6 +59,7 @@ class EdgeAgent:
     def __init__(self, settings: cfg.Settings):
         self.settings = settings
         self.buffers: dict[str, CameraBuffer] = {}
+        self.livers: dict[str, LiveStreamer] = {}
 
     # -- boot ------------------------------------------------------------
 
@@ -67,6 +70,13 @@ class EdgeAgent:
             buf.start()
             self.buffers[cam.id] = buf
 
+            live = LiveStreamer(self.settings, cam)
+            try:
+                live.start()
+                self.livers[cam.id] = live
+            except Exception:  # noqa: BLE001
+                log.exception("[%s] falha ao iniciar live HLS", cam.name)
+
         start_trigger_listener(self._on_trigger, self._input_boards())
 
         threading.Thread(target=self._heartbeat_loop, daemon=True).start()
@@ -75,6 +85,9 @@ class EdgeAgent:
     def stop(self) -> None:
         for buf in self.buffers.values():
             buf.stop()
+        for live in self.livers.values():
+            live.stop()
+
 
     def _input_boards(self) -> list[dict]:
         # A config remota pode trazer input_boards; se não vier explicitamente
@@ -162,7 +175,18 @@ class EdgeAgent:
                     api_client.report_camera_status(
                         self.settings, camera_id=cam.id, streaming_status="online",
                     )
+
+                # Watchdog do live HLS
+                live = self.livers.get(cam.id)
+                if live and not live.is_alive():
+                    log.warning("[%s] live HLS caiu, reiniciando", cam.name)
+                    try:
+                        live.stop()
+                        live.start()
+                    except Exception:  # noqa: BLE001
+                        log.exception("[%s] falha ao reiniciar live HLS", cam.name)
             _shutdown.wait(15)
+
 
 
 def main() -> None:
