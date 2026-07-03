@@ -65,27 +65,30 @@ SUPABASE_URL="${supabaseUrl}"
 SUPABASE_ANON_KEY="${supabaseKey}"
 LOOPLANCE_API="${origin}"
 
+fail() { echo ""; echo "[Looplance] ❌ ERRO: $*"; exit 1; }
+
 echo ""
 echo "============================================="
 echo "  LOOPLANCE EDGE - Provisionamento Iniciado"
 echo "  Device: $DEVICE_NAME"
 echo "============================================="
 echo ""
-# --- 1. Atualizar sistema e dependências ---
-echo "[1/6] Atualizando pacotes e instalando dependências..."
+
+# --- 1. Dependências ---
+echo "[1/7] Instalando dependências de sistema..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y ffmpeg curl jq git ca-certificates python3 python3-venv python3-pip openssl ufw
 
 # --- 2. Usuário e diretórios ---
-echo "[2/6] Preparando usuário e diretórios..."
+echo "[2/7] Criando usuário e diretórios..."
 id -u looplance &>/dev/null || useradd --system --no-create-home --shell /usr/sbin/nologin looplance
 usermod -aG input,plugdev looplance || true
 mkdir -p /etc/looplance /var/log/looplance /var/lib/looplance /opt/looplance-edge /dev/shm/looplance
 chown -R looplance:looplance /opt/looplance-edge /dev/shm/looplance /var/lib/looplance
 
-# --- 3. Configuração ---
-echo "[3/6] Gravando /etc/looplance/edge.env ..."
+# --- 3. Arquivo de ambiente ---
+echo "[3/7] Escrevendo /etc/looplance/edge.env ..."
 cat > /etc/looplance/edge.env <<EOF
 EDGE_DEVICE_ID=$DEVICE_ID
 EDGE_TOKEN=$EDGE_TOKEN
@@ -100,16 +103,68 @@ EOF
 chmod 640 /etc/looplance/edge.env
 chown root:looplance /etc/looplance/edge.env
 
-# --- 4. Virtualenv Python ---
-echo "[4/6] Criando virtualenv do agent..."
+# Mantém uma cópia acessível em /opt/looplance-edge/.env (mesmas credenciais)
+cp /etc/looplance/edge.env /opt/looplance-edge/.env
+chown looplance:looplance /opt/looplance-edge/.env
+chmod 640 /opt/looplance-edge/.env
+
+# --- 4. Bootstrap do código do agent (inline, sem depender do timer) ---
+echo "[4/7] Baixando código do agent do backend..."
+MANIFEST_URL="$LOOPLANCE_API/api/public/edge-agent/manifest"
+FILE_URL="$LOOPLANCE_API/api/public/edge-agent/file"
+STATE_DIR="/var/lib/looplance"
+mkdir -p "$STATE_DIR"
+MANIFEST_PATH="$STATE_DIR/agent.manifest.json"
+
+if ! curl -fsSL "$MANIFEST_URL" -o "$MANIFEST_PATH"; then
+  fail "Não foi possível baixar o manifesto do agent em $MANIFEST_URL"
+fi
+
+COUNT="$(jq '.files | length' "$MANIFEST_PATH")"
+if [ -z "$COUNT" ] || [ "$COUNT" = "0" ] || [ "$COUNT" = "null" ]; then
+  fail "Manifesto vazio ou inválido - backend não empacotou os arquivos do agent"
+fi
+
+echo "     -> $COUNT arquivos a instalar"
+for i in $(seq 0 $((COUNT - 1))); do
+  REL="$(jq -r ".files[$i].path" "$MANIFEST_PATH")"
+  SHA="$(jq -r ".files[$i].sha256" "$MANIFEST_PATH")"
+  DEST="/opt/looplance-edge/$REL"
+  mkdir -p "$(dirname "$DEST")"
+  TMP="$(mktemp)"
+  if ! curl -fsSL --get "$FILE_URL" --data-urlencode "path=$REL" -o "$TMP"; then
+    rm -f "$TMP"
+    fail "Falha ao baixar $REL"
+  fi
+  GOT_SHA="$(sha256sum "$TMP" | awk '{print $1}')"
+  if [ "$GOT_SHA" != "$SHA" ]; then
+    rm -f "$TMP"
+    fail "sha256 divergente em $REL (esperado $SHA, obtido $GOT_SHA)"
+  fi
+  mv "$TMP" "$DEST"
+  chown looplance:looplance "$DEST"
+  echo "     ✓ $REL"
+done
+
+REMOTE_VERSION="$(jq -r .version "$MANIFEST_PATH")"
+echo "$REMOTE_VERSION" > "$STATE_DIR/agent.version"
+
+# Verifica que os arquivos críticos foram escritos
+[ -f /opt/looplance-edge/main.py ] || fail "main.py não foi criado após o download"
+[ -f /opt/looplance-edge/requirements.txt ] || fail "requirements.txt não foi criado após o download"
+
+# --- 5. Virtualenv + dependências Python ---
+echo "[5/7] Instalando virtualenv Python e dependências..."
 if [ ! -x /opt/looplance-edge/venv/bin/python ]; then
   python3 -m venv /opt/looplance-edge/venv
-  /opt/looplance-edge/venv/bin/pip install --upgrade pip
 fi
+/opt/looplance-edge/venv/bin/pip install --upgrade pip >/dev/null
+/opt/looplance-edge/venv/bin/pip install -r /opt/looplance-edge/requirements.txt \
+  || fail "pip install -r requirements.txt falhou"
 chown -R looplance:looplance /opt/looplance-edge/venv
 
-# --- 5. Auto-updater (mantém o agent sempre sincronizado com o backend) ---
-echo "[5/6] Instalando auto-updater..."
+# --- 6. Auto-updater (mantém o agent sincronizado após o setup) ---
+echo "[6/7] Instalando auto-updater..."
 curl -fsSL "$LOOPLANCE_API/api/public/edge-agent/updater" -o /usr/local/bin/looplance-update.sh
 chmod +x /usr/local/bin/looplance-update.sh
 
@@ -137,10 +192,15 @@ Unit=looplance-updater.service
 WantedBy=timers.target
 EOF
 
+# --- 7. Serviço principal (systemd) ---
+echo "[7/7] Instalando e iniciando serviço looplance-edge..."
+if [ -f /opt/looplance-edge/systemd/looplance-edge.service ]; then
+  cp /opt/looplance-edge/systemd/looplance-edge.service /etc/systemd/system/looplance-edge.service
+else
 cat > /etc/systemd/system/looplance-edge.service <<'EOF'
 [Unit]
 Description=Looplance Edge Agent
-After=network-online.target looplance-updater.service
+After=network-online.target
 Wants=network-online.target
 StartLimitIntervalSec=0
 
@@ -162,26 +222,30 @@ SyslogIdentifier=looplance-edge
 [Install]
 WantedBy=multi-user.target
 EOF
+fi
 
 systemctl daemon-reload
-
-# Executa o updater imediatamente para baixar o agent pela primeira vez.
-echo "[6/6] Baixando código do agent via updater..."
-/usr/local/bin/looplance-update.sh || true
-
 systemctl enable --now looplance-updater.timer
 systemctl enable looplance-edge.service
-systemctl restart looplance-edge.service || true
+systemctl restart looplance-edge.service || fail "systemctl restart looplance-edge falhou - veja: journalctl -u looplance-edge -n 100"
 
 ufw allow OpenSSH || true
 yes | ufw enable || true
 
+sleep 2
+STATUS="$(systemctl is-active looplance-edge.service || echo inactive)"
 echo ""
 echo "============================================="
-echo "  ✅ Looplance Edge provisionado com sucesso!"
-echo "  Device: $DEVICE_NAME"
-echo "  Agent:     systemctl status looplance-edge"
-echo "  Updater:   systemctl list-timers looplance-updater.timer"
+if [ "$STATUS" = "active" ]; then
+  echo "  ✅ Looplance Edge provisionado com sucesso!"
+else
+  echo "  ⚠️  Serviço instalado mas status = $STATUS"
+  echo "     Rode: journalctl -u looplance-edge -n 100"
+fi
+echo "  Device:      $DEVICE_NAME"
+echo "  Versão:      $REMOTE_VERSION"
+echo "  Agent:       systemctl status looplance-edge"
+echo "  Updater:     systemctl list-timers looplance-updater.timer"
 echo "  Auto-update a cada 5 minutos."
 echo "============================================="
 `;
