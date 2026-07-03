@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as ArenaIdRouteImport } from './routes/arena.$id'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
 import { Route as AdminMonitoringRouteImport } from './routes/admin/monitoring'
@@ -54,6 +55,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
+} as any)
+const ArenaIdRoute = ArenaIdRouteImport.update({
+  id: '/arena/$id',
+  path: '/arena/$id',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
@@ -146,6 +152,7 @@ export interface FileRoutesByFullPath {
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/users': typeof AdminUsersRoute
+  '/arena/$id': typeof ArenaIdRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/install': typeof ApiPublicInstallRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
@@ -167,6 +174,7 @@ export interface FileRoutesByTo {
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/users': typeof AdminUsersRoute
+  '/arena/$id': typeof ArenaIdRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/install': typeof ApiPublicInstallRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
@@ -190,6 +198,7 @@ export interface FileRoutesById {
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/users': typeof AdminUsersRoute
+  '/arena/$id': typeof ArenaIdRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/install': typeof ApiPublicInstallRoute
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
@@ -214,6 +223,7 @@ export interface FileRouteTypes {
     | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/users'
+    | '/arena/$id'
     | '/admin/'
     | '/api/public/install'
     | '/api/public/cron/cleanup-replays'
@@ -235,6 +245,7 @@ export interface FileRouteTypes {
     | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/users'
+    | '/arena/$id'
     | '/admin'
     | '/api/public/install'
     | '/api/public/cron/cleanup-replays'
@@ -257,6 +268,7 @@ export interface FileRouteTypes {
     | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/users'
+    | '/arena/$id'
     | '/admin/'
     | '/api/public/install'
     | '/api/public/cron/cleanup-replays'
@@ -272,6 +284,7 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   InstallRoute: typeof InstallRoute
+  ArenaIdRoute: typeof ArenaIdRoute
   ApiPublicInstallRoute: typeof ApiPublicInstallRoute
   ApiPublicCronCleanupReplaysRoute: typeof ApiPublicCronCleanupReplaysRoute
   ApiPublicEdgeSetupIdRoute: typeof ApiPublicEdgeSetupIdRoute
@@ -317,6 +330,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof AdminRoute
+    }
+    '/arena/$id': {
+      id: '/arena/$id'
+      path: '/arena/$id'
+      fullPath: '/arena/$id'
+      preLoaderRoute: typeof ArenaIdRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/users': {
       id: '/admin/users'
@@ -457,6 +477,7 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   InstallRoute: InstallRoute,
+  ArenaIdRoute: ArenaIdRoute,
   ApiPublicInstallRoute: ApiPublicInstallRoute,
   ApiPublicCronCleanupReplaysRoute: ApiPublicCronCleanupReplaysRoute,
   ApiPublicEdgeSetupIdRoute: ApiPublicEdgeSetupIdRoute,
