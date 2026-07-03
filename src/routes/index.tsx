@@ -34,8 +34,10 @@ function Home() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [replays, setReplays] = useState<Replay[]>([]);
   const [sponsors, setSponsors] = useState<string[]>([]);
+  const [liveList, setLiveList] = useState<Array<{ quadra_id: string; quadra_nome: string; arena_id: string; arena_nome: string }>>([]);
   const [points, setPoints] = useState(0);
   const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
+
 
   // Gate: require auth to see feed
   useEffect(() => {
