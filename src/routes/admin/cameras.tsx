@@ -441,6 +441,16 @@ function Cameras() {
                   </TableCell>
                   <TableCell className="text-right py-5 px-6">
                     <div className="flex justify-end gap-2">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleManualTrigger(camera)}
+                        disabled={triggering === camera.id}
+                        title="Disparar replay manual (sem botoeira)"
+                        className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5"
+                      >
+                        <Zap className={`h-4 w-4 ${triggering === camera.id ? "animate-pulse" : ""}`} />
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => openEdit(camera)} className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
                         <Edit2 className="h-4 w-4" />
                       </Button>
