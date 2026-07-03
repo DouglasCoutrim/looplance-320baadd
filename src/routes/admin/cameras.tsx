@@ -218,6 +218,31 @@ function Cameras() {
     setDeleting(null);
   };
 
+  const [triggering, setTriggering] = useState<string | null>(null);
+  const handleManualTrigger = async (camera: CameraType) => {
+    if (!camera.active) {
+      toast.error("Ative a câmera antes de disparar um replay");
+      return;
+    }
+    if (!camera.edge_device_id) {
+      toast.error("Câmera sem edge device vinculado");
+      return;
+    }
+    setTriggering(camera.id);
+    const { data: { user } } = await supabase.auth.getUser();
+    const { error } = await supabase.from("manual_replay_triggers").insert([{
+      camera_id: camera.id,
+      edge_device_id: camera.edge_device_id,
+      requested_by: user?.id ?? null,
+    }]);
+    setTriggering(null);
+    if (error) {
+      toast.error("Falha ao disparar replay: " + error.message);
+    } else {
+      toast.success(`Replay disparado! O edge captura em até 3s (${camera.replay_seconds ?? 15}s de vídeo).`);
+    }
+  };
+
   const filteredBoards = formData.edge_device_id
     ? boards.filter(b => b.edge_device_id === formData.edge_device_id)
     : boards;
