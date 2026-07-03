@@ -45,7 +45,7 @@ echo "Informe os dados exibidos no painel Admin > Edge Devices."
 echo ""
 
 # --- Coletar dados ---
-printf "Token do Edge Device (UUID): "
+printf "Token do Edge Device: "
 read -r EDGE_ID </dev/tty
 printf "Palavra-chave de instalação: "
 read -r INSTALL_PASS </dev/tty

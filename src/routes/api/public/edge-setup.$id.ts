@@ -8,11 +8,15 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
         const supabaseKey = process.env.SUPABASE_PUBLISHABLE_KEY!;
         const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-        const { data: device, error } = await supabaseAdmin
+        const idParam = params.id.trim();
+        const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(idParam);
+        const query = supabaseAdmin
           .from("edge_devices")
-          .select("id, name, hostname, edge_token, install_passphrase")
-          .eq("id", params.id)
-          .maybeSingle();
+          .select("id, name, hostname, edge_token, install_passphrase");
+        const { data: device, error } = await (isUuid
+          ? query.eq("id", idParam)
+          : query.eq("edge_token", idParam.toUpperCase())
+        ).maybeSingle();
 
         if (error || !device) {
           return new Response("# Edge device not found\nexit 1\n", {
@@ -22,8 +26,8 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
         }
 
         // Exige palavra-chave de instalação (enviada pelo installer interativo)
-        const providedPassphrase = request.headers.get("x-install-passphrase") || "";
-        const expected = (device as any).install_passphrase || "";
+        const providedPassphrase = (request.headers.get("x-install-passphrase") || "").trim().toLowerCase();
+        const expected = ((device as any).install_passphrase || "").trim().toLowerCase();
         if (!providedPassphrase || providedPassphrase !== expected) {
           return new Response(
             "# Palavra-chave de instalação ausente ou incorreta.\n" +
