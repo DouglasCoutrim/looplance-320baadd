@@ -94,6 +94,18 @@ function ArenaView() {
     })();
   }, [authChecked, arenaId]);
 
+  // Auto-open live dialog when ?live=<quadraId>
+  useEffect(() => {
+    if (!liveParam || !quadras.length) return;
+    const q = quadras.find((x) => x.id === liveParam);
+    if (q) {
+      setDefaultTab("live");
+      setLiveQuadra(q);
+    }
+  }, [liveParam, quadras]);
+
+
+
   // Realtime: new replays for this arena
   useEffect(() => {
     if (!authChecked) return;
