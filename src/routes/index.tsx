@@ -67,7 +67,29 @@ function Home() {
     fetchReplays();
     fetchFeatured();
     fetchSponsors();
+    fetchLive();
+    const iv = setInterval(fetchLive, 30000);
+    return () => clearInterval(iv);
   }, [authChecked]);
+
+  const fetchLive = async () => {
+    const { data } = await supabase
+      .from("cameras")
+      .select("quadra_id, streaming_status, quadras(id, nome, arena_id, arenas(id, nome))")
+      .in("streaming_status", ["online", "streaming", "live"]);
+    const list = (data ?? [])
+      .map((c: any) => {
+        const q = c.quadras;
+        const a = q?.arenas;
+        if (!q || !a) return null;
+        return { quadra_id: q.id, quadra_nome: q.nome, arena_id: a.id, arena_nome: a.nome };
+      })
+      .filter(Boolean) as Array<{ quadra_id: string; quadra_nome: string; arena_id: string; arena_nome: string }>;
+    // Dedup por quadra
+    const seen = new Set<string>();
+    setLiveList(list.filter((x) => (seen.has(x.quadra_id) ? false : seen.add(x.quadra_id))));
+  };
+
 
   const fetchFeatured = async () => {
     const { data } = await supabase
