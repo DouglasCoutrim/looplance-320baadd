@@ -41,12 +41,35 @@ export const Route = createFileRoute("/api/public/edge/config")({
             botoeiras = data ?? [];
           }
 
+          // Resolve arena_id por câmera via quadra (fallback quando o edge
+          // device não tem arena_id gravado). Isso garante que o LiveStreamer
+          // gere a key correta em live/{arena_id}/{quadra_id}/...
+          const quadraIds = Array.from(
+            new Set((cameras ?? []).map((c) => c.quadra_id).filter(Boolean) as string[]),
+          );
+          const arenaByQuadra = new Map<string, string>();
+          if (quadraIds.length > 0) {
+            const { data: quadras, error: qErr } = await supabaseAdmin
+              .from("quadras")
+              .select("id, arena_id")
+              .in("id", quadraIds);
+            if (qErr) throw new EdgeAuthError(`Erro lendo quadras: ${qErr.message}`, 500);
+            (quadras ?? []).forEach((q) => {
+              if (q.arena_id) arenaByQuadra.set(q.id, q.arena_id);
+            });
+          }
+
           return Response.json({
             device: { id: device.id, arena_id: device.arena_id, name: device.name },
-            cameras: (cameras ?? []).map((c) => ({ ...c, arena_id: device.arena_id })),
+            cameras: (cameras ?? []).map((c) => ({
+              ...c,
+              arena_id:
+                device.arena_id ?? (c.quadra_id ? arenaByQuadra.get(c.quadra_id) ?? null : null),
+            })),
             input_boards: boards ?? [],
             botoeiras,
           });
+
         } catch (err) {
           if (err instanceof EdgeAuthError) {
             return Response.json({ error: err.message }, { status: err.status });
