@@ -35,6 +35,8 @@ class CameraConfig:
     video_width: int
     video_height: int
     active: bool
+    arena_id: str | None = None
+
 
 
 @dataclass
