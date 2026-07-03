@@ -175,7 +175,18 @@ class EdgeAgent:
                     api_client.report_camera_status(
                         self.settings, camera_id=cam.id, streaming_status="online",
                     )
+
+                # Watchdog do live HLS
+                live = self.livers.get(cam.id)
+                if live and not live.is_alive():
+                    log.warning("[%s] live HLS caiu, reiniciando", cam.name)
+                    try:
+                        live.stop()
+                        live.start()
+                    except Exception:  # noqa: BLE001
+                        log.exception("[%s] falha ao reiniciar live HLS", cam.name)
             _shutdown.wait(15)
+
 
 
 def main() -> None:
