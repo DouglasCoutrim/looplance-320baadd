@@ -204,9 +204,15 @@ function Home() {
       ) : (
 
       <main className="mx-auto max-w-2xl space-y-8 px-6 pb-24 pt-10">
-        {/* Hero compact banner */}
-        <section className="relative overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10">
-          <div className="h-32 sm:h-40 w-full overflow-hidden relative">
+        {/* Hero player — auto-adapts to video aspect (16:9 or 9:16) */}
+        <section className="relative mx-auto overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10"
+          style={{
+            aspectRatio: (aspects[featuredReplays[currentSlide]?.id ?? ""] ?? 16 / 9),
+            maxHeight: "70vh",
+            width: (aspects[featuredReplays[currentSlide]?.id ?? ""] ?? 16 / 9) < 1 ? "min(100%, 56vh)" : "100%",
+          }}
+        >
+          <div className="absolute inset-0">
             {featuredReplays.length > 0 ? (
               featuredReplays.map((replay, idx) => (
                 <div
@@ -219,7 +225,15 @@ function Home() {
                     muted
                     loop
                     playsInline
-                    className="h-full w-full object-cover"
+                    onLoadedMetadata={(e) => {
+                      const v = e.currentTarget;
+                      if (v.videoWidth && v.videoHeight) {
+                        setAspects((prev) =>
+                          prev[replay.id] ? prev : { ...prev, [replay.id]: v.videoWidth / v.videoHeight }
+                        );
+                      }
+                    }}
+                    className="h-full w-full object-contain bg-black"
                   />
                 </div>
               ))
@@ -227,9 +241,10 @@ function Home() {
               <div className="absolute inset-0 brand-gradient opacity-20" />
             )}
 
-            <div className="absolute inset-0 bg-gradient-to-r from-black/85 via-black/40 to-black/70" />
+            <div className="pointer-events-none absolute inset-x-0 top-0 h-1/3 bg-gradient-to-b from-black/70 to-transparent" />
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
 
-            <div className="absolute inset-0 flex flex-col justify-center px-5">
+            <div className="absolute inset-x-0 bottom-0 flex flex-col px-5 pb-6">
               <h1 className="text-xl sm:text-2xl font-black leading-tight tracking-tight text-white drop-shadow">
                 Seus lances <span className="brand-text">em loop.</span>
               </h1>
@@ -250,6 +265,7 @@ function Home() {
             )}
           </div>
         </section>
+
 
         {/* Live now — horizontal scroll */}
         <section className="space-y-3">
