@@ -43,7 +43,7 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
         const origin = new URL(request.url).origin;
         const deviceName = (device.name || "looplance-edge").replace(/[^a-zA-Z0-9-]/g, "-").toLowerCase();
         const token = device.edge_token || "";
-        // Escapa aspas simples para injeção segura em heredoc 'EOF' + .env estilo dotenv.
+        // Escapa aspas simples para injeção segura em strings shell single-quoted.
         const sq = (v: string) => String(v ?? "").replace(/'/g, "'\\''");
 
 
@@ -88,29 +88,27 @@ mkdir -p /etc/looplance /var/log/looplance /var/lib/looplance /opt/looplance-edg
 chown -R looplance:looplance /opt/looplance-edge /dev/shm/looplance /var/lib/looplance
 
 # --- 3. Arquivo de ambiente ---
-# IMPORTANTE: usamos heredoc 'EOF' (aspas simples) para que bash NÃO expanda
-# $ / \` / \\ dentro dos valores. Os secrets (especialmente R2) são inseridos
-# literalmente pelo backend, entre aspas simples, o que casa com a forma
-# como python-dotenv desserializa a linha.
+# IMPORTANTE: não usamos heredoc aqui. Cada linha é escrita com printf e
+# valores single-quoted para evitar expansão/truncamento de secrets R2 pelo bash.
 echo "[3/7] Escrevendo /etc/looplance/edge.env ..."
-cat > /etc/looplance/edge.env <<'LOOPLANCE_ENV_EOF'
-EDGE_DEVICE_ID='${sq(device.id)}'
-EDGE_TOKEN='${sq(token)}'
-EDGE_SHARED_SECRET='${sq(process.env.EDGE_SHARED_SECRET || "")}'
-API_BASE_URL='${sq(origin)}'
-SUPABASE_URL='${sq(supabaseUrl)}'
-SUPABASE_ANON_KEY='${sq(supabaseKey)}'
-R2_ACCESS_KEY_ID='${sq(process.env.R2_ACCESS_KEY_ID || "")}'
-R2_SECRET_ACCESS_KEY='${sq(process.env.R2_SECRET_ACCESS_KEY || "")}'
-R2_ENDPOINT_URL='${sq(process.env.R2_ENDPOINT_URL || "")}'
-R2_BUCKET_NAME='${sq(process.env.R2_BUCKET_NAME || "looplance-replays")}'
-R2_PUBLIC_BASE_URL='${sq(process.env.R2_PUBLIC_BASE_URL || "https://replays.looplance.app")}'
-R2_LIVE_BUCKET_NAME='${sq(process.env.R2_LIVE_BUCKET_NAME || "looplance-live")}'
-R2_LIVE_PUBLIC_BASE_URL='${sq(process.env.R2_LIVE_PUBLIC_BASE_URL || "https://download.looplance.app")}'
-RAM_BUFFER_DIR=/dev/shm/looplance
-HEARTBEAT_INTERVAL_SECONDS=30
-EDGE_VERSION=1.0.0
-LOOPLANCE_ENV_EOF
+{
+  printf '%s\n' 'EDGE_DEVICE_ID=${sq(device.id)}'
+  printf '%s\n' 'EDGE_TOKEN=${sq(token)}'
+  printf '%s\n' 'EDGE_SHARED_SECRET=${sq(process.env.EDGE_SHARED_SECRET || "")}'
+  printf '%s\n' 'API_BASE_URL=${sq(origin)}'
+  printf '%s\n' 'SUPABASE_URL=${sq(supabaseUrl)}'
+  printf '%s\n' 'SUPABASE_ANON_KEY=${sq(supabaseKey)}'
+  printf '%s\n' 'R2_ACCESS_KEY_ID=${sq(process.env.R2_ACCESS_KEY_ID || "")}'
+  printf '%s\n' 'R2_SECRET_ACCESS_KEY=${sq(process.env.R2_SECRET_ACCESS_KEY || "")}'
+  printf '%s\n' 'R2_ENDPOINT_URL=${sq(process.env.R2_ENDPOINT_URL || "")}'
+  printf '%s\n' 'R2_BUCKET_NAME=${sq(process.env.R2_LIVE_BUCKET_NAME || process.env.R2_BUCKET_NAME || "looplance-live")}'
+  printf '%s\n' 'R2_PUBLIC_BASE_URL=${sq(process.env.R2_LIVE_PUBLIC_BASE_URL || process.env.R2_PUBLIC_BASE_URL || "https://download.looplance.app")}'
+  printf '%s\n' 'R2_LIVE_BUCKET_NAME=${sq(process.env.R2_LIVE_BUCKET_NAME || "looplance-live")}'
+  printf '%s\n' 'R2_LIVE_PUBLIC_BASE_URL=${sq(process.env.R2_LIVE_PUBLIC_BASE_URL || "https://download.looplance.app")}'
+  printf '%s\n' 'RAM_BUFFER_DIR=/dev/shm/looplance'
+  printf '%s\n' 'HEARTBEAT_INTERVAL_SECONDS=30'
+  printf '%s\n' 'EDGE_VERSION=1.0.0'
+} > /etc/looplance/edge.env
 chmod 640 /etc/looplance/edge.env
 chown root:looplance /etc/looplance/edge.env
 
