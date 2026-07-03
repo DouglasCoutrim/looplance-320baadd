@@ -196,6 +196,19 @@ class EdgeAgent:
                         log.exception("[%s] falha ao reiniciar live HLS", cam.name)
             _shutdown.wait(15)
 
+    def _manual_trigger_loop(self) -> None:
+        """Polling curto para disparos manuais via painel (sem botoeira física)."""
+        while not _shutdown.is_set():
+            try:
+                triggers = api_client.fetch_pending_triggers(self.settings)
+                for t in triggers:
+                    cam_id = t.get("camera_id")
+                    if cam_id:
+                        self._trigger_by_camera_id(cam_id)
+            except Exception:  # noqa: BLE001
+                log.exception("erro no _manual_trigger_loop")
+            _shutdown.wait(3)
+
 
 
 def main() -> None:
