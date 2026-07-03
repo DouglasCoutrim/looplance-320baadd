@@ -64,6 +64,13 @@ EDGE_SHARED_SECRET="${process.env.EDGE_SHARED_SECRET || ""}"
 SUPABASE_URL="${supabaseUrl}"
 SUPABASE_ANON_KEY="${supabaseKey}"
 LOOPLANCE_API="${origin}"
+R2_ACCESS_KEY_ID="${process.env.R2_ACCESS_KEY_ID || ""}"
+R2_SECRET_ACCESS_KEY="${process.env.R2_SECRET_ACCESS_KEY || ""}"
+R2_ENDPOINT_URL="${process.env.R2_ENDPOINT_URL || ""}"
+R2_BUCKET_NAME="${process.env.R2_BUCKET_NAME || "looplance-replays"}"
+R2_PUBLIC_BASE_URL="${process.env.R2_PUBLIC_BASE_URL || "https://replays.looplance.app"}"
+R2_LIVE_BUCKET_NAME="${process.env.R2_LIVE_BUCKET_NAME || "looplance-live"}"
+R2_LIVE_PUBLIC_BASE_URL="${process.env.R2_LIVE_PUBLIC_BASE_URL || "https://download.looplance.app"}"
 
 fail() { echo ""; echo "[Looplance] ❌ ERRO: $*"; exit 1; }
 
