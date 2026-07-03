@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 
 
 export const Route = createFileRoute("/admin/monitoring")({
