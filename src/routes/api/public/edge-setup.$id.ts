@@ -43,6 +43,10 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
         const origin = new URL(request.url).origin;
         const deviceName = (device.name || "looplance-edge").replace(/[^a-zA-Z0-9-]/g, "-").toLowerCase();
         const token = device.edge_token || "";
+        // Escapa aspas simples para injeção segura em heredoc 'EOF' + .env estilo dotenv.
+        const sq = (v: string) => String(v ?? "").replace(/'/g, "'\\''");
+
+
 
         const script = `#!/usr/bin/env bash
 # =====================================================================
