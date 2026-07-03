@@ -29,10 +29,10 @@ import { Route as ApiPublicEdgeHeartbeatRouteImport } from './routes/api/public/
 import { Route as ApiPublicEdgeConfigRouteImport } from './routes/api/public/edge/config'
 import { Route as ApiPublicEdgeCameraStatusRouteImport } from './routes/api/public/edge/camera-status'
 import { Route as ApiPublicEdgeSetupIdRouteImport } from './routes/api/public/edge-setup.$id'
+import { Route as ApiPublicEdgeAgentUpdaterRouteImport } from './routes/api/public/edge-agent/updater'
 import { Route as ApiPublicEdgeAgentManifestRouteImport } from './routes/api/public/edge-agent/manifest'
 import { Route as ApiPublicEdgeAgentFileRouteImport } from './routes/api/public/edge-agent/file'
 import { Route as ApiPublicCronCleanupReplaysRouteImport } from './routes/api/public/cron/cleanup-replays'
-import { Route as ApiPublicEdgeAgentUpdaterShRouteImport } from './routes/api/public/edge-agent/updater.sh'
 
 const InstallRoute = InstallRouteImport.update({
   id: '/install',
@@ -135,6 +135,12 @@ const ApiPublicEdgeSetupIdRoute = ApiPublicEdgeSetupIdRouteImport.update({
   path: '/api/public/edge-setup/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPublicEdgeAgentUpdaterRoute =
+  ApiPublicEdgeAgentUpdaterRouteImport.update({
+    id: '/api/public/edge-agent/updater',
+    path: '/api/public/edge-agent/updater',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicEdgeAgentManifestRoute =
   ApiPublicEdgeAgentManifestRouteImport.update({
     id: '/api/public/edge-agent/manifest',
@@ -150,12 +156,6 @@ const ApiPublicCronCleanupReplaysRoute =
   ApiPublicCronCleanupReplaysRouteImport.update({
     id: '/api/public/cron/cleanup-replays',
     path: '/api/public/cron/cleanup-replays',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiPublicEdgeAgentUpdaterShRoute =
-  ApiPublicEdgeAgentUpdaterShRouteImport.update({
-    id: '/api/public/edge-agent/updater/sh',
-    path: '/api/public/edge-agent/updater/sh',
     getParentRoute: () => rootRouteImport,
   } as any)
 
@@ -178,12 +178,12 @@ export interface FileRoutesByFullPath {
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-agent/file': typeof ApiPublicEdgeAgentFileRoute
   '/api/public/edge-agent/manifest': typeof ApiPublicEdgeAgentManifestRoute
+  '/api/public/edge-agent/updater': typeof ApiPublicEdgeAgentUpdaterRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
   '/api/public/edge/config': typeof ApiPublicEdgeConfigRoute
   '/api/public/edge/heartbeat': typeof ApiPublicEdgeHeartbeatRoute
   '/api/public/edge/replay': typeof ApiPublicEdgeReplayRoute
-  '/api/public/edge-agent/updater/sh': typeof ApiPublicEdgeAgentUpdaterShRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -203,12 +203,12 @@ export interface FileRoutesByTo {
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-agent/file': typeof ApiPublicEdgeAgentFileRoute
   '/api/public/edge-agent/manifest': typeof ApiPublicEdgeAgentManifestRoute
+  '/api/public/edge-agent/updater': typeof ApiPublicEdgeAgentUpdaterRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
   '/api/public/edge/config': typeof ApiPublicEdgeConfigRoute
   '/api/public/edge/heartbeat': typeof ApiPublicEdgeHeartbeatRoute
   '/api/public/edge/replay': typeof ApiPublicEdgeReplayRoute
-  '/api/public/edge-agent/updater/sh': typeof ApiPublicEdgeAgentUpdaterShRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -230,12 +230,12 @@ export interface FileRoutesById {
   '/api/public/cron/cleanup-replays': typeof ApiPublicCronCleanupReplaysRoute
   '/api/public/edge-agent/file': typeof ApiPublicEdgeAgentFileRoute
   '/api/public/edge-agent/manifest': typeof ApiPublicEdgeAgentManifestRoute
+  '/api/public/edge-agent/updater': typeof ApiPublicEdgeAgentUpdaterRoute
   '/api/public/edge-setup/$id': typeof ApiPublicEdgeSetupIdRoute
   '/api/public/edge/camera-status': typeof ApiPublicEdgeCameraStatusRoute
   '/api/public/edge/config': typeof ApiPublicEdgeConfigRoute
   '/api/public/edge/heartbeat': typeof ApiPublicEdgeHeartbeatRoute
   '/api/public/edge/replay': typeof ApiPublicEdgeReplayRoute
-  '/api/public/edge-agent/updater/sh': typeof ApiPublicEdgeAgentUpdaterShRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -258,12 +258,12 @@ export interface FileRouteTypes {
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-agent/file'
     | '/api/public/edge-agent/manifest'
+    | '/api/public/edge-agent/updater'
     | '/api/public/edge-setup/$id'
     | '/api/public/edge/camera-status'
     | '/api/public/edge/config'
     | '/api/public/edge/heartbeat'
     | '/api/public/edge/replay'
-    | '/api/public/edge-agent/updater/sh'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -283,12 +283,12 @@ export interface FileRouteTypes {
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-agent/file'
     | '/api/public/edge-agent/manifest'
+    | '/api/public/edge-agent/updater'
     | '/api/public/edge-setup/$id'
     | '/api/public/edge/camera-status'
     | '/api/public/edge/config'
     | '/api/public/edge/heartbeat'
     | '/api/public/edge/replay'
-    | '/api/public/edge-agent/updater/sh'
   id:
     | '__root__'
     | '/'
@@ -309,12 +309,12 @@ export interface FileRouteTypes {
     | '/api/public/cron/cleanup-replays'
     | '/api/public/edge-agent/file'
     | '/api/public/edge-agent/manifest'
+    | '/api/public/edge-agent/updater'
     | '/api/public/edge-setup/$id'
     | '/api/public/edge/camera-status'
     | '/api/public/edge/config'
     | '/api/public/edge/heartbeat'
     | '/api/public/edge/replay'
-    | '/api/public/edge-agent/updater/sh'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -327,12 +327,12 @@ export interface RootRouteChildren {
   ApiPublicCronCleanupReplaysRoute: typeof ApiPublicCronCleanupReplaysRoute
   ApiPublicEdgeAgentFileRoute: typeof ApiPublicEdgeAgentFileRoute
   ApiPublicEdgeAgentManifestRoute: typeof ApiPublicEdgeAgentManifestRoute
+  ApiPublicEdgeAgentUpdaterRoute: typeof ApiPublicEdgeAgentUpdaterRoute
   ApiPublicEdgeSetupIdRoute: typeof ApiPublicEdgeSetupIdRoute
   ApiPublicEdgeCameraStatusRoute: typeof ApiPublicEdgeCameraStatusRoute
   ApiPublicEdgeConfigRoute: typeof ApiPublicEdgeConfigRoute
   ApiPublicEdgeHeartbeatRoute: typeof ApiPublicEdgeHeartbeatRoute
   ApiPublicEdgeReplayRoute: typeof ApiPublicEdgeReplayRoute
-  ApiPublicEdgeAgentUpdaterShRoute: typeof ApiPublicEdgeAgentUpdaterShRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -477,6 +477,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPublicEdgeSetupIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/edge-agent/updater': {
+      id: '/api/public/edge-agent/updater'
+      path: '/api/public/edge-agent/updater'
+      fullPath: '/api/public/edge-agent/updater'
+      preLoaderRoute: typeof ApiPublicEdgeAgentUpdaterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/edge-agent/manifest': {
       id: '/api/public/edge-agent/manifest'
       path: '/api/public/edge-agent/manifest'
@@ -496,13 +503,6 @@ declare module '@tanstack/react-router' {
       path: '/api/public/cron/cleanup-replays'
       fullPath: '/api/public/cron/cleanup-replays'
       preLoaderRoute: typeof ApiPublicCronCleanupReplaysRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/public/edge-agent/updater/sh': {
-      id: '/api/public/edge-agent/updater/sh'
-      path: '/api/public/edge-agent/updater/sh'
-      fullPath: '/api/public/edge-agent/updater/sh'
-      preLoaderRoute: typeof ApiPublicEdgeAgentUpdaterShRouteImport
       parentRoute: typeof rootRouteImport
     }
   }
@@ -544,12 +544,12 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicCronCleanupReplaysRoute: ApiPublicCronCleanupReplaysRoute,
   ApiPublicEdgeAgentFileRoute: ApiPublicEdgeAgentFileRoute,
   ApiPublicEdgeAgentManifestRoute: ApiPublicEdgeAgentManifestRoute,
+  ApiPublicEdgeAgentUpdaterRoute: ApiPublicEdgeAgentUpdaterRoute,
   ApiPublicEdgeSetupIdRoute: ApiPublicEdgeSetupIdRoute,
   ApiPublicEdgeCameraStatusRoute: ApiPublicEdgeCameraStatusRoute,
   ApiPublicEdgeConfigRoute: ApiPublicEdgeConfigRoute,
   ApiPublicEdgeHeartbeatRoute: ApiPublicEdgeHeartbeatRoute,
   ApiPublicEdgeReplayRoute: ApiPublicEdgeReplayRoute,
-  ApiPublicEdgeAgentUpdaterShRoute: ApiPublicEdgeAgentUpdaterShRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
