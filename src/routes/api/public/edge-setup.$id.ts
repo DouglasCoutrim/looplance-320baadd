@@ -111,10 +111,9 @@ RAM_BUFFER_DIR=/dev/shm/looplance
 HEARTBEAT_INTERVAL_SECONDS=30
 EDGE_VERSION=1.0.0
 LOOPLANCE_ENV_EOF
-
-EOF
 chmod 640 /etc/looplance/edge.env
 chown root:looplance /etc/looplance/edge.env
+
 
 # Mantém uma cópia acessível em /opt/looplance-edge/.env (mesmas credenciais)
 cp /etc/looplance/edge.env /opt/looplance-edge/.env
