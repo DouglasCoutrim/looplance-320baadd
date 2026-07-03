@@ -375,7 +375,7 @@ function EdgeDevices() {
                       </div>
                       <div>
                         <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{device.name}</span>
-                        <p className="text-xs font-medium text-muted-foreground">Token: {device.edge_token?.slice(0, 8)}...</p>
+                        <p className="text-xs font-mono font-bold text-muted-foreground tracking-widest">Token: {device.edge_token ?? "—"}</p>
                       </div>
                     </div>
                   </TableCell>
