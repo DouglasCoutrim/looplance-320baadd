@@ -58,10 +58,15 @@ class Settings:
     r2_access_key_id: str
     r2_secret_access_key: str
     r2_public_base_url: str
+    r2_live_bucket_name: str
+    r2_live_public_base_url: str
     ram_buffer_dir: Path
     segment_seconds: int
+    hls_segment_seconds: int
+    hls_list_size: int
     heartbeat_interval_seconds: int
     edge_version: str
+
     hostname: str = field(default_factory=socket.gethostname)
 
     cameras: list[CameraConfig] = field(default_factory=list)
