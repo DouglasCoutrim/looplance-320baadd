@@ -41,7 +41,13 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     replay_seconds = camera.replay_seconds
 
     filter_complex = None
-    inputs = ["-f", "concat", "-safe", "0", "-i", str(concat_list)]
+    # -sseof é INPUT option: precisa vir ANTES do -i correspondente.
+    # Aplica só ao concat (primeiro input), pega os últimos N segundos.
+    inputs = [
+        "-sseof", f"-{replay_seconds}",
+        "-f", "concat", "-safe", "0",
+        "-i", str(concat_list),
+    ]
 
     if overlay_url:
         inputs += ["-i", overlay_url]
@@ -57,7 +63,6 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
         cmd += ["-filter_complex", filter_complex, "-map", "0:a?"]
     cmd += [
         "-t", str(replay_seconds),
-        "-sseof", f"-{replay_seconds}",
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",
         "-c:a", "aac",
         "-movflags", "+faststart",
