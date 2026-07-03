@@ -13,6 +13,9 @@ import { Toaster, toast } from "sonner";
 
 export const Route = createFileRoute("/arena/$id")({
   component: ArenaView,
+  validateSearch: (s: Record<string, unknown>) => ({
+    live: typeof s.live === "string" ? (s.live as string) : undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Arena — Looplance" },
@@ -20,6 +23,7 @@ export const Route = createFileRoute("/arena/$id")({
     ],
   }),
 });
+
 
 interface Arena {
   id: string;
