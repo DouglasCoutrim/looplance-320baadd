@@ -1,7 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Activity, HardDrive, Play, Wifi, WifiOff, Clock, Cpu, MemoryStick, Thermometer, ArrowDownUp } from "lucide-react";
+import {
+  Activity,
+  HardDrive,
+  Play,
+  Wifi,
+  WifiOff,
+  Clock,
+  Cpu,
+  MemoryStick,
+  Thermometer,
+  ArrowDownUp,
+  Server,
+} from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
