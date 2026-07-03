@@ -836,6 +836,7 @@ export type Database = {
           replay_id: string
         }[]
       }
+      fn_generate_edge_token: { Args: never; Returns: string }
       fn_generate_install_passphrase: { Args: never; Returns: string }
       fn_get_camera_for_replay: { Args: { p_quadra_id: string }; Returns: Json }
       fn_is_edge_client_active: {
