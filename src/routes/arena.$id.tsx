@@ -191,7 +191,7 @@ function ArenaView() {
         </section>
 
         {/* Tabs */}
-        <Tabs defaultValue="replays" className="w-full">
+        <Tabs value={defaultTab} onValueChange={setDefaultTab} className="w-full">
           <TabsList className="grid w-full grid-cols-2 rounded-2xl border border-white/10 bg-white/5 p-1 backdrop-blur">
             <TabsTrigger
               value="replays"
