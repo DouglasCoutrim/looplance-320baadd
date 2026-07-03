@@ -26,8 +26,8 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
         }
 
         // Exige palavra-chave de instalação (enviada pelo installer interativo)
-        const providedPassphrase = request.headers.get("x-install-passphrase") || "";
-        const expected = (device as any).install_passphrase || "";
+        const providedPassphrase = (request.headers.get("x-install-passphrase") || "").trim().toLowerCase();
+        const expected = ((device as any).install_passphrase || "").trim().toLowerCase();
         if (!providedPassphrase || providedPassphrase !== expected) {
           return new Response(
             "# Palavra-chave de instalação ausente ou incorreta.\n" +
