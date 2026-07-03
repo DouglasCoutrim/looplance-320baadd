@@ -71,110 +71,118 @@ echo "  LOOPLANCE EDGE - Provisionamento Iniciado"
 echo "  Device: $DEVICE_NAME"
 echo "============================================="
 echo ""
-
-# --- 1. Atualizar sistema ---
-echo "[1/6] Atualizando pacotes do sistema..."
+# --- 1. Atualizar sistema e dependências ---
+echo "[1/6] Atualizando pacotes e instalando dependências..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get upgrade -y
+apt-get install -y ffmpeg curl jq git ca-certificates python3 python3-venv python3-pip openssl ufw
 
-# --- 2. Dependências base ---
-echo "[2/6] Instalando dependências base (ffmpeg, curl, jq, git)..."
-apt-get install -y ffmpeg curl jq git ca-certificates gnupg lsb-release ufw
+# --- 2. Usuário e diretórios ---
+echo "[2/6] Preparando usuário e diretórios..."
+id -u looplance &>/dev/null || useradd --system --no-create-home --shell /usr/sbin/nologin looplance
+usermod -aG input,plugdev looplance || true
+mkdir -p /etc/looplance /var/log/looplance /var/lib/looplance /opt/looplance-edge /dev/shm/looplance
+chown -R looplance:looplance /opt/looplance-edge /dev/shm/looplance /var/lib/looplance
 
-# --- 3. Docker ---
-if ! command -v docker >/dev/null 2>&1; then
-  echo "[3/6] Instalando Docker..."
-  install -m 0755 -d /etc/apt/keyrings
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  chmod a+r /etc/apt/keyrings/docker.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
-    > /etc/apt/sources.list.d/docker.list
-  apt-get update -y
-  apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-  systemctl enable --now docker
-else
-  echo "[3/6] Docker já instalado, pulando."
-fi
-
-# --- 4. Configuração ---
-echo "[4/6] Gravando configuração em /etc/looplance/edge.env ..."
-mkdir -p /etc/looplance /var/log/looplance /var/lib/looplance/replays
+# --- 3. Configuração ---
+echo "[3/6] Gravando /etc/looplance/edge.env ..."
 cat > /etc/looplance/edge.env <<EOF
-DEVICE_ID=$DEVICE_ID
-DEVICE_NAME=$DEVICE_NAME
+EDGE_DEVICE_ID=$DEVICE_ID
 EDGE_TOKEN=$EDGE_TOKEN
 EDGE_SHARED_SECRET=$EDGE_SHARED_SECRET
+API_BASE_URL=$LOOPLANCE_API
 SUPABASE_URL=$SUPABASE_URL
 SUPABASE_ANON_KEY=$SUPABASE_ANON_KEY
-LOOPLANCE_API=$LOOPLANCE_API
+RAM_BUFFER_DIR=/dev/shm/looplance
+HEARTBEAT_INTERVAL_SECONDS=30
+EDGE_VERSION=1.0.0
 EOF
-chmod 600 /etc/looplance/edge.env
+chmod 640 /etc/looplance/edge.env
+chown root:looplance /etc/looplance/edge.env
 
-# --- 5. Heartbeat (systemd) ---
-echo "[5/6] Instalando serviço de heartbeat..."
-cat > /usr/local/bin/looplance-heartbeat.sh <<'HEART'
-#!/usr/bin/env bash
-set -e
-source /etc/looplance/edge.env
-while true; do
-  HOSTNAME_LOCAL="$(hostname)"
-  IP_LOCAL="$(hostname -I | awk '{print $1}')"
-  UPTIME_SEC="$(awk '{print int($1)}' /proc/uptime)"
-  BODY=$(jq -cn \
-    --arg h "$HOSTNAME_LOCAL" \
-    --arg ip "$IP_LOCAL" \
-    --arg v "edge-0.1.0" \
-    --argjson u "$UPTIME_SEC" \
-    '{hostname:$h, local_ip:$ip, edge_version:$v, uptime_seconds:$u}')
-  TS="$(date +%s000)"
-  SIG=$(printf '%s' "$TS.$BODY" | openssl dgst -sha256 -hmac "$EDGE_SHARED_SECRET" -hex | awk '{print $2}')
-  curl -sS -X POST \
-    -H "Authorization: Bearer $EDGE_TOKEN" \
-    -H "X-Edge-Timestamp: $TS" \
-    -H "X-Edge-Signature: $SIG" \
-    -H "Content-Type: application/json" \
-    "$LOOPLANCE_API/api/public/edge/heartbeat" \
-    --data-raw "$BODY" \
-    >> /var/log/looplance/heartbeat.log 2>&1 || true
-  sleep 60
-done
-HEART
+# --- 4. Virtualenv Python ---
+echo "[4/6] Criando virtualenv do agent..."
+if [ ! -x /opt/looplance-edge/venv/bin/python ]; then
+  python3 -m venv /opt/looplance-edge/venv
+  /opt/looplance-edge/venv/bin/pip install --upgrade pip
+fi
+chown -R looplance:looplance /opt/looplance-edge/venv
 
-chmod +x /usr/local/bin/looplance-heartbeat.sh
+# --- 5. Auto-updater (mantém o agent sempre sincronizado com o backend) ---
+echo "[5/6] Instalando auto-updater..."
+curl -fsSL "$LOOPLANCE_API/api/public/edge-agent/updater" -o /usr/local/bin/looplance-update.sh
+chmod +x /usr/local/bin/looplance-update.sh
 
-cat > /etc/systemd/system/looplance-heartbeat.service <<EOF
+cat > /etc/systemd/system/looplance-updater.service <<'EOF'
 [Unit]
-Description=Looplance Edge Heartbeat
+Description=Looplance Edge Agent auto-updater
 After=network-online.target
 Wants=network-online.target
 
 [Service]
+Type=oneshot
+ExecStart=/usr/local/bin/looplance-update.sh
+EOF
+
+cat > /etc/systemd/system/looplance-updater.timer <<'EOF'
+[Unit]
+Description=Roda o looplance-updater periodicamente
+
+[Timer]
+OnBootSec=30s
+OnUnitActiveSec=5min
+Unit=looplance-updater.service
+
+[Install]
+WantedBy=timers.target
+EOF
+
+cat > /etc/systemd/system/looplance-edge.service <<'EOF'
+[Unit]
+Description=Looplance Edge Agent
+After=network-online.target looplance-updater.service
+Wants=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
 Type=simple
+User=looplance
+Group=looplance
+WorkingDirectory=/opt/looplance-edge
 EnvironmentFile=/etc/looplance/edge.env
-ExecStart=/usr/local/bin/looplance-heartbeat.sh
+ExecStart=/opt/looplance-edge/venv/bin/python /opt/looplance-edge/main.py
 Restart=always
-RestartSec=10
+RestartSec=5
+Nice=-5
+LimitNOFILE=65536
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=looplance-edge
 
 [Install]
 WantedBy=multi-user.target
 EOF
 
 systemctl daemon-reload
-systemctl enable --now looplance-heartbeat.service
 
-# --- 6. Firewall básico ---
-echo "[6/6] Configurando firewall (SSH + RTMP)..."
+# Executa o updater imediatamente para baixar o agent pela primeira vez.
+echo "[6/6] Baixando código do agent via updater..."
+/usr/local/bin/looplance-update.sh || true
+
+systemctl enable --now looplance-updater.timer
+systemctl enable looplance-edge.service
+systemctl restart looplance-edge.service || true
+
 ufw allow OpenSSH || true
-ufw allow 1935/tcp || true
-ufw allow 8554/tcp || true
 yes | ufw enable || true
 
 echo ""
 echo "============================================="
 echo "  ✅ Looplance Edge provisionado com sucesso!"
 echo "  Device: $DEVICE_NAME"
-echo "  Heartbeat: systemctl status looplance-heartbeat"
+echo "  Agent:     systemctl status looplance-edge"
+echo "  Updater:   systemctl list-timers looplance-updater.timer"
+echo "  Auto-update a cada 5 minutos."
 echo "============================================="
 `;
 
