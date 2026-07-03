@@ -1,11 +1,12 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { Sparkles, Play, Trophy, LayoutDashboard, User as UserIcon } from "lucide-react";
+import { Sparkles, Play, Trophy, LayoutDashboard, User as UserIcon, Radio } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
 import { ReplayCard } from "@/components/ReplayCard";
+
 
 export const Route = createFileRoute("/")({
   component: Home,
