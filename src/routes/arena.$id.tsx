@@ -304,7 +304,7 @@ function LivePlayerDialog({
   status: string;
   onClose: () => void;
 }) {
-  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
   const [streamError, setStreamError] = useState<string | null>(null);
   const dbOnline = status === "online" || status === "streaming" || status === "live";
@@ -314,8 +314,7 @@ function LivePlayerDialog({
   // fails we surface a friendly message, but we never gate mount on `online`.
   useEffect(() => {
     if (!quadra) return;
-    const video = videoRef.current;
-    if (!video) return;
+    if (!videoEl) return;
 
     setStreamError(null);
     const base = `https://live.izyia.com.br/live/${arenaId}/${quadra.id}/index.m3u8`;
@@ -335,28 +334,28 @@ function LivePlayerDialog({
         // non-simple headers and would trigger a CORS preflight that R2
         // (with its wildcard CORS) does not support.
       });
-      hls.loadSource(src);
-      hls.attachMedia(video);
+      hls.attachMedia(videoEl);
+      hls.on(Hls.Events.MEDIA_ATTACHED, () => {
+        hls?.loadSource(src);
+        videoEl.play().catch(() => {});
+      });
       hls.on(Hls.Events.ERROR, (_e, data) => {
         if (data.fatal) {
           setStreamError("Transmissão indisponível no momento.");
         }
       });
       hlsRef.current = hls;
-    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-      video.src = src;
-      video.addEventListener("error", () => setStreamError("Transmissão indisponível no momento."));
+    } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+      videoEl.src = src;
+      videoEl.addEventListener("error", () => setStreamError("Transmissão indisponível no momento."));
+      videoEl.play().catch(() => {});
     }
-
-
-    // Try to play — some browsers block autoplay without a gesture; that's OK.
-    video.play().catch(() => {});
 
     return () => {
       hls?.destroy();
       hlsRef.current = null;
     };
-  }, [quadra, arenaId]);
+  }, [quadra, arenaId, videoEl]);
 
   return (
     <Dialog.Root open={!!quadra} onOpenChange={(o) => !o && onClose()}>
@@ -381,7 +380,7 @@ function LivePlayerDialog({
 
             <div className="relative aspect-video w-full bg-black">
               <video
-                ref={videoRef}
+                ref={setVideoEl}
                 controls
                 autoPlay
                 playsInline
