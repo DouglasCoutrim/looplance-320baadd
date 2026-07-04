@@ -168,7 +168,7 @@ function Cameras() {
       return;
     }
 
-    const payload: Record<string, any> = {
+    const payload = {
       name: formData.name,
       rtsp_url: formData.rtsp_url,
       quadra_id: formData.quadra_id,
@@ -178,6 +178,7 @@ function Cameras() {
       replay_seconds: parseInt(formData.replay_seconds),
       active: formData.active,
       stream_protocol: formData.stream_protocol,
+      protocol_settings: null as any,
     };
 
     if (formData.stream_protocol === "rtsp") {
