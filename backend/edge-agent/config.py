@@ -140,8 +140,8 @@ def load_settings() -> Settings:
         r2_public_base_url=req("R2_PUBLIC_BASE_URL").rstrip("/"),
         r2_live_bucket_name=get_env("R2_LIVE_BUCKET_NAME", "looplance-live") or "looplance-live",
         r2_live_public_base_url=(get_env(
-            "R2_LIVE_PUBLIC_BASE_URL", "https://download.looplance.app"
-        ) or "https://download.looplance.app").rstrip("/"),
+            "R2_LIVE_PUBLIC_BASE_URL", "https://live.izyia.com.br"
+        ) or "https://live.izyia.com.br").rstrip("/"),
         ram_buffer_dir=Path(get_env("RAM_BUFFER_DIR", "/dev/shm/looplance") or "/dev/shm/looplance"),
         segment_seconds=int(get_env("SEGMENT_SECONDS", "2") or "2"),
         hls_segment_seconds=int(get_env("HLS_SEGMENT_SECONDS", "2") or "2"),
