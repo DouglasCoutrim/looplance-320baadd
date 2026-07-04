@@ -11,6 +11,7 @@ import {
   Activity,
   Users,
   Building2,
+  Play,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
@@ -43,6 +44,7 @@ function AdminLayout() {
   const navItems = [
     { to: "/admin", label: "Visão Geral", icon: LayoutDashboard },
     { to: "/admin/monitoring", label: "Monitoramento", icon: Activity },
+    { to: "/admin/replays", label: "Replays", icon: Play },
     { to: "/admin/users", label: "Usuários", icon: Users },
     { to: "/admin/clients", label: "Clientes", icon: Building2 },
     { to: "/admin/edge-devices", label: "Edge Devices", icon: HardDrive },
