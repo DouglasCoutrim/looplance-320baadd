@@ -134,10 +134,8 @@ function ArenaView() {
     };
   }, [authChecked, arenaId]);
 
-  const statusFor = (quadraId: string) => {
-    const cam = cameras.find((c) => c.quadra_id === quadraId);
-    return cam?.streaming_status ?? "offline";
-  };
+  const cameraFor = (quadraId: string) => cameras.find((c) => c.quadra_id === quadraId);
+  const statusFor = (quadraId: string) => cameraFor(quadraId)?.streaming_status ?? "offline";
 
   return (
     <div className="min-h-screen bg-black text-white">
