@@ -334,9 +334,9 @@ function LivePlayerDialog({
         // non-simple headers and would trigger a CORS preflight that R2
         // (with its wildcard CORS) does not support.
       });
+      hls.loadSource(src);
       hls.attachMedia(videoEl);
-      hls.on(Hls.Events.MEDIA_ATTACHED, () => {
-        hls?.loadSource(src);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
         videoEl.play().catch(() => {});
       });
       hls.on(Hls.Events.ERROR, (_e, data) => {
