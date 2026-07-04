@@ -46,7 +46,12 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
 
         // O env é escrito no servidor como NAME_B64 para que nenhum caractere
         // especial das chaves R2 seja interpretado/cortado por bash, systemd ou dotenv.
-        const b64 = (v: string) => Buffer.from(String(v ?? ""), "utf8").toString("base64");
+        const b64 = (v: string) => {
+          const bytes = new TextEncoder().encode(String(v ?? ""));
+          let binary = "";
+          for (const byte of bytes) binary += String.fromCharCode(byte);
+          return btoa(binary);
+        };
         const envB64 = (name: string, value: string) => `${name}_B64=${b64(value)}`;
         const envRaw = (name: string, value: string) => `${name}=${value}`;
         const envFile = [
@@ -114,8 +119,8 @@ mkdir -p /etc/looplance /var/log/looplance /var/lib/looplance /opt/looplance-edg
 chown -R looplance:looplance /opt/looplance-edge /dev/shm/looplance /var/lib/looplance
 
 # --- 3. Arquivo de ambiente ---
-# IMPORTANTE: não usamos heredoc aqui. Cada linha é escrita com printf e
-# valores single-quoted para evitar expansão/truncamento de secrets R2 pelo bash.
+# IMPORTANTE: não usamos heredoc nem interpolação de secrets aqui.
+# O backend já gerou este arquivo em base64 para evitar corrupção das chaves R2.
 echo "[3/7] Escrevendo /etc/looplance/edge.env ..."
 printf '%s' '${envFileB64}' | base64 -d > /etc/looplance/edge.env
 chmod 640 /etc/looplance/edge.env
