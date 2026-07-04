@@ -53,6 +53,7 @@ function AdminLayout() {
     { to: "/admin/cameras", label: "Cameras", icon: Camera },
     { to: "/admin/arenas", label: "Arenas", icon: Tv },
     { to: "/admin/quadras", label: "Quadras", icon: Tv },
+    { to: "/admin/terminal", label: "Terminal", icon: Terminal },
   ];
 
   // Close mobile menu on route change
