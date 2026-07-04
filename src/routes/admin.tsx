@@ -12,6 +12,7 @@ import {
   Users,
   Building2,
   Play,
+  Terminal,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
