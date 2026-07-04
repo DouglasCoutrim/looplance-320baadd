@@ -108,6 +108,7 @@ function AdminHome() {
           value={stats.replays} 
           icon={<Play className="h-5 w-5" />} 
           description="Lances Processados"
+          link="/admin/replays"
           color="purple"
         />
       </div>
