@@ -38,7 +38,6 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     output_path = tmp_dir / f"{clip_id}.mp4"
 
     overlay_url = camera.final_overlay_url or camera.overlay_url
-    replay_seconds = camera.replay_seconds
 
     filter_complex = None
     # -sseof é INPUT option: precisa vir ANTES do -i correspondente.

@@ -26,6 +26,7 @@ ENV_PATH = Path(os.environ.get("LOOPLANCE_ENV_FILE", "/etc/looplance/edge.env"))
 class CameraConfig:
     id: str
     quadra_id: str
+    arena_id: str
     name: str
     rtsp_url: str
     buffer_seconds: int
@@ -39,7 +40,9 @@ class CameraConfig:
     video_height: int
     active: bool
     arena_id: str | None = None
-
+    stream_protocol: str = "rtsp"
+    rtmp_stream_key: str | None = None
+    protocol_settings: dict | None = None
 
 
 @dataclass
@@ -169,6 +172,7 @@ def fetch_remote_config(settings: Settings, retries: int = 5) -> None:
                 CameraConfig(
                     id=c["id"],
                     quadra_id=c["quadra_id"],
+                    arena_id=c.get("arena_id", "unknown-arena"),
                     name=c["name"],
                     rtsp_url=c["rtsp_url"],
                     buffer_seconds=c["buffer_seconds"],
@@ -181,7 +185,9 @@ def fetch_remote_config(settings: Settings, retries: int = 5) -> None:
                     video_width=c.get("video_width", 0),
                     video_height=c.get("video_height", 0),
                     active=c.get("active", True),
-                    arena_id=c.get("arena_id"),
+                    stream_protocol=c.get("stream_protocol", "rtsp"),
+                    rtmp_stream_key=c.get("rtmp_stream_key"),
+                    protocol_settings=c.get("protocol_settings"),
                 )
 
                 for c in data["cameras"]

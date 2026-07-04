@@ -20,6 +20,7 @@ from __future__ import annotations
 import logging
 import signal
 import socket
+import subprocess
 import sys
 import threading
 import time
@@ -69,6 +70,8 @@ class EdgeAgent:
             buf = CameraBuffer(self.settings, cam)
             buf.start()
             self.buffers[cam.id] = buf
+            if cam.stream_protocol == "rtsp":
+                self._start_rtsp_relay(cam)
 
             live = LiveStreamer(self.settings, cam)
             try:
@@ -88,7 +91,6 @@ class EdgeAgent:
             buf.stop()
         for live in self.livers.values():
             live.stop()
-
 
     def _input_boards(self) -> list[dict]:
         # A config remota pode trazer input_boards; se não vier explicitamente
@@ -166,13 +168,9 @@ class EdgeAgent:
             return
 
         try:
-            # arena_id não é conhecido localmente (o backend resolve via quadra_id
-            # no INSERT), mas para a key do R2 usamos o arena_id vindo da config
-            # remota, se disponível; senão o backend recalcula/realoca se preciso.
-            arena_id = getattr(cam, "arena_id", None) or "unknown-arena"
             r2_key, video_url, size = upload_clip(
                 self.settings,
-                arena_id=arena_id,
+                arena_id=cam.arena_id,
                 quadra_id=cam.quadra_id,
                 replay_id=replay_id,
                 file_path=clip_path,

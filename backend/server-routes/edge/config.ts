@@ -23,7 +23,8 @@ export const Route = createAPIFileRoute('/api/public/edge/config')({
             .from('cameras')
             .select(
               'id, name, quadra_id, rtsp_url, buffer_seconds, replay_seconds, trigger_button, ' +
-                'overlay_url, final_overlay_url, video_x, video_y, video_width, video_height, active',
+                'overlay_url, final_overlay_url, video_x, video_y, video_width, video_height, active, ' +
+                'stream_protocol, rtmp_stream_key, protocol_settings',
             )
             .eq('edge_device_id', device.id),
           db

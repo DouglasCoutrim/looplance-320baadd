@@ -56,6 +56,28 @@ class CameraBuffer:
 
     # -- lifecycle -----------------------------------------------------
 
+    def _input_args(self) -> list[str]:
+        if self.camera.stream_protocol == "rtmp":
+            stream_key = self.camera.rtmp_stream_key
+            if not stream_key:
+                log.error("[%s] protocolo RTMP sem rtmp_stream_key", self.camera.name)
+                raise RuntimeError(f"rtmp_stream_key ausente para câmera {self.camera.name}")
+            rtmp_url = f"rtmp://127.0.0.1/live/{stream_key}"
+            return ["-i", rtmp_url]
+        rtsp_settings = self.camera.protocol_settings or {}
+        rtsp_url = self.camera.rtsp_url
+        if not rtsp_url and rtsp_settings:
+            user = rtsp_settings.get("user", "")
+            password = rtsp_settings.get("password", "")
+            host = rtsp_settings.get("ip", "")
+            port = rtsp_settings.get("port", "554")
+            channel = rtsp_settings.get("channel", "1")
+            if user and password:
+                rtsp_url = f"rtsp://{user}:{password}@{host}:{port}/cam/realmonitor?channel={channel}&subtype=0"
+            else:
+                rtsp_url = f"rtsp://{host}:{port}/cam/realmonitor?channel={channel}&subtype=0"
+        return ["-rtsp_transport", "tcp", "-i", rtsp_url]
+
     def start(self) -> None:
         self.dir.mkdir(parents=True, exist_ok=True)
         for f in self.dir.glob("seg_*.ts"):
@@ -65,8 +87,7 @@ class CameraBuffer:
         cmd = [
             "ffmpeg",
             "-nostdin",
-            "-rtsp_transport", "tcp",
-            "-i", self.camera.rtsp_url,
+            *self._input_args(),
             "-c", "copy",
             "-f", "segment",
             "-segment_time", str(self.segment_seconds),
