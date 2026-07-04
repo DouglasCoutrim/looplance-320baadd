@@ -52,6 +52,15 @@ const CAMERA_BRANDS = [
   { id: "custom", name: "Personalizado", template: "" }
 ];
 
+interface ProtocolSettings {
+  ip?: string;
+  port?: string;
+  username?: string;
+  password?: string;
+  channel?: string;
+  brand?: string;
+}
+
 interface CameraType {
   id: string;
   name: string;
@@ -62,10 +71,17 @@ interface CameraType {
   trigger_button: number | null;
   replay_seconds: number | null;
   active: boolean | null;
+  stream_protocol: string | null;
+  rtmp_stream_key: string | null;
+  protocol_settings: ProtocolSettings | null;
   quadras?: { nome: string; arena_id: string; arenas?: { nome: string } | null } | null;
   edge_devices?: { name: string } | null;
   input_boards?: { name: string } | null;
 }
+
+const RTMP_BASE = "rtmp://live.izyia.com.br/live";
+const buildRtmpUrl = (key: string | null | undefined) =>
+  key ? `${RTMP_BASE}/${key}` : "";
 
 function Cameras() {
   const [cameras, setCameras] = useState<CameraType[]>([]);
@@ -86,30 +102,17 @@ function Cameras() {
     trigger_button: "0",
     replay_seconds: "15",
     active: true,
+    stream_protocol: "rtmp" as "rtmp" | "rtsp",
     brand: "custom",
     username: "admin",
     password: "",
     ip: "",
     port: "554",
+    channel: "",
   };
 
   // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    rtsp_url: "",
-    quadra_id: "",
-    edge_device_id: "",
-    input_board_id: "",
-    trigger_button: "0",
-    replay_seconds: "15",
-    active: true,
-    // Helper fields
-    brand: "custom",
-    username: "admin",
-    password: "",
-    ip: "",
-    port: "554",
-  });
+  const [formData, setFormData] = useState({ ...emptyForm });
 
   const generateRtspUrl = () => {
     if (formData.brand === "custom") return;
