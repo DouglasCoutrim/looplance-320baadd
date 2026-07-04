@@ -160,20 +160,34 @@ function EdgeDevices() {
     toast.success("Token copiado para a área de transferência");
   };
 
-  const getStatusBadge = (device: EdgeDevice) => {
-    const isOnline = device.last_seen && (new Date().getTime() - new Date(device.last_seen).getTime()) < 300000;
+  const getStatusMeta = (device: EdgeDevice) => {
+    const hasSeen = !!device.last_seen;
+    const isOnline = hasSeen && (new Date().getTime() - new Date(device.last_seen!).getTime()) < 300000;
     if (isOnline) {
-      return (
-        <Badge className="bg-green-500 hover:bg-green-600 font-bold uppercase tracking-widest text-[10px] rounded-full px-3 py-1">
-          <Wifi className="h-3 w-3 mr-1" /> Online
-        </Badge>
-      );
+      return {
+        label: "Online",
+        dot: "bg-green-500",
+        badge: "bg-green-100 text-green-700",
+        border: "border-l-green-500",
+        icon: <Wifi className="h-3 w-3 mr-1" />,
+      };
     }
-    return (
-      <Badge variant="secondary" className="font-bold uppercase tracking-widest text-[10px] rounded-full px-3 py-1 bg-gray-100 text-gray-400">
-        <WifiOff className="h-3 w-3 mr-1" /> Offline
-      </Badge>
-    );
+    if (!hasSeen) {
+      return {
+        label: "Em setup",
+        dot: "bg-yellow-500",
+        badge: "bg-yellow-100 text-yellow-700",
+        border: "border-l-yellow-500",
+        icon: <RefreshCw className="h-3 w-3 mr-1" />,
+      };
+    }
+    return {
+      label: "Offline",
+      dot: "bg-red-500",
+      badge: "bg-red-100 text-red-700",
+      border: "border-l-red-500",
+      icon: <WifiOff className="h-3 w-3 mr-1" />,
+    };
   };
 
   return (
