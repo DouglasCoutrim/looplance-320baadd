@@ -73,10 +73,12 @@ export const Route = createFileRoute("/api/public/edge/replay")({
           return Response.json({ replay }, { status: 201 });
         } catch (err) {
           if (err instanceof EdgeAuthError) {
+            console.error("[edge/replay] rejeitado:", err.status, err.message);
             return Response.json({ error: err.message }, { status: err.status });
           }
-          console.error(err);
-          return Response.json({ error: "internal_error" }, { status: 500 });
+          console.error("[edge/replay] erro interno:", err);
+          const msg = err instanceof Error ? err.message : "internal_error";
+          return Response.json({ error: msg }, { status: 500 });
         }
       },
     },
