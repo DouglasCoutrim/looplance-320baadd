@@ -28,6 +28,7 @@ export const deleteReplay = createServerFn({ method: "POST" })
     if (!replay) throw new Response("not_found", { status: 404 });
 
     if (!isSuper) {
+      if (!replay.arena_id) throw new Response("forbidden", { status: 403 });
       const { data: owns } = await supabase
         .from("user_roles")
         .select("id")
