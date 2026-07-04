@@ -318,7 +318,7 @@ function LivePlayerDialog({
     if (!video) return;
 
     setStreamError(null);
-    const src = `https://download.looplance.app/live/${arenaId}/${quadra.id}/index.m3u8`;
+    const src = `https://live.izyia.com.br/live/${arenaId}/${quadra.id}/index.m3u8`;
 
     let hls: Hls | null = null;
     if (Hls.isSupported()) {
