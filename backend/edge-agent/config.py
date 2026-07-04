@@ -7,11 +7,14 @@ não vídeo). Todo o buffer de vídeo vive em RAM_BUFFER_DIR (tmpfs).
 """
 from __future__ import annotations
 
+import base64
+import binascii
 import os
 import socket
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
+from urllib.parse import urlparse
 
 import httpx
 from dotenv import load_dotenv
@@ -81,11 +84,47 @@ class Settings:
 def load_settings() -> Settings:
     load_dotenv(ENV_PATH)
 
+    def get_env(name: str, default: str | None = None) -> str | None:
+        """
+        Lê variáveis normais ou a variante NAME_B64.
+
+        O instalador grava credenciais R2 em base64 para que caracteres como
+        /, +, =, #, aspas ou $ não sejam reinterpretados pelo bash/systemd/
+        python-dotenv antes de chegarem ao boto3.
+        """
+        encoded = os.environ.get(f"{name}_B64")
+        if encoded:
+            try:
+                return base64.b64decode(encoded.encode("ascii"), validate=True).decode("utf-8")
+            except (UnicodeDecodeError, binascii.Error) as exc:
+                raise RuntimeError(f"Variável {name}_B64 inválida em {ENV_PATH}") from exc
+        return os.environ.get(name, default)
+
     def req(name: str) -> str:
-        v = os.environ.get(name)
+        v = get_env(name)
         if not v:
             raise RuntimeError(f"Variável obrigatória ausente em {ENV_PATH}: {name}")
         return v
+
+    def normalize_r2_endpoint(value: str) -> str:
+        endpoint = value.strip().rstrip("/")
+        parsed = urlparse(endpoint)
+        if parsed.scheme != "https" or not parsed.netloc:
+            raise RuntimeError(
+                "R2_ENDPOINT_URL deve estar no formato "
+                "https://<account_id>.r2.cloudflarestorage.com"
+            )
+        if parsed.path or parsed.params or parsed.query or parsed.fragment:
+            raise RuntimeError(
+                "R2_ENDPOINT_URL deve conter apenas o endpoint da conta R2, "
+                "sem bucket, caminho, query ou fragmento"
+            )
+        if not parsed.netloc.endswith(".r2.cloudflarestorage.com"):
+            raise RuntimeError(
+                "R2_ENDPOINT_URL inválido para Cloudflare R2. Use "
+                "https://<account_id>.r2.cloudflarestorage.com"
+            )
+        return endpoint
 
     return Settings(
         edge_device_id=req("EDGE_DEVICE_ID"),
@@ -95,20 +134,20 @@ def load_settings() -> Settings:
         supabase_url=req("SUPABASE_URL").rstrip("/"),
         supabase_anon_key=req("SUPABASE_ANON_KEY"),
         r2_bucket_name=req("R2_BUCKET_NAME"),
-        r2_endpoint_url=req("R2_ENDPOINT_URL"),
+        r2_endpoint_url=normalize_r2_endpoint(req("R2_ENDPOINT_URL")),
         r2_access_key_id=req("R2_ACCESS_KEY_ID"),
         r2_secret_access_key=req("R2_SECRET_ACCESS_KEY"),
         r2_public_base_url=req("R2_PUBLIC_BASE_URL").rstrip("/"),
-        r2_live_bucket_name=os.environ.get("R2_LIVE_BUCKET_NAME", "looplance-live"),
-        r2_live_public_base_url=os.environ.get(
+        r2_live_bucket_name=get_env("R2_LIVE_BUCKET_NAME", "looplance-live") or "looplance-live",
+        r2_live_public_base_url=(get_env(
             "R2_LIVE_PUBLIC_BASE_URL", "https://download.looplance.app"
-        ).rstrip("/"),
-        ram_buffer_dir=Path(os.environ.get("RAM_BUFFER_DIR", "/dev/shm/looplance")),
-        segment_seconds=int(os.environ.get("SEGMENT_SECONDS", "2")),
-        hls_segment_seconds=int(os.environ.get("HLS_SEGMENT_SECONDS", "2")),
-        hls_list_size=int(os.environ.get("HLS_LIST_SIZE", "6")),
-        heartbeat_interval_seconds=int(os.environ.get("HEARTBEAT_INTERVAL_SECONDS", "30")),
-        edge_version=os.environ.get("EDGE_VERSION", "1.0.0"),
+        ) or "https://download.looplance.app").rstrip("/"),
+        ram_buffer_dir=Path(get_env("RAM_BUFFER_DIR", "/dev/shm/looplance") or "/dev/shm/looplance"),
+        segment_seconds=int(get_env("SEGMENT_SECONDS", "2") or "2"),
+        hls_segment_seconds=int(get_env("HLS_SEGMENT_SECONDS", "2") or "2"),
+        hls_list_size=int(get_env("HLS_LIST_SIZE", "6") or "6"),
+        heartbeat_interval_seconds=int(get_env("HEARTBEAT_INTERVAL_SECONDS", "30") or "30"),
+        edge_version=get_env("EDGE_VERSION", "1.0.0") or "1.0.0",
     )
 
 
