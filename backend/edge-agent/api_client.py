@@ -19,12 +19,25 @@ from config import Settings
 log = logging.getLogger("looplance.api")
 
 
+class EdgeApiError(RuntimeError):
+    """Erro HTTP com corpo da resposta do backend anexado à mensagem."""
+
+
+def _raise_with_body(resp: httpx.Response, path: str) -> None:
+    if resp.is_success:
+        return
+    body_preview = (resp.text or "")[:500]
+    raise EdgeApiError(
+        f"{resp.request.method} {path} -> HTTP {resp.status_code}: {body_preview}"
+    )
+
+
 def _post_signed(settings: Settings, path: str, body: dict, timeout: float) -> httpx.Response:
     raw_body = json.dumps(body)
     url = f"{settings.api_base_url}{path}"
     headers = {**settings.signed_headers(raw_body), "Content-Type": "application/json"}
     resp = httpx.post(url, content=raw_body, headers=headers, timeout=timeout)
-    resp.raise_for_status()
+    _raise_with_body(resp, path)
     return resp
 
 
@@ -32,8 +45,9 @@ def _get_signed(settings: Settings, path: str, timeout: float) -> httpx.Response
     url = f"{settings.api_base_url}{path}"
     headers = settings.signed_headers("")
     resp = httpx.get(url, headers=headers, timeout=timeout)
-    resp.raise_for_status()
+    _raise_with_body(resp, path)
     return resp
+
 
 
 def fetch_pending_triggers(settings: Settings) -> list[dict]:
