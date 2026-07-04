@@ -86,7 +86,7 @@ function ArenaView() {
         supabase.from("arenas").select("id, nome, cidade, endereco, foto_url").eq("id", arenaId).maybeSingle(),
         supabase.from("quadras").select("id, nome, arena_id").eq("arena_id", arenaId).order("nome"),
         supabase.from("replays").select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))").eq("arena_id", arenaId).order("created_at", { ascending: false }).limit(60),
-        supabase.from("cameras").select("quadra_id, streaming_status"),
+        supabase.from("cameras").select("quadra_id, streaming_status, stream_protocol, rtmp_stream_key"),
       ]);
       setArena((arenaRes.data as Arena) ?? null);
       setQuadras((quadrasRes.data as Quadra[]) ?? []);
