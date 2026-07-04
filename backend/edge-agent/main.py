@@ -111,10 +111,44 @@ class EdgeAgent:
     def _trigger_by_camera_id(self, camera_id: str) -> None:
         cam = next((c for c in self.settings.cameras if c.id == camera_id), None)
         if not cam:
-            log.warning("manual trigger: camera %s não encontrada nas ativas", camera_id)
+            # Provavelmente a câmera foi criada/editada depois do boot do
+            # agente. Recarrega config remota e sobe buffers novos.
+            log.info("manual trigger: camera %s desconhecida, recarregando config remota...", camera_id)
+            try:
+                cfg.fetch_remote_config(self.settings)
+                self._sync_buffers()
+            except Exception:  # noqa: BLE001
+                log.exception("falha ao recarregar config remota")
+                return
+            cam = next((c for c in self.settings.cameras if c.id == camera_id), None)
+        if not cam:
+            log.warning("manual trigger: camera %s continua indisponível após refresh", camera_id)
             return
         log.info("manual trigger recebido para camera %s (%s)", cam.name, camera_id)
         threading.Thread(target=self._handle_replay, args=(cam,), daemon=True).start()
+
+    def _sync_buffers(self) -> None:
+        """Garante buffer + live HLS para cada câmera ativa; encerra as removidas."""
+        active_ids = {c.id for c in self.settings.cameras}
+        for cid in list(self.buffers.keys()):
+            if cid not in active_ids:
+                log.info("removendo buffer da câmera %s (não está mais ativa)", cid)
+                self.buffers.pop(cid).stop()
+                live = self.livers.pop(cid, None)
+                if live:
+                    live.stop()
+        for cam in self.settings.cameras:
+            if cam.id not in self.buffers:
+                log.info("iniciando buffer da nova câmera %s (%s)", cam.name, cam.id)
+                buf = CameraBuffer(self.settings, cam)
+                buf.start()
+                self.buffers[cam.id] = buf
+                live = LiveStreamer(self.settings, cam)
+                try:
+                    live.start()
+                    self.livers[cam.id] = live
+                except Exception:  # noqa: BLE001
+                    log.exception("[%s] falha ao iniciar live HLS", cam.name)
 
     def _handle_replay(self, cam: cfg.CameraConfig) -> None:
         buf = self.buffers.get(cam.id)
