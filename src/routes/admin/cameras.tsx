@@ -526,8 +526,19 @@ function Cameras() {
                         <Video className="h-6 w-6" />
                       </div>
                       <div className="min-w-0">
-                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight block truncate">{camera.name}</span>
-                        <p className="text-[10px] font-bold text-muted-foreground font-mono truncate max-w-[200px]">{camera.rtsp_url}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-lg text-gray-900 uppercase tracking-tight block truncate">{camera.name}</span>
+                          {camera.stream_protocol === "rtmp" ? (
+                            <Badge className="bg-green-500/10 text-green-700 hover:bg-green-500/20 border border-green-200 font-black uppercase tracking-widest text-[9px] rounded-full px-2 py-0.5">RTMP</Badge>
+                          ) : (
+                            <Badge className="bg-blue-500/10 text-blue-700 hover:bg-blue-500/20 border border-blue-200 font-black uppercase tracking-widest text-[9px] rounded-full px-2 py-0.5">RTSP</Badge>
+                          )}
+                        </div>
+                        <p className="text-[10px] font-bold text-muted-foreground font-mono truncate max-w-[240px]">
+                          {camera.stream_protocol === "rtmp"
+                            ? buildRtmpUrl(camera.rtmp_stream_key)
+                            : camera.rtsp_url}
+                        </p>
                       </div>
                     </div>
                   </TableCell>
