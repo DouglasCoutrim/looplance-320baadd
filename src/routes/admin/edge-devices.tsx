@@ -160,20 +160,34 @@ function EdgeDevices() {
     toast.success("Token copiado para a área de transferência");
   };
 
-  const getStatusBadge = (device: EdgeDevice) => {
-    const isOnline = device.last_seen && (new Date().getTime() - new Date(device.last_seen).getTime()) < 300000;
+  const getStatusMeta = (device: EdgeDevice) => {
+    const hasSeen = !!device.last_seen;
+    const isOnline = hasSeen && (new Date().getTime() - new Date(device.last_seen!).getTime()) < 300000;
     if (isOnline) {
-      return (
-        <Badge className="bg-green-500 hover:bg-green-600 font-bold uppercase tracking-widest text-[10px] rounded-full px-3 py-1">
-          <Wifi className="h-3 w-3 mr-1" /> Online
-        </Badge>
-      );
+      return {
+        label: "Online",
+        dot: "bg-green-500",
+        badge: "bg-green-100 text-green-700",
+        border: "border-l-green-500",
+        icon: <Wifi className="h-3 w-3 mr-1" />,
+      };
     }
-    return (
-      <Badge variant="secondary" className="font-bold uppercase tracking-widest text-[10px] rounded-full px-3 py-1 bg-gray-100 text-gray-400">
-        <WifiOff className="h-3 w-3 mr-1" /> Offline
-      </Badge>
-    );
+    if (!hasSeen) {
+      return {
+        label: "Em setup",
+        dot: "bg-yellow-500",
+        badge: "bg-yellow-100 text-yellow-700",
+        border: "border-l-yellow-500",
+        icon: <RefreshCw className="h-3 w-3 mr-1" />,
+      };
+    }
+    return {
+      label: "Offline",
+      dot: "bg-red-500",
+      badge: "bg-red-100 text-red-700",
+      border: "border-l-red-500",
+      icon: <WifiOff className="h-3 w-3 mr-1" />,
+    };
   };
 
   return (
@@ -345,96 +359,92 @@ function EdgeDevices() {
         </AlertDialogContent>
       </AlertDialog>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
-        <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Dispositivo</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Cliente</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Endereço (Hostname)</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Status</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-right">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {devices.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium italic">
-                  Nenhum dispositivo provisionado. Use o botão acima para começar.
-                </TableCell>
-              </TableRow>
-            ) : (
-              devices.map((device) => {
-                const client = clients.find((c) => c.id === device.client_id);
-                return (
-                <TableRow key={device.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
-                  <TableCell className="py-5 px-6">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-orange-500/10 flex items-center justify-center text-brand-orange transition-colors group-hover:brand-gradient group-hover:text-white">
-                        <HardDrive className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight">{device.name}</span>
-                        <p className="text-xs font-mono font-bold text-muted-foreground tracking-widest">Token: {device.edge_token ?? "—"}</p>
-                      </div>
+      {/* Grid responsivo de cards: 1 col mobile, 2 col tablet, 3 col desktop, 4 col telas grandes */}
+      {devices.length === 0 ? (
+        <div className="glass-card bg-white shadow-xl border border-gray-100 p-16 text-center text-muted-foreground font-medium italic rounded-2xl">
+          Nenhum dispositivo provisionado. Use o botão acima para começar.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          {devices.map((device) => {
+            const client = clients.find((c) => c.id === device.client_id);
+            const status = getStatusMeta(device);
+            return (
+              <div
+                key={device.id}
+                className={`group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 border border-gray-100 border-l-4 ${status.border} p-5 flex flex-col gap-4`}
+              >
+                {/* Cabeçalho: nome + badge status */}
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="h-11 w-11 shrink-0 rounded-xl bg-orange-500/10 flex items-center justify-center text-brand-orange transition-colors group-hover:brand-gradient group-hover:text-white">
+                      <HardDrive className="h-5 w-5" />
                     </div>
-                  </TableCell>
-                  <TableCell className="py-5 px-6">
-                    {client ? (
-                      <div>
-                        <div className="font-bold text-sm text-gray-900">{client.nome}</div>
-                        {client.is_frozen && (
-                          <Badge className="mt-1 bg-blue-100 text-blue-800 border-blue-200 text-[9px]">Congelado</Badge>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground italic">sem cliente</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="py-5 px-6 font-mono text-xs font-bold text-gray-500">
-                    {device.hostname || "não configurado"}
-                  </TableCell>
-                  <TableCell className="py-5 px-6">
-                    {getStatusBadge(device)}
-                    <p className="text-[10px] font-bold text-muted-foreground mt-1 uppercase tracking-tighter">
-                      Visto {device.last_seen
-                        ? formatDistanceToNow(new Date(device.last_seen), { addSuffix: true, locale: ptBR })
-                        : "nunca"}
-                    </p>
-                  </TableCell>
-                  <TableCell className="text-right py-5 px-6">
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setScriptDevice(device)}
-                        className="rounded-xl font-black uppercase tracking-widest text-[10px] px-3 border border-gray-100 hover:bg-gray-50 text-brand-orange"
-                      >
-                        <Terminal className="h-3.5 w-3.5 mr-1.5" /> Script Setup
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => copyToken(device.edge_token)}
-                        className="rounded-xl font-black uppercase tracking-widest text-[10px] px-3 border border-gray-100 hover:bg-gray-50"
-                      >
-                        Copiar Token
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => openEditDialog(device)} className="h-10 w-10 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeletingDevice(device)} className="h-10 w-10 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-500/5">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
+                    <h3 className="font-black text-lg text-gray-900 uppercase tracking-tight truncate">
+                      {device.name}
+                    </h3>
+                  </div>
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${status.badge} shrink-0`}>
+                    <span className={`h-2 w-2 rounded-full ${status.dot}`} />
+                    {status.label}
+                  </span>
+                </div>
+
+                {/* Corpo: cliente + hostname + token */}
+                <div className="space-y-2">
+                  {client ? (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className="text-sm font-bold text-gray-600 uppercase tracking-wide">{client.nome}</span>
+                      {client.is_frozen && (
+                        <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-[9px]">Congelado</Badge>
+                      )}
                     </div>
-                  </TableCell>
-                </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground italic">sem cliente</span>
+                  )}
+                  <p className="text-xs font-mono text-gray-400 truncate">
+                    {device.hostname || "hostname não configurado"}
+                  </p>
+                  <p className="text-[10px] font-mono font-bold text-muted-foreground tracking-widest truncate">
+                    TOKEN: {device.edge_token ?? "—"}
+                  </p>
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
+                    Visto {device.last_seen
+                      ? formatDistanceToNow(new Date(device.last_seen), { addSuffix: true, locale: ptBR })
+                      : "nunca"}
+                  </p>
+                </div>
+
+                {/* Rodapé: ações */}
+                <div className="flex gap-2 mt-auto pt-3 border-t border-gray-50">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToken(device.edge_token)}
+                    className="flex-1 rounded-xl font-black uppercase tracking-widest text-[10px] border border-gray-100 hover:bg-gray-50"
+                  >
+                    <Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar Token
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setScriptDevice(device)}
+                    className="flex-1 rounded-xl font-black uppercase tracking-widest text-[10px] border border-gray-100 hover:bg-gray-50 text-brand-orange"
+                  >
+                    <Terminal className="h-3.5 w-3.5 mr-1.5" /> Script Setup
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => openEditDialog(device)} className="h-9 w-9 shrink-0 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => setDeletingDevice(device)} className="h-9 w-9 shrink-0 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-500/5">
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
     </div>
   );
 }
