@@ -130,10 +130,10 @@ function Cameras() {
   };
 
   useEffect(() => {
-    if (formData.brand !== "custom") {
+    if (formData.stream_protocol === "rtsp" && formData.brand !== "custom") {
       generateRtspUrl();
     }
-  }, [formData.brand, formData.username, formData.password, formData.ip, formData.port]);
+  }, [formData.stream_protocol, formData.brand, formData.username, formData.password, formData.ip, formData.port]);
 
   const fetchData = async () => {
     setLoading(true);
