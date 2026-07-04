@@ -50,6 +50,8 @@ interface Replay {
 interface CameraStatus {
   quadra_id: string;
   streaming_status: string | null;
+  stream_protocol: string | null;
+  rtmp_stream_key: string | null;
 }
 
 function ArenaView() {
