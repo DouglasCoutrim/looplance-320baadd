@@ -326,20 +326,14 @@ function LivePlayerDialog({
       hls = new Hls({
         lowLatencyMode: true,
         enableWorker: true,
-        // Force no-cache on playlist + segment fetches so the sliding window updates.
-        xhrSetup: (xhr, url) => {
-          // Append cache-buster to the playlist requests (segments are unique names).
-          if (url.endsWith(".m3u8") || url.includes(".m3u8?")) {
-            const sep = url.includes("?") ? "&" : "?";
-            xhr.open("GET", `${url}${sep}_=${Date.now()}`, true);
-          }
-          try {
-            xhr.setRequestHeader("Cache-Control", "no-cache");
-            xhr.setRequestHeader("Pragma", "no-cache");
-          } catch {
-            /* some browsers block setting these; safe to ignore */
-          }
-        },
+        liveSyncDurationCount: 3,
+        // Disable hls.js internal caching of the playlist — the m3u8 is a
+        // sliding window that must be refreshed each cycle. R2 already
+        // returns `cache-control: no-store` for the playlist, and segments
+        // have unique names, so no custom headers are needed. We intentionally
+        // do NOT set Cache-Control / Pragma via xhrSetup because those are
+        // non-simple headers and would trigger a CORS preflight that R2
+        // (with its wildcard CORS) does not support.
       });
       hls.loadSource(src);
       hls.attachMedia(video);
