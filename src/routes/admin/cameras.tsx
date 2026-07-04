@@ -144,7 +144,7 @@ function Cameras() {
       supabase.from("quadras").select("id, nome, arenas(nome)").order("nome")
     ]);
 
-    setCameras(camerasRes.data || []);
+    setCameras((camerasRes.data || []) as any as CameraType[]);
     setDevices(devicesRes.data || []);
     setBoards(boardsRes.data || []);
     setQuadras(quadrasRes.data || []);
