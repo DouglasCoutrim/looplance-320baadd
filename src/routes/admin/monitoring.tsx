@@ -253,9 +253,23 @@ function MonitoringPage() {
   const [devices, setDevices] = useState<EdgeDevice[]>([]);
   const [replays, setReplays] = useState<Replay[]>([]);
   const [loading, setLoading] = useState(true);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [, forceRerender] = useState(0);
+  const delReplay = useServerFn(deleteReplay);
 
-  // Load initial data
+  const handleDelete = async (id: string) => {
+    if (!confirm("Apagar este replay? Ele será removido do R2 e do banco.")) return;
+    setDeletingId(id);
+    try {
+      await delReplay({ data: { replay_id: id } });
+      setReplays((prev) => prev.filter((r) => r.id !== id));
+      toast.success("Replay apagado");
+    } catch (err) {
+      toast.error(`Falha ao apagar: ${(err as Error).message}`);
+    } finally {
+      setDeletingId(null);
+    }
+  };
   useEffect(() => {
     let mounted = true;
     (async () => {
