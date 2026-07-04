@@ -64,7 +64,7 @@ interface CameraType {
   active: boolean | null;
   stream_protocol: string;
   rtmp_stream_key: string | null;
-  protocol_settings: Record<string, any> | null;
+  protocol_settings: any;
   quadras?: { nome: string; arena_id: string; arenas?: { nome: string } | null } | null;
   edge_devices?: { name: string } | null;
   input_boards?: { name: string } | null;
