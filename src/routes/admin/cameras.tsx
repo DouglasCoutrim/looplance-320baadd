@@ -162,15 +162,29 @@ function Cameras() {
       return;
     }
 
-    const payload = {
+    const isRtsp = formData.stream_protocol === "rtsp";
+    const protocol_settings = isRtsp
+      ? {
+          brand: formData.brand,
+          ip: formData.ip,
+          port: formData.port,
+          username: formData.username,
+          password: formData.password,
+          channel: formData.channel,
+        }
+      : {};
+
+    const payload: any = {
       name: formData.name,
-      rtsp_url: formData.rtsp_url,
+      rtsp_url: isRtsp ? formData.rtsp_url : null,
       quadra_id: formData.quadra_id,
       edge_device_id: formData.edge_device_id || null,
       input_board_id: formData.input_board_id || null,
       trigger_button: parseInt(formData.trigger_button),
       replay_seconds: parseInt(formData.replay_seconds),
       active: formData.active,
+      stream_protocol: formData.stream_protocol,
+      protocol_settings,
     };
 
     const { error } = editing
@@ -195,6 +209,7 @@ function Cameras() {
   };
 
   const openEdit = (c: CameraType) => {
+    const ps = (c.protocol_settings ?? {}) as ProtocolSettings;
     setEditing(c);
     setFormData({
       ...emptyForm,
@@ -206,8 +221,26 @@ function Cameras() {
       trigger_button: String(c.trigger_button ?? 0),
       replay_seconds: String(c.replay_seconds ?? 15),
       active: c.active ?? true,
+      stream_protocol: (c.stream_protocol === "rtsp" ? "rtsp" : "rtmp"),
+      brand: ps.brand ?? "custom",
+      username: ps.username ?? "admin",
+      password: ps.password ?? "",
+      ip: ps.ip ?? "",
+      port: ps.port ?? "554",
+      channel: ps.channel ?? "",
     });
     setIsDialogOpen(true);
+  };
+
+  const copyRtmpUrl = async (key: string | null | undefined) => {
+    const url = buildRtmpUrl(key);
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("URL RTMP copiada!");
+    } catch {
+      toast.error("Não foi possível copiar. Copie manualmente.");
+    }
   };
 
   const handleDelete = async () => {
