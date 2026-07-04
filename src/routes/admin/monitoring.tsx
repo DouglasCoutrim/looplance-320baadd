@@ -1,6 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useState, useRef } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { deleteReplay } from "@/lib/replay-admin.functions";
+import { toast } from "sonner";
+import { Trash2 } from "lucide-react";
 import {
   Activity,
   HardDrive,
