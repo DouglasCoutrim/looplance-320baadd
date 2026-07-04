@@ -359,88 +359,125 @@ function EdgeDevices() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Grid responsivo de cards: 1 col mobile, 2 col tablet, 3 col desktop, 4 col telas grandes */}
+      {/* Grid responsivo: 1 col mobile, 2 tablet, 3 desktop */}
       {devices.length === 0 ? (
-        <div className="glass-card bg-white shadow-xl border border-gray-100 p-16 text-center text-muted-foreground font-medium italic rounded-2xl">
+        <div className="bg-white shadow-sm border border-gray-200 p-16 text-center text-muted-foreground font-medium italic rounded-2xl">
           Nenhum dispositivo provisionado. Use o botão acima para começar.
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
           {devices.map((device) => {
             const client = clients.find((c) => c.id === device.client_id);
             const status = getStatusMeta(device);
             return (
-              <div
+              <article
                 key={device.id}
-                className={`group bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-200 border border-gray-100 border-l-4 ${status.border} p-5 flex flex-col gap-4`}
+                className="group relative bg-white rounded-2xl border border-gray-200/80 shadow-sm hover:shadow-lg hover:-translate-y-0.5 hover:border-gray-300 transition-all duration-200 overflow-hidden flex flex-col"
               >
-                {/* Cabeçalho: nome + badge status */}
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-11 w-11 shrink-0 rounded-xl bg-orange-500/10 flex items-center justify-center text-brand-orange transition-colors group-hover:brand-gradient group-hover:text-white">
-                      <HardDrive className="h-5 w-5" />
-                    </div>
-                    <h3 className="font-black text-lg text-gray-900 uppercase tracking-tight truncate">
-                      {device.name}
-                    </h3>
-                  </div>
-                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest ${status.badge} shrink-0`}>
-                    <span className={`h-2 w-2 rounded-full ${status.dot}`} />
+                {/* Header row: status pill + row actions */}
+                <div className="flex items-center justify-between px-5 pt-4">
+                  <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider ${status.badge}`}>
+                    <span className={`h-1.5 w-1.5 rounded-full ${status.dot}`} />
                     {status.label}
                   </span>
+                  <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => openEditDialog(device)}
+                      className="h-8 w-8 rounded-lg text-gray-400 hover:text-gray-900 hover:bg-gray-100"
+                      aria-label="Editar"
+                    >
+                      <Edit2 className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => setDeletingDevice(device)}
+                      className="h-8 w-8 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50"
+                      aria-label="Deletar"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </Button>
+                  </div>
                 </div>
 
-                {/* Corpo: cliente + hostname + token */}
-                <div className="space-y-2">
-                  {client ? (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-sm font-bold text-gray-600 uppercase tracking-wide">{client.nome}</span>
-                      {client.is_frozen && (
-                        <Badge className="bg-blue-100 text-blue-800 border-blue-200 text-[9px]">Congelado</Badge>
+                {/* Identidade: ícone + nome + cliente */}
+                <div className="px-5 pt-3 pb-4 flex items-start gap-3">
+                  <div className="h-11 w-11 shrink-0 rounded-xl bg-gradient-to-br from-orange-500/10 to-orange-500/5 border border-orange-500/10 flex items-center justify-center text-brand-orange">
+                    <HardDrive className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-bold text-[17px] leading-tight text-gray-900 truncate">
+                      {device.name}
+                    </h3>
+                    <div className="mt-1 flex items-center gap-2 min-w-0">
+                      {client ? (
+                        <>
+                          <span className="text-xs font-medium text-gray-500 truncate">{client.nome}</span>
+                          {client.is_frozen && (
+                            <span className="shrink-0 inline-flex items-center rounded-md bg-blue-50 text-blue-700 border border-blue-100 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide">
+                              Congelado
+                            </span>
+                          )}
+                        </>
+                      ) : (
+                        <span className="text-xs italic text-gray-400">sem cliente</span>
                       )}
                     </div>
-                  ) : (
-                    <span className="text-xs text-muted-foreground italic">sem cliente</span>
-                  )}
-                  <p className="text-xs font-mono text-gray-400 truncate">
-                    {device.hostname || "hostname não configurado"}
-                  </p>
-                  <p className="text-[10px] font-mono font-bold text-muted-foreground tracking-widest truncate">
-                    TOKEN: {device.edge_token ?? "—"}
-                  </p>
-                  <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-tighter">
-                    Visto {device.last_seen
-                      ? formatDistanceToNow(new Date(device.last_seen), { addSuffix: true, locale: ptBR })
-                      : "nunca"}
-                  </p>
+                  </div>
                 </div>
 
-                {/* Rodapé: ações */}
-                <div className="flex gap-2 mt-auto pt-3 border-t border-gray-50">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => copyToken(device.edge_token)}
-                    className="flex-1 rounded-xl font-black uppercase tracking-widest text-[10px] border border-gray-100 hover:bg-gray-50"
-                  >
-                    <Copy className="h-3.5 w-3.5 mr-1.5" /> Copiar Token
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setScriptDevice(device)}
-                    className="flex-1 rounded-xl font-black uppercase tracking-widest text-[10px] border border-gray-100 hover:bg-gray-50 text-brand-orange"
-                  >
-                    <Terminal className="h-3.5 w-3.5 mr-1.5" /> Script Setup
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => openEditDialog(device)} className="h-9 w-9 shrink-0 rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5">
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                  <Button variant="ghost" size="icon" onClick={() => setDeletingDevice(device)} className="h-9 w-9 shrink-0 rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-500/5">
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                {/* Meta: hostname, token, last seen */}
+                <div className="px-5 pb-4 space-y-2.5">
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 w-16 shrink-0">Host</span>
+                    <span className="font-mono text-gray-600 truncate">
+                      {device.hostname || <span className="text-gray-300">não configurado</span>}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 w-16 shrink-0">Token</span>
+                    <code className="font-mono font-semibold text-gray-800 truncate flex-1">
+                      {device.edge_token ?? "—"}
+                    </code>
+                    <button
+                      type="button"
+                      onClick={() => copyToken(device.edge_token)}
+                      className="shrink-0 h-6 w-6 rounded-md text-gray-400 hover:text-gray-900 hover:bg-gray-100 inline-flex items-center justify-center transition-colors"
+                      aria-label="Copiar token"
+                    >
+                      <Copy className="h-3 w-3" />
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400 w-16 shrink-0">Visto</span>
+                    <span className="text-gray-500">
+                      {device.last_seen
+                        ? formatDistanceToNow(new Date(device.last_seen), { addSuffix: true, locale: ptBR })
+                        : "nunca"}
+                    </span>
+                  </div>
                 </div>
-              </div>
+
+                {/* Ações principais */}
+                <div className="mt-auto grid grid-cols-2 border-t border-gray-100 divide-x divide-gray-100">
+                  <button
+                    type="button"
+                    onClick={() => copyToken(device.edge_token)}
+                    className="inline-flex items-center justify-center gap-2 h-11 text-xs font-semibold text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+                  >
+                    <Copy className="h-3.5 w-3.5" /> Copiar Token
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setScriptDevice(device)}
+                    className="inline-flex items-center justify-center gap-2 h-11 text-xs font-semibold text-brand-orange hover:bg-orange-50 transition-colors"
+                  >
+                    <Terminal className="h-3.5 w-3.5" /> Script Setup
+                  </button>
+                </div>
+              </article>
             );
           })}
         </div>
