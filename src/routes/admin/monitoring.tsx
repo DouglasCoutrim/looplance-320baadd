@@ -433,6 +433,14 @@ function MonitoringPage() {
                   Abrir
                 </a>
               )}
+              <button
+                onClick={() => handleDelete(r.id)}
+                disabled={deletingId === r.id}
+                title="Apagar replay (R2 + banco)"
+                className="shrink-0 grid h-8 w-8 place-items-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition disabled:opacity-40"
+              >
+                <Trash2 className="h-4 w-4" />
+              </button>
             </div>
           ))}
         </div>
