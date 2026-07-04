@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ArenaIdRouteImport } from './routes/arena.$id'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as AdminTerminalRouteImport } from './routes/admin/terminal'
 import { Route as AdminReplaysRouteImport } from './routes/admin/replays'
 import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
 import { Route as AdminMonitoringRouteImport } from './routes/admin/monitoring'
@@ -69,6 +70,11 @@ const ArenaIdRoute = ArenaIdRouteImport.update({
 const AdminUsersRoute = AdminUsersRouteImport.update({
   id: '/users',
   path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminTerminalRoute = AdminTerminalRouteImport.update({
+  id: '/terminal',
+  path: '/terminal',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminReplaysRoute = AdminReplaysRouteImport.update({
@@ -185,6 +191,7 @@ export interface FileRoutesByFullPath {
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/replays': typeof AdminReplaysRoute
+  '/admin/terminal': typeof AdminTerminalRoute
   '/admin/users': typeof AdminUsersRoute
   '/arena/$id': typeof ArenaIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -212,6 +219,7 @@ export interface FileRoutesByTo {
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/replays': typeof AdminReplaysRoute
+  '/admin/terminal': typeof AdminTerminalRoute
   '/admin/users': typeof AdminUsersRoute
   '/arena/$id': typeof ArenaIdRoute
   '/admin': typeof AdminIndexRoute
@@ -241,6 +249,7 @@ export interface FileRoutesById {
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/replays': typeof AdminReplaysRoute
+  '/admin/terminal': typeof AdminTerminalRoute
   '/admin/users': typeof AdminUsersRoute
   '/arena/$id': typeof ArenaIdRoute
   '/admin/': typeof AdminIndexRoute
@@ -271,6 +280,7 @@ export interface FileRouteTypes {
     | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/replays'
+    | '/admin/terminal'
     | '/admin/users'
     | '/arena/$id'
     | '/admin/'
@@ -298,6 +308,7 @@ export interface FileRouteTypes {
     | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/replays'
+    | '/admin/terminal'
     | '/admin/users'
     | '/arena/$id'
     | '/admin'
@@ -326,6 +337,7 @@ export interface FileRouteTypes {
     | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/replays'
+    | '/admin/terminal'
     | '/admin/users'
     | '/arena/$id'
     | '/admin/'
@@ -410,6 +422,13 @@ declare module '@tanstack/react-router' {
       path: '/users'
       fullPath: '/admin/users'
       preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/terminal': {
+      id: '/admin/terminal'
+      path: '/terminal'
+      fullPath: '/admin/terminal'
+      preLoaderRoute: typeof AdminTerminalRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/replays': {
@@ -557,6 +576,7 @@ interface AdminRouteChildren {
   AdminMonitoringRoute: typeof AdminMonitoringRoute
   AdminQuadrasRoute: typeof AdminQuadrasRoute
   AdminReplaysRoute: typeof AdminReplaysRoute
+  AdminTerminalRoute: typeof AdminTerminalRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
 }
@@ -570,6 +590,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminMonitoringRoute: AdminMonitoringRoute,
   AdminQuadrasRoute: AdminQuadrasRoute,
   AdminReplaysRoute: AdminReplaysRoute,
+  AdminTerminalRoute: AdminTerminalRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
 }

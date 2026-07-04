@@ -12,6 +12,7 @@ import {
   Users,
   Building2,
   Play,
+  Terminal,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
@@ -52,6 +53,7 @@ function AdminLayout() {
     { to: "/admin/cameras", label: "Cameras", icon: Camera },
     { to: "/admin/arenas", label: "Arenas", icon: Tv },
     { to: "/admin/quadras", label: "Quadras", icon: Tv },
+    { to: "/admin/terminal", label: "Terminal", icon: Terminal },
   ];
 
   // Close mobile menu on route change

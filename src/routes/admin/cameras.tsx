@@ -64,7 +64,7 @@ interface CameraType {
   active: boolean | null;
   stream_protocol: string;
   rtmp_stream_key: string | null;
-  protocol_settings: Record<string, any> | null;
+  protocol_settings: any;
   quadras?: { nome: string; arena_id: string; arenas?: { nome: string } | null } | null;
   edge_devices?: { name: string } | null;
   input_boards?: { name: string } | null;
@@ -168,7 +168,7 @@ function Cameras() {
       return;
     }
 
-    const payload: Record<string, any> = {
+    const payload = {
       name: formData.name,
       rtsp_url: formData.rtsp_url,
       quadra_id: formData.quadra_id,
@@ -178,6 +178,7 @@ function Cameras() {
       replay_seconds: parseInt(formData.replay_seconds),
       active: formData.active,
       stream_protocol: formData.stream_protocol,
+      protocol_settings: null as any,
     };
 
     if (formData.stream_protocol === "rtsp") {
@@ -333,14 +334,35 @@ function Cameras() {
                         <span className="text-[10px] font-black uppercase tracking-widest text-brand-orange">Ingestão Direta</span>
                       </div>
                       <p className="text-xs text-muted-foreground font-medium">
-                        A câmera enviará o fluxo RTMP diretamente para o servidor. 
-                        A chave de stream será gerada automaticamente ao salvar.
+                        {editing?.rtmp_stream_key
+                          ? "Use a URL abaixo na configuração da câmera física para publicar o fluxo RTMP."
+                          : "A chave de stream será gerada automaticamente ao salvar. Reabra o registro para copiar a URL de ingestão."}
                       </p>
                       <div className="bg-white rounded-xl border border-gray-200 p-3">
                         <p className="text-[9px] font-black uppercase tracking-widest text-muted-foreground mb-1">URL de Ingestão</p>
-                        <code className="text-sm font-mono font-bold text-brand-orange break-all">
-                          rtmp://live.izyia.com.br/live/&lt;gerado&gt;
-                        </code>
+                        <div className="flex items-center gap-2">
+                          <code className="flex-1 text-sm font-mono font-bold text-brand-orange break-all">
+                            {editing?.rtmp_stream_key
+                              ? `rtmp://live.izyia.com.br/live/${editing.rtmp_stream_key}`
+                              : "rtmp://live.izyia.com.br/live/<gerado ao salvar>"}
+                          </code>
+                          {editing?.rtmp_stream_key && (
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              className="rounded-lg font-black uppercase tracking-widest text-[10px] shrink-0"
+                              onClick={() => {
+                                navigator.clipboard.writeText(
+                                  `rtmp://live.izyia.com.br/live/${editing.rtmp_stream_key}`,
+                                );
+                                toast.success("URL copiada");
+                              }}
+                            >
+                              Copiar
+                            </Button>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
