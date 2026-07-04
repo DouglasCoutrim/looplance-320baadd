@@ -360,7 +360,7 @@ function LivePlayerDialog({
       hls?.destroy();
       hlsRef.current = null;
     };
-  }, [quadra, arenaId, videoEl]);
+  }, [quadra, camera?.rtmp_stream_key, videoEl]);
 
   return (
     <Dialog.Root open={!!quadra} onOpenChange={(o) => !o && onClose()}>
