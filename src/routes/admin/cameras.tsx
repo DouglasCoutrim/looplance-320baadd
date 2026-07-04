@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, Camera, Video, Edit2, Trash2, Zap } from "lucide-react";
+import { Plus, RefreshCw, Camera, Video, Edit2, Trash2, Zap, Copy, Radio } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -52,6 +52,15 @@ const CAMERA_BRANDS = [
   { id: "custom", name: "Personalizado", template: "" }
 ];
 
+interface ProtocolSettings {
+  ip?: string;
+  port?: string;
+  username?: string;
+  password?: string;
+  channel?: string;
+  brand?: string;
+}
+
 interface CameraType {
   id: string;
   name: string;
@@ -62,10 +71,17 @@ interface CameraType {
   trigger_button: number | null;
   replay_seconds: number | null;
   active: boolean | null;
+  stream_protocol: string | null;
+  rtmp_stream_key: string | null;
+  protocol_settings: ProtocolSettings | null;
   quadras?: { nome: string; arena_id: string; arenas?: { nome: string } | null } | null;
   edge_devices?: { name: string } | null;
   input_boards?: { name: string } | null;
 }
+
+const RTMP_BASE = "rtmp://live.izyia.com.br/live";
+const buildRtmpUrl = (key: string | null | undefined) =>
+  key ? `${RTMP_BASE}/${key}` : "";
 
 function Cameras() {
   const [cameras, setCameras] = useState<CameraType[]>([]);
@@ -86,30 +102,17 @@ function Cameras() {
     trigger_button: "0",
     replay_seconds: "15",
     active: true,
+    stream_protocol: "rtmp" as "rtmp" | "rtsp",
     brand: "custom",
     username: "admin",
     password: "",
     ip: "",
     port: "554",
+    channel: "",
   };
 
   // Form state
-  const [formData, setFormData] = useState({
-    name: "",
-    rtsp_url: "",
-    quadra_id: "",
-    edge_device_id: "",
-    input_board_id: "",
-    trigger_button: "0",
-    replay_seconds: "15",
-    active: true,
-    // Helper fields
-    brand: "custom",
-    username: "admin",
-    password: "",
-    ip: "",
-    port: "554",
-  });
+  const [formData, setFormData] = useState({ ...emptyForm });
 
   const generateRtspUrl = () => {
     if (formData.brand === "custom") return;
@@ -127,10 +130,10 @@ function Cameras() {
   };
 
   useEffect(() => {
-    if (formData.brand !== "custom") {
+    if (formData.stream_protocol === "rtsp" && formData.brand !== "custom") {
       generateRtspUrl();
     }
-  }, [formData.brand, formData.username, formData.password, formData.ip, formData.port]);
+  }, [formData.stream_protocol, formData.brand, formData.username, formData.password, formData.ip, formData.port]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -141,7 +144,7 @@ function Cameras() {
       supabase.from("quadras").select("id, nome, arenas(nome)").order("nome")
     ]);
 
-    setCameras(camerasRes.data || []);
+    setCameras((camerasRes.data || []) as any as CameraType[]);
     setDevices(devicesRes.data || []);
     setBoards(boardsRes.data || []);
     setQuadras(quadrasRes.data || []);
@@ -159,15 +162,29 @@ function Cameras() {
       return;
     }
 
-    const payload = {
+    const isRtsp = formData.stream_protocol === "rtsp";
+    const protocol_settings = isRtsp
+      ? {
+          brand: formData.brand,
+          ip: formData.ip,
+          port: formData.port,
+          username: formData.username,
+          password: formData.password,
+          channel: formData.channel,
+        }
+      : {};
+
+    const payload: any = {
       name: formData.name,
-      rtsp_url: formData.rtsp_url,
+      rtsp_url: isRtsp ? formData.rtsp_url : null,
       quadra_id: formData.quadra_id,
       edge_device_id: formData.edge_device_id || null,
       input_board_id: formData.input_board_id || null,
       trigger_button: parseInt(formData.trigger_button),
       replay_seconds: parseInt(formData.replay_seconds),
       active: formData.active,
+      stream_protocol: formData.stream_protocol,
+      protocol_settings,
     };
 
     const { error } = editing
@@ -192,6 +209,7 @@ function Cameras() {
   };
 
   const openEdit = (c: CameraType) => {
+    const ps = (c.protocol_settings ?? {}) as ProtocolSettings;
     setEditing(c);
     setFormData({
       ...emptyForm,
@@ -203,8 +221,26 @@ function Cameras() {
       trigger_button: String(c.trigger_button ?? 0),
       replay_seconds: String(c.replay_seconds ?? 15),
       active: c.active ?? true,
+      stream_protocol: (c.stream_protocol === "rtsp" ? "rtsp" : "rtmp"),
+      brand: ps.brand ?? "custom",
+      username: ps.username ?? "admin",
+      password: ps.password ?? "",
+      ip: ps.ip ?? "",
+      port: ps.port ?? "554",
+      channel: ps.channel ?? "",
     });
     setIsDialogOpen(true);
+  };
+
+  const copyRtmpUrl = async (key: string | null | undefined) => {
+    const url = buildRtmpUrl(key);
+    if (!url) return;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("URL RTMP copiada!");
+    } catch {
+      toast.error("Não foi possível copiar. Copie manualmente.");
+    }
   };
 
   const handleDelete = async () => {
@@ -271,7 +307,7 @@ function Cameras() {
             <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl overflow-hidden p-0">
               <div className="brand-gradient p-6 text-white">
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight">{editing ? "Editar Câmera" : "Configurar Câmera"}</DialogTitle>
-                <p className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">Integração RTSP & Edge</p>
+                <p className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">Integração RTMP / RTSP & Edge</p>
               </div>
               
               <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[70vh] overflow-y-auto">
@@ -280,48 +316,125 @@ function Cameras() {
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome da Câmera</Label>
                     <Input value={formData.name} onChange={(e) => setFormData({...formData, name: e.target.value})} placeholder="Ex: Câmera Principal Quadra 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
                   </div>
-                  
-                  <div className="grid gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/30">
-                    <div className="grid gap-2">
-                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Marca da Câmera</Label>
-                      <Select value={formData.brand} onValueChange={(v) => setFormData({...formData, brand: v})}>
-                        <SelectTrigger className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange">
-                          <SelectValue placeholder="Selecione a marca" />
-                        </SelectTrigger>
-                        <SelectContent className="rounded-xl shadow-xl border-gray-100">
-                          {CAMERA_BRANDS.map((b) => (
-                            <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
 
-                    {formData.brand !== "custom" && (
-                      <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
+                  {/* Protocolo de Transmissão */}
+                  <div className="grid gap-2">
+                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Protocolo de Transmissão</Label>
+                    <div className="grid grid-cols-2 gap-2">
+                      {(["rtmp","rtsp"] as const).map((p) => {
+                        const selected = formData.stream_protocol === p;
+                        return (
+                          <button
+                            key={p}
+                            type="button"
+                            onClick={() => setFormData({ ...formData, stream_protocol: p })}
+                            className={`h-12 rounded-xl border font-black uppercase tracking-widest text-xs transition-all ${
+                              selected
+                                ? p === "rtmp"
+                                  ? "border-green-500 bg-green-500/10 text-green-700 shadow-sm"
+                                  : "border-blue-500 bg-blue-500/10 text-blue-700 shadow-sm"
+                                : "border-gray-200 bg-white text-gray-500 hover:border-gray-300"
+                            }`}
+                          >
+                            {p.toUpperCase()}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground font-medium">
+                      {formData.stream_protocol === "rtmp"
+                        ? "A câmera publica direto no servidor de mídia via URL de ingestão."
+                        : "A câmera fica na rede local e o edge captura via RTSP."}
+                    </p>
+                  </div>
+
+                  {/* URL de Ingestão RTMP */}
+                  {formData.stream_protocol === "rtmp" && (
+                    <div className="grid gap-2 p-4 rounded-xl border border-green-200 bg-green-50/60 animate-in fade-in slide-in-from-top-2 duration-200">
+                      <div className="flex items-center gap-2">
+                        <Radio className="h-4 w-4 text-green-600" />
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-green-700">URL de Ingestão RTMP</Label>
+                      </div>
+                      {editing?.rtmp_stream_key ? (
+                        <>
+                          <div className="flex items-center gap-2">
+                            <Input
+                              readOnly
+                              value={buildRtmpUrl(editing.rtmp_stream_key)}
+                              className="rounded-xl border-green-200 bg-white h-12 font-mono text-[11px]"
+                              onFocus={(e) => e.currentTarget.select()}
+                            />
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="icon"
+                              onClick={() => copyRtmpUrl(editing.rtmp_stream_key)}
+                              className="h-12 w-12 rounded-xl border-green-200 bg-white hover:bg-green-100 shrink-0"
+                              title="Copiar URL"
+                            >
+                              <Copy className="h-4 w-4 text-green-700" />
+                            </Button>
+                          </div>
+                          <p className="text-[10px] text-green-700/80 font-medium">
+                            Cole essa URL no campo <b>RTMP / servidor</b> da sua câmera. A stream key já está embutida.
+                          </p>
+                        </>
+                      ) : (
+                        <p className="text-[11px] text-green-700/80 font-medium">
+                          A URL será gerada automaticamente após salvar. Reabra a edição para copiar.
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Bloco RTSP (rede local) */}
+                  {formData.stream_protocol === "rtsp" && (
+                    <>
+                      <div className="grid gap-4 p-4 rounded-xl border border-gray-100 bg-gray-50/30 animate-in fade-in slide-in-from-top-2 duration-200">
                         <div className="grid gap-2">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuário</Label>
-                          <Input value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder="admin" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Marca da Câmera</Label>
+                          <Select value={formData.brand} onValueChange={(v) => setFormData({...formData, brand: v})}>
+                            <SelectTrigger className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange">
+                              <SelectValue placeholder="Selecione a marca" />
+                            </SelectTrigger>
+                            <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                              {CAMERA_BRANDS.map((b) => (
+                                <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
-                        <div className="grid gap-2">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
-                          <Input type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder="senha" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Endereço IP</Label>
-                          <Input value={formData.ip} onChange={(e) => setFormData({...formData, ip: e.target.value})} placeholder="192.168.1.100" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
-                        </div>
-                        <div className="grid gap-2">
-                          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Porta</Label>
-                          <Input value={formData.port} onChange={(e) => setFormData({...formData, port: e.target.value})} placeholder="554" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="grid gap-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Usuário</Label>
+                            <Input value={formData.username} onChange={(e) => setFormData({...formData, username: e.target.value})} placeholder="admin" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Senha</Label>
+                            <Input type="password" value={formData.password} onChange={(e) => setFormData({...formData, password: e.target.value})} placeholder="senha" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Endereço IP</Label>
+                            <Input value={formData.ip} onChange={(e) => setFormData({...formData, ip: e.target.value})} placeholder="192.168.1.100" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          </div>
+                          <div className="grid gap-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Porta</Label>
+                            <Input value={formData.port} onChange={(e) => setFormData({...formData, port: e.target.value})} placeholder="554" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange" />
+                          </div>
+                          <div className="grid gap-2 col-span-2">
+                            <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Canal / Path (opcional)</Label>
+                            <Input value={formData.channel} onChange={(e) => setFormData({...formData, channel: e.target.value})} placeholder="ex: /Streaming/Channels/101" className="rounded-xl border-gray-100 bg-white h-12 focus:ring-brand-orange font-mono text-[10px]" />
+                          </div>
                         </div>
                       </div>
-                    )}
-                  </div>
 
-                  <div className="grid gap-2">
-                    <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">RTSP URL Final</Label>
-                    <Input value={formData.rtsp_url} onChange={(e) => setFormData({...formData, rtsp_url: e.target.value, brand: "custom"})} placeholder="rtsp://user:pass@ip:554/stream" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono text-[10px]" />
-                  </div>
+                      <div className="grid gap-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">RTSP URL Final</Label>
+                        <Input value={formData.rtsp_url} onChange={(e) => setFormData({...formData, rtsp_url: e.target.value, brand: "custom"})} placeholder="rtsp://user:pass@ip:554/stream" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono text-[10px]" />
+                      </div>
+                    </>
+                  )}
 
                   <div className="grid gap-2">
                     <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Quadra (Court)</Label>
@@ -413,8 +526,19 @@ function Cameras() {
                         <Video className="h-6 w-6" />
                       </div>
                       <div className="min-w-0">
-                        <span className="font-black text-lg text-gray-900 uppercase tracking-tight block truncate">{camera.name}</span>
-                        <p className="text-[10px] font-bold text-muted-foreground font-mono truncate max-w-[200px]">{camera.rtsp_url}</p>
+                        <div className="flex items-center gap-2">
+                          <span className="font-black text-lg text-gray-900 uppercase tracking-tight block truncate">{camera.name}</span>
+                          {camera.stream_protocol === "rtmp" ? (
+                            <Badge className="bg-green-500/10 text-green-700 hover:bg-green-500/20 border border-green-200 font-black uppercase tracking-widest text-[9px] rounded-full px-2 py-0.5">RTMP</Badge>
+                          ) : (
+                            <Badge className="bg-blue-500/10 text-blue-700 hover:bg-blue-500/20 border border-blue-200 font-black uppercase tracking-widest text-[9px] rounded-full px-2 py-0.5">RTSP</Badge>
+                          )}
+                        </div>
+                        <p className="text-[10px] font-bold text-muted-foreground font-mono truncate max-w-[240px]">
+                          {camera.stream_protocol === "rtmp"
+                            ? buildRtmpUrl(camera.rtmp_stream_key)
+                            : camera.rtsp_url}
+                        </p>
                       </div>
                     </div>
                   </TableCell>

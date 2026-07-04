@@ -50,6 +50,8 @@ interface Replay {
 interface CameraStatus {
   quadra_id: string;
   streaming_status: string | null;
+  stream_protocol: string | null;
+  rtmp_stream_key: string | null;
 }
 
 function ArenaView() {
@@ -84,7 +86,7 @@ function ArenaView() {
         supabase.from("arenas").select("id, nome, cidade, endereco, foto_url").eq("id", arenaId).maybeSingle(),
         supabase.from("quadras").select("id, nome, arena_id").eq("arena_id", arenaId).order("nome"),
         supabase.from("replays").select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))").eq("arena_id", arenaId).order("created_at", { ascending: false }).limit(60),
-        supabase.from("cameras").select("quadra_id, streaming_status"),
+        supabase.from("cameras").select("quadra_id, streaming_status, stream_protocol, rtmp_stream_key"),
       ]);
       setArena((arenaRes.data as Arena) ?? null);
       setQuadras((quadrasRes.data as Quadra[]) ?? []);
@@ -132,10 +134,8 @@ function ArenaView() {
     };
   }, [authChecked, arenaId]);
 
-  const statusFor = (quadraId: string) => {
-    const cam = cameras.find((c) => c.quadra_id === quadraId);
-    return cam?.streaming_status ?? "offline";
-  };
+  const cameraFor = (quadraId: string) => cameras.find((c) => c.quadra_id === quadraId);
+  const statusFor = (quadraId: string) => cameraFor(quadraId)?.streaming_status ?? "offline";
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -284,8 +284,8 @@ function ArenaView() {
 
       {/* Live player dialog */}
       <LivePlayerDialog
-        arenaId={arenaId}
         quadra={liveQuadra}
+        camera={liveQuadra ? cameraFor(liveQuadra.id) : undefined}
         status={liveQuadra ? statusFor(liveQuadra.id) : "offline"}
         onClose={() => setLiveQuadra(null)}
       />
@@ -294,13 +294,13 @@ function ArenaView() {
 }
 
 function LivePlayerDialog({
-  arenaId,
   quadra,
+  camera,
   status,
   onClose,
 }: {
-  arenaId: string;
   quadra: Quadra | null;
+  camera?: CameraStatus;
   status: string;
   onClose: () => void;
 }) {
@@ -309,15 +309,20 @@ function LivePlayerDialog({
   const [streamError, setStreamError] = useState<string | null>(null);
   const dbOnline = status === "online" || status === "streaming" || status === "live";
 
-  // Always attempt to load the HLS playlist when the dialog opens — the R2
-  // playlist is the ground truth, not the DB status (which can lag). If it
-  // fails we surface a friendly message, but we never gate mount on `online`.
+  // The Nginx media server exposes the HLS playlist keyed by the camera's
+  // rtmp_stream_key. This is the ground truth — DB `streaming_status` can
+  // lag, so we never gate playback on it.
   useEffect(() => {
     if (!quadra) return;
     if (!videoEl) return;
 
     setStreamError(null);
-    const base = `https://live.izyia.com.br/live/${arenaId}/${quadra.id}/index.m3u8`;
+    const streamKey = camera?.rtmp_stream_key;
+    if (!streamKey) {
+      setStreamError("Câmera sem chave de transmissão configurada.");
+      return;
+    }
+    const base = `https://live.izyia.com.br/live/${streamKey}.m3u8`;
     const src = `${base}?t=${Date.now()}`;
 
     let hls: Hls | null = null;
@@ -355,7 +360,7 @@ function LivePlayerDialog({
       hls?.destroy();
       hlsRef.current = null;
     };
-  }, [quadra, arenaId, videoEl]);
+  }, [quadra, camera?.rtmp_stream_key, videoEl]);
 
   return (
     <Dialog.Root open={!!quadra} onOpenChange={(o) => !o && onClose()}>
