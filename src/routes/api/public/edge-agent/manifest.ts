@@ -38,6 +38,8 @@ export async function buildManifest(): Promise<EdgeAgentManifest> {
     if (EXCLUDED.has(rel)) continue;
     // Nunca servir install.sh via updater — o updater não deve se auto-instalar
     if (rel === "install.sh") continue;
+    // Nunca servir bytecode / caches — quebra sha256 (binário lido como texto)
+    if (rel.includes("__pycache__") || rel.endsWith(".pyc")) continue;
     const content = rawFiles[p];
     if (typeof content !== "string") continue;
     entries.push({
