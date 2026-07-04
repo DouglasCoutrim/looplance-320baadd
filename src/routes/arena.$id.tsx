@@ -306,44 +306,60 @@ function LivePlayerDialog({
 }) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const hlsRef = useRef<Hls | null>(null);
-  const online = status === "online" || status === "streaming" || status === "live";
+  const [streamError, setStreamError] = useState<string | null>(null);
+  const dbOnline = status === "online" || status === "streaming" || status === "live";
 
+  // Always attempt to load the HLS playlist when the dialog opens — the R2
+  // playlist is the ground truth, not the DB status (which can lag). If it
+  // fails we surface a friendly message, but we never gate mount on `online`.
   useEffect(() => {
-    if (!quadra || !online) return;
+    if (!quadra) return;
     const video = videoRef.current;
     if (!video) return;
+
+    setStreamError(null);
     const src = `https://download.looplance.app/live/${arenaId}/${quadra.id}/index.m3u8`;
 
+    let hls: Hls | null = null;
     if (Hls.isSupported()) {
-      const hls = new Hls({ lowLatencyMode: true });
+      hls = new Hls({ lowLatencyMode: true });
       hls.loadSource(src);
       hls.attachMedia(video);
       hls.on(Hls.Events.ERROR, (_e, data) => {
         if (data.fatal) {
-          toast.error("Não foi possível conectar à transmissão.");
+          setStreamError("Transmissão indisponível no momento.");
         }
       });
       hlsRef.current = hls;
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = src;
+      video.addEventListener("error", () => setStreamError("Transmissão indisponível no momento."));
     }
 
+    // Try to play — some browsers block autoplay without a gesture; that's OK.
+    video.play().catch(() => {});
+
     return () => {
-      hlsRef.current?.destroy();
+      hls?.destroy();
       hlsRef.current = null;
     };
-  }, [quadra, arenaId, online]);
+  }, [quadra, arenaId]);
 
   return (
     <Dialog.Root open={!!quadra} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
         <Dialog.Overlay className="fixed inset-0 z-50 bg-black/95 backdrop-blur-md animate-in fade-in duration-300" />
-        <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-full max-w-[95vw] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-2xl animate-in zoom-in-95 duration-300">
+        <Dialog.Content
+          aria-describedby={undefined}
+          className="fixed left-1/2 top-1/2 z-50 w-full max-w-[95vw] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-2xl animate-in zoom-in-95 duration-300"
+        >
           <div className="overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl">
             <div className="flex items-center justify-between border-b border-white/10 p-4">
               <div>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-brand-orange">Ao vivo</p>
-                <h3 className="text-lg font-black text-white">{quadra?.nome}</h3>
+                <Dialog.Title className="text-lg font-black text-white">
+                  {quadra?.nome ?? "Transmissão ao vivo"}
+                </Dialog.Title>
               </div>
               <Dialog.Close className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20">
                 <X className="h-5 w-5" />
@@ -351,21 +367,23 @@ function LivePlayerDialog({
             </div>
 
             <div className="relative aspect-video w-full bg-black">
-              {online ? (
-                <video
-                  ref={videoRef}
-                  controls
-                  autoPlay
-                  playsInline
-                  className="h-full w-full object-contain"
-                />
-              ) : (
-                <div className="flex h-full w-full flex-col items-center justify-center gap-3 p-8 text-center">
+              <video
+                ref={videoRef}
+                controls
+                autoPlay
+                playsInline
+                muted
+                className="h-full w-full object-contain"
+              />
+              {streamError && (
+                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/90 p-8 text-center">
                   <div className="grid h-16 w-16 place-items-center rounded-full bg-white/5">
                     <WifiOff className="h-8 w-8 text-white/60" />
                   </div>
-                  <p className="text-base font-bold text-white">Transmissão indisponível no momento.</p>
-                  <p className="text-sm text-white/60">O jogo começará em breve! 🎾</p>
+                  <p className="text-base font-bold text-white">{streamError}</p>
+                  <p className="text-sm text-white/60">
+                    {dbOnline ? "Tente novamente em instantes." : "O jogo começará em breve! 🎾"}
+                  </p>
                 </div>
               )}
             </div>
@@ -375,3 +393,4 @@ function LivePlayerDialog({
     </Dialog.Root>
   );
 }
+
