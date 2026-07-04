@@ -151,10 +151,10 @@ export type Database = {
           input_board_id: string | null
           name: string
           overlay_url: string | null
-          protocol_settings: Json | null
+          protocol_settings: Json
           quadra_id: string | null
           replay_seconds: number | null
-          rtmp_stream_key: string | null
+          rtmp_stream_key: string
           rtsp_url: string | null
           sponsor_logo_center: string | null
           sponsor_logo_left: string | null
@@ -179,10 +179,10 @@ export type Database = {
           input_board_id?: string | null
           name: string
           overlay_url?: string | null
-          protocol_settings?: Json | null
+          protocol_settings?: Json
           quadra_id?: string | null
           replay_seconds?: number | null
-          rtmp_stream_key?: string | null
+          rtmp_stream_key?: string
           rtsp_url?: string | null
           sponsor_logo_center?: string | null
           sponsor_logo_left?: string | null
@@ -207,10 +207,10 @@ export type Database = {
           input_board_id?: string | null
           name?: string
           overlay_url?: string | null
-          protocol_settings?: Json | null
+          protocol_settings?: Json
           quadra_id?: string | null
           replay_seconds?: number | null
-          rtmp_stream_key?: string | null
+          rtmp_stream_key?: string
           rtsp_url?: string | null
           sponsor_logo_center?: string | null
           sponsor_logo_left?: string | null
