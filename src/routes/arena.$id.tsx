@@ -318,11 +318,29 @@ function LivePlayerDialog({
     if (!video) return;
 
     setStreamError(null);
-    const src = `https://live.izyia.com.br/live/${arenaId}/${quadra.id}/index.m3u8`;
+    const base = `https://live.izyia.com.br/live/${arenaId}/${quadra.id}/index.m3u8`;
+    const src = `${base}?t=${Date.now()}`;
 
     let hls: Hls | null = null;
     if (Hls.isSupported()) {
-      hls = new Hls({ lowLatencyMode: true });
+      hls = new Hls({
+        lowLatencyMode: true,
+        enableWorker: true,
+        // Force no-cache on playlist + segment fetches so the sliding window updates.
+        xhrSetup: (xhr, url) => {
+          // Append cache-buster to the playlist requests (segments are unique names).
+          if (url.endsWith(".m3u8") || url.includes(".m3u8?")) {
+            const sep = url.includes("?") ? "&" : "?";
+            xhr.open("GET", `${url}${sep}_=${Date.now()}`, true);
+          }
+          try {
+            xhr.setRequestHeader("Cache-Control", "no-cache");
+            xhr.setRequestHeader("Pragma", "no-cache");
+          } catch {
+            /* some browsers block setting these; safe to ignore */
+          }
+        },
+      });
       hls.loadSource(src);
       hls.attachMedia(video);
       hls.on(Hls.Events.ERROR, (_e, data) => {
@@ -335,6 +353,7 @@ function LivePlayerDialog({
       video.src = src;
       video.addEventListener("error", () => setStreamError("Transmissão indisponível no momento."));
     }
+
 
     // Try to play — some browsers block autoplay without a gesture; that's OK.
     video.play().catch(() => {});
