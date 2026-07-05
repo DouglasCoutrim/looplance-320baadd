@@ -364,48 +364,47 @@ function Arenas() {
 
                 {/* Localização no mapa */}
                 <div className="grid gap-2">
-                  <div className="flex items-center justify-between gap-2">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Localização no Mapa</Label>
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Localização no Mapa</Label>
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                    <div className="h-14 w-14 rounded-xl bg-brand-orange/10 flex items-center justify-center text-brand-orange shrink-0">
+                      <MapPin className="h-6 w-6" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      {latitude && longitude ? (
+                        <>
+                          <p className="text-xs font-black uppercase tracking-widest text-gray-500">Pin salvo</p>
+                          <p className="font-mono text-sm text-gray-800 truncate">
+                            {parseFloat(latitude).toFixed(6)}, {parseFloat(longitude).toFixed(6)}
+                          </p>
+                          <a
+                            href={`https://www.google.com/maps?q=${latitude},${longitude}`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-[11px] text-brand-orange font-bold hover:underline inline-flex items-center gap-1"
+                          >
+                            Ver no Google Maps
+                          </a>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-sm font-bold text-gray-700">Nenhuma localização definida</p>
+                          <p className="text-[11px] text-muted-foreground">
+                            Abra o mapa e dê dois cliques no local exato da arena.
+                          </p>
+                        </>
+                      )}
+                    </div>
                     <Button
                       type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={captureLocation}
-                      className="h-8 rounded-lg text-brand-orange hover:bg-brand-orange/5 text-xs font-bold"
+                      onClick={() => setMapPickerOpen(true)}
+                      className="rounded-xl brand-gradient text-white font-black uppercase tracking-widest px-5 h-11 text-xs shrink-0"
                     >
-                      <Navigation className="h-3.5 w-3.5 mr-1.5" /> Usar minha localização
+                      <MapPin className="h-4 w-4 mr-2" />
+                      {latitude && longitude ? "Alterar no mapa" : "Selecionar no mapa"}
                     </Button>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Input
-                      value={latitude}
-                      onChange={(e) => setLatitude(e.target.value)}
-                      placeholder="Latitude (-27.5954)"
-                      inputMode="decimal"
-                      className="rounded-xl border-gray-100 bg-gray-50 h-12 font-mono text-sm focus:border-brand-orange focus:ring-brand-orange"
-                    />
-                    <Input
-                      value={longitude}
-                      onChange={(e) => setLongitude(e.target.value)}
-                      placeholder="Longitude (-48.5480)"
-                      inputMode="decimal"
-                      className="rounded-xl border-gray-100 bg-gray-50 h-12 font-mono text-sm focus:border-brand-orange focus:ring-brand-orange"
-                    />
-                  </div>
-                  {latitude && longitude && (
-                    <a
-                      href={`https://www.google.com/maps?q=${latitude},${longitude}`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-xs text-brand-orange font-bold hover:underline inline-flex items-center gap-1 w-fit"
-                    >
-                      <MapPin className="h-3 w-3" /> Ver no Google Maps
-                    </a>
-                  )}
-                  <p className="text-[11px] text-muted-foreground">
-                    Dica: no Google Maps, clique com o botão direito no local e copie as coordenadas.
-                  </p>
                 </div>
+
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
