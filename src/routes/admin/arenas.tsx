@@ -100,10 +100,25 @@ function Arenas() {
     [edges, clientId]
   );
 
+  // Only cities that actually have at least one arena registered
+  const availableCities = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of arenas) {
+      const c = (a.cidade || "").trim();
+      if (c) set.add(c);
+    }
+    return Array.from(set).sort((x, y) => x.localeCompare(y, "pt-BR"));
+  }, [arenas]);
+
+  const visibleArenas = useMemo(() => {
+    if (!cityFilter) return [];
+    return arenas.filter((a) => (a.cidade || "").trim() === cityFilter);
+  }, [arenas, cityFilter]);
+
   const resetForm = () => {
     setEditing(null);
     setName(""); setClientId(""); setEdgeId("");
-    setEndereco(""); setTelefone("");
+    setEndereco(""); setCidade(""); setTelefone("");
     setLatitude(""); setLongitude("");
     setLogoUrl(null);
   };
@@ -120,6 +135,7 @@ function Arenas() {
     setClientId(edge?.client_id ?? "");
     setEdgeId(a.edge_device_id ?? "");
     setEndereco(a.endereco ?? "");
+    setCidade(a.cidade ?? "");
     setTelefone(a.telefone ?? "");
     setLatitude(a.latitude != null ? String(a.latitude) : "");
     setLongitude(a.longitude != null ? String(a.longitude) : "");
