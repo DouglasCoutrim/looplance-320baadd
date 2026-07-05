@@ -112,6 +112,8 @@ function Quadras() {
   const resetForm = () => {
     setName("");
     setArenaId(arenaFilter || "");
+    setTipo("");
+    setCoverUrl(null);
     setEditing(null);
   };
 
@@ -124,7 +126,37 @@ function Quadras() {
     setEditing(q);
     setName(q.nome);
     setArenaId(q.arena_id);
+    setTipo(q.tipo ?? "");
+    setCoverUrl(q.cover_image_url ?? null);
     setIsDialogOpen(true);
+  };
+
+  const handleCoverUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Imagem deve ter no máximo 8MB");
+      return;
+    }
+    setUploadingCover(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `quadras/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("arenas")
+        .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("arenas").getPublicUrl(path);
+      setCoverUrl(pub.publicUrl);
+      toast.success("Imagem enviada");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao enviar imagem");
+    } finally {
+      setUploadingCover(false);
+      if (coverInputRef.current) coverInputRef.current.value = "";
+    }
   };
 
   const handleSubmit = async () => {
@@ -132,12 +164,18 @@ function Quadras() {
       toast.error("Nome e Arena são obrigatórios");
       return;
     }
+    const payload = {
+      nome: name,
+      arena_id: arenaId,
+      tipo: tipo || null,
+      cover_image_url: coverUrl,
+    };
     if (editing) {
-      const { error } = await supabase.from("quadras").update({ nome: name, arena_id: arenaId }).eq("id", editing.id);
+      const { error } = await supabase.from("quadras").update(payload).eq("id", editing.id);
       if (error) return toast.error("Erro ao atualizar quadra");
       toast.success("Quadra atualizada");
     } else {
-      const { error } = await supabase.from("quadras").insert([{ nome: name, arena_id: arenaId }]);
+      const { error } = await supabase.from("quadras").insert([payload]);
       if (error) return toast.error("Erro ao criar quadra");
       toast.success("Quadra criada");
     }
