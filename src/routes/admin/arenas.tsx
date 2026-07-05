@@ -578,6 +578,8 @@ function Arenas() {
           </TableBody>
         </Table>
       </div>
+      )}
+
 
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent className="rounded-2xl">
