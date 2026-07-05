@@ -195,6 +195,7 @@ function Arenas() {
       nome: name.trim(),
       edge_device_id: edgeId,
       endereco: endereco.trim() || null,
+      cidade: cidade.trim() || null,
       telefone: telefone.trim() || null,
       logo_url: logoUrl,
       latitude: lat,
