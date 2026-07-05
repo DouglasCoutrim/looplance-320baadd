@@ -383,11 +383,32 @@ function Arenas() {
                   </div>
                 </div>
 
-                {/* Nome + Cidade */}
-                <div className="grid gap-5 sm:grid-cols-[1fr_240px]">
+                {/* Nome */}
+                <div className="grid gap-2">
+                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
+                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                </div>
+
+                {/* Estado + Cidade + CEP */}
+                <div className="grid gap-5 sm:grid-cols-[120px_1fr_160px]">
                   <div className="grid gap-2">
-                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
-                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Estado (UF)</Label>
+                    <Select
+                      value={estado || undefined}
+                      onValueChange={(v) => {
+                        setEstado(v);
+                        // se a cidade atual não pertence ao novo estado (na lista sugerida), mantém mas usuário pode ajustar
+                      }}
+                    >
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+                        <SelectValue placeholder="UF" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BR_STATES.map((uf) => (
+                          <SelectItem key={uf} value={uf}>{uf}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="cidade" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cidade</Label>
@@ -396,13 +417,24 @@ function Arenas() {
                       value={cidade}
                       onChange={(e) => setCidade(e.target.value)}
                       maxLength={80}
-                      placeholder="Ex: Florianópolis"
+                      placeholder={estado ? `Cidades em ${estado}` : "Selecione a UF"}
                       list="arena-cidades"
                       className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange"
                     />
                     <datalist id="arena-cidades">
-                      {availableCities.map((c) => <option key={c} value={c} />)}
+                      {formCitySuggestions.map((c) => <option key={c} value={c} />)}
                     </datalist>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="cep" className="text-xs font-black uppercase tracking-widest text-muted-foreground">CEP</Label>
+                    <Input
+                      id="cep"
+                      value={cep}
+                      onChange={(e) => setCep(e.target.value)}
+                      maxLength={12}
+                      placeholder="00000-000"
+                      className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange"
+                    />
                   </div>
                 </div>
 
@@ -434,6 +466,7 @@ function Arenas() {
                     </div>
                   </div>
                 </div>
+
 
 
                 {/* Localização no mapa */}
