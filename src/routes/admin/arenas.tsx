@@ -692,13 +692,18 @@ function Arenas() {
         onOpenChange={setMapPickerOpen}
         initialLat={latitude ? parseFloat(latitude) : null}
         initialLng={longitude ? parseFloat(longitude) : null}
-        addressHint={[endereco, cidade].filter(Boolean).join(", ")}
-        onConfirm={(lat, lng) => {
-          setLatitude(lat.toFixed(7));
-          setLongitude(lng.toFixed(7));
+        addressHint={[endereco, cidade, estado].filter(Boolean).join(", ")}
+        onConfirm={(loc) => {
+          setLatitude(loc.lat.toFixed(7));
+          setLongitude(loc.lng.toFixed(7));
+          // Auto-fill address parts only when currently empty
+          if (loc.cidade && !cidade.trim()) setCidade(loc.cidade);
+          if (loc.estado && !estado.trim()) setEstado(loc.estado.toUpperCase());
+          if (loc.cep && !cep.trim()) setCep(loc.cep);
           toast.success("Localização definida");
         }}
       />
     </div>
   );
 }
+
