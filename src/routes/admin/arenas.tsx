@@ -204,6 +204,7 @@ function Arenas() {
 
   const handleSubmit = async () => {
     if (!name.trim()) return toast.error("Informe o nome da arena");
+    if (!estado.trim()) return toast.error("Selecione o estado da arena");
     if (!cidade.trim()) return toast.error("Informe a cidade da arena");
     if (!clientId) return toast.error("Selecione o cliente");
     if (!edgeId) return toast.error("Selecione o Edge Device");
@@ -227,6 +228,8 @@ function Arenas() {
       edge_device_id: edgeId,
       endereco: endereco.trim() || null,
       cidade: cidade.trim() || null,
+      estado: estado.trim().toUpperCase() || null,
+      cep: cep.trim() || null,
       telefone: telefone.trim() || null,
       logo_url: logoUrl,
       latitude: lat,
