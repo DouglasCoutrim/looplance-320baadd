@@ -3,7 +3,8 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw, MapPin, Edit2, Trash2, Upload, X, Phone, Navigation } from "lucide-react";
+import { Plus, RefreshCw, MapPin, Edit2, Trash2, Upload, X, Phone } from "lucide-react";
+import { MapPickerDialog } from "@/components/MapPickerDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
