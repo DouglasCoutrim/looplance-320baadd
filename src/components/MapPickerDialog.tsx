@@ -175,12 +175,13 @@ export function MapPickerDialog({ open, onOpenChange, initialLat, initialLng, ad
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     if (!picked) {
       toast.error("Dê dois cliques no local desejado para marcar a arena");
       return;
     }
-    onConfirm(picked.lat, picked.lng);
+    const meta = await reverseGeocode(picked.lat, picked.lng);
+    onConfirm({ lat: picked.lat, lng: picked.lng, ...meta });
     onOpenChange(false);
   };
 
