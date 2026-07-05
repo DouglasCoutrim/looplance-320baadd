@@ -1,0 +1,1 @@
+ALTER TABLE public.arenas ADD COLUMN IF NOT EXISTS cidade text;
