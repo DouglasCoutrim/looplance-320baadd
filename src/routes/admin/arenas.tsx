@@ -561,10 +561,9 @@ function Arenas() {
           <Select
             value={cityFilter || "__none"}
             onValueChange={(v) => setCityFilter(v === "__none" ? "" : v)}
-            disabled={!filterEstado}
           >
             <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
-              <SelectValue placeholder={filterEstado ? (filterCitySuggestions.length ? "Escolha a cidade" : "Sem cidades") : "Selecione a UF"} />
+              <SelectValue placeholder={filterCitySuggestions.length ? "Escolha a cidade" : "Sem cidades"} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="__none">Nenhuma (limpar)</SelectItem>
@@ -576,20 +575,19 @@ function Arenas() {
         </div>
       </div>
 
-      {!filterEstado || !cityFilter ? (
+      {!cityFilter ? (
         <div className="glass-card bg-white shadow-xl border border-gray-100 p-16 text-center">
           <div className="mx-auto h-16 w-16 rounded-2xl bg-brand-orange/10 flex items-center justify-center text-brand-orange mb-4">
             <MapPin className="h-8 w-8" />
           </div>
-          <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">
-            {!filterEstado ? "Escolha um estado" : "Escolha uma cidade"}
-          </h3>
+          <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">Escolha uma cidade</h3>
           <p className="text-sm text-muted-foreground font-medium mt-1">
-            {availableStates.length
-              ? "As arenas serão exibidas após você selecionar estado e cidade."
+            {availableStates.length || filterCitySuggestions.length
+              ? "Selecione uma cidade acima para ver as arenas. A UF é opcional para filtrar."
               : "Ainda não há arenas cadastradas. Cadastre uma arena para começar."}
           </p>
         </div>
+
 
       ) : (
       <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
