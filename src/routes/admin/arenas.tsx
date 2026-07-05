@@ -513,14 +513,14 @@ function Arenas() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {arenas.length === 0 ? (
+            {visibleArenas.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium italic">
-                  Nenhuma arena cadastrada no momento.
+                  Nenhuma arena cadastrada em {cityFilter}.
                 </TableCell>
               </TableRow>
             ) : (
-              arenas.map((a) => {
+              visibleArenas.map((a) => {
                 const mapLink = mapsUrl(a);
                 return (
                   <TableRow key={a.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
