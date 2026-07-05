@@ -174,6 +174,7 @@ function Arenas() {
 
   const handleSubmit = async () => {
     if (!name.trim()) return toast.error("Informe o nome da arena");
+    if (!cidade.trim()) return toast.error("Informe a cidade da arena");
     if (!clientId) return toast.error("Selecione o cliente");
     if (!edgeId) return toast.error("Selecione o Edge Device");
 
