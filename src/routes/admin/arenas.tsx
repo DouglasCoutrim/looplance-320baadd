@@ -110,25 +110,43 @@ function Arenas() {
     [edges, clientId]
   );
 
-  // Only cities that actually have at least one arena registered
-  const availableCities = useMemo(() => {
+  // Estados that have at least one arena
+  const availableStates = useMemo(() => {
     const set = new Set<string>();
     for (const a of arenas) {
-      const c = (a.cidade || "").trim();
-      if (c) set.add(c);
+      const s = (a.estado || "").trim().toUpperCase();
+      if (s) set.add(s);
     }
-    return Array.from(set).sort((x, y) => x.localeCompare(y, "pt-BR"));
+    return Array.from(set).sort();
   }, [arenas]);
 
+  // Cities (filtered by selected estado in form or filter)
+  const citiesForState = (uf: string) => {
+    const set = new Set<string>();
+    for (const a of arenas) {
+      const s = (a.estado || "").trim().toUpperCase();
+      const c = (a.cidade || "").trim();
+      if (c && (!uf || s === uf.toUpperCase())) set.add(c);
+    }
+    return Array.from(set).sort((x, y) => x.localeCompare(y, "pt-BR"));
+  };
+
+  const formCitySuggestions = useMemo(() => citiesForState(estado), [arenas, estado]);
+  const filterCitySuggestions = useMemo(() => citiesForState(filterEstado), [arenas, filterEstado]);
+
   const visibleArenas = useMemo(() => {
-    if (!cityFilter) return [];
-    return arenas.filter((a) => (a.cidade || "").trim() === cityFilter);
-  }, [arenas, cityFilter]);
+    if (!filterEstado || !cityFilter) return [];
+    return arenas.filter(
+      (a) =>
+        (a.estado || "").trim().toUpperCase() === filterEstado.toUpperCase() &&
+        (a.cidade || "").trim() === cityFilter
+    );
+  }, [arenas, cityFilter, filterEstado]);
 
   const resetForm = () => {
     setEditing(null);
     setName(""); setClientId(""); setEdgeId("");
-    setEndereco(""); setCidade(""); setTelefone("");
+    setEndereco(""); setCidade(""); setEstado(""); setCep(""); setTelefone("");
     setLatitude(""); setLongitude("");
     setLogoUrl(null);
   };
@@ -146,6 +164,8 @@ function Arenas() {
     setEdgeId(a.edge_device_id ?? "");
     setEndereco(a.endereco ?? "");
     setCidade(a.cidade ?? "");
+    setEstado(a.estado ?? "");
+    setCep(a.cep ?? "");
     setTelefone(a.telefone ?? "");
     setLatitude(a.latitude != null ? String(a.latitude) : "");
     setLongitude(a.longitude != null ? String(a.longitude) : "");
