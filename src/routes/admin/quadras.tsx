@@ -75,7 +75,7 @@ function Quadras() {
       supabase.from("quadras").select("*, arenas(nome, cidade)").order("nome"),
       supabase.from("arenas").select("id, nome, cidade").order("nome"),
     ]);
-    setQuadras(qRes.data || []);
+    setQuadras(((qRes.data as any) || []) as Quadra[]);
     setArenas(aRes.data || []);
     setLoading(false);
   };
