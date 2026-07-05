@@ -601,7 +601,7 @@ function Arenas() {
         onOpenChange={setMapPickerOpen}
         initialLat={latitude ? parseFloat(latitude) : null}
         initialLng={longitude ? parseFloat(longitude) : null}
-        addressHint={endereco}
+        addressHint={[endereco, cidade].filter(Boolean).join(", ")}
         onConfirm={(lat, lng) => {
           setLatitude(lat.toFixed(7));
           setLongitude(lng.toFixed(7));
