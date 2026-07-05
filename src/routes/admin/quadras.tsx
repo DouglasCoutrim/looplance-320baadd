@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv, MapPin, Building2 } from "lucide-react";
+import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv, MapPin, Building2, Upload, X, ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -24,10 +24,23 @@ export const Route = createFileRoute("/admin/quadras")({
   component: Quadras,
 });
 
+type QuadraTipo = "grama" | "sintetico" | "areia" | "terra" | "cimento";
+
+const TIPO_OPTIONS: { value: QuadraTipo; label: string }[] = [
+  { value: "grama", label: "Grama" },
+  { value: "sintetico", label: "Sintético" },
+  { value: "areia", label: "Areia" },
+  { value: "terra", label: "Terra" },
+  { value: "cimento", label: "Cimento" },
+];
+const TIPO_LABEL: Record<string, string> = Object.fromEntries(TIPO_OPTIONS.map(o => [o.value, o.label]));
+
 interface Quadra {
   id: string;
   nome: string;
   arena_id: string;
+  tipo: QuadraTipo | null;
+  cover_image_url: string | null;
   arenas?: { nome: string; cidade: string | null } | null;
 }
 
@@ -45,6 +58,10 @@ function Quadras() {
 
   const [name, setName] = useState("");
   const [arenaId, setArenaId] = useState("");
+  const [tipo, setTipo] = useState<QuadraTipo | "">("");
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState<Quadra | null>(null);
   const [deleting, setDeleting] = useState<Quadra | null>(null);
 
@@ -58,7 +75,7 @@ function Quadras() {
       supabase.from("quadras").select("*, arenas(nome, cidade)").order("nome"),
       supabase.from("arenas").select("id, nome, cidade").order("nome"),
     ]);
-    setQuadras(qRes.data || []);
+    setQuadras(((qRes.data as any) || []) as Quadra[]);
     setArenas(aRes.data || []);
     setLoading(false);
   };
@@ -95,6 +112,8 @@ function Quadras() {
   const resetForm = () => {
     setName("");
     setArenaId(arenaFilter || "");
+    setTipo("");
+    setCoverUrl(null);
     setEditing(null);
   };
 
@@ -107,7 +126,37 @@ function Quadras() {
     setEditing(q);
     setName(q.nome);
     setArenaId(q.arena_id);
+    setTipo(q.tipo ?? "");
+    setCoverUrl(q.cover_image_url ?? null);
     setIsDialogOpen(true);
+  };
+
+  const handleCoverUpload = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      toast.error("Selecione um arquivo de imagem");
+      return;
+    }
+    if (file.size > 8 * 1024 * 1024) {
+      toast.error("Imagem deve ter no máximo 8MB");
+      return;
+    }
+    setUploadingCover(true);
+    try {
+      const ext = file.name.split(".").pop() || "jpg";
+      const path = `quadras/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("arenas")
+        .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("arenas").getPublicUrl(path);
+      setCoverUrl(pub.publicUrl);
+      toast.success("Imagem enviada");
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao enviar imagem");
+    } finally {
+      setUploadingCover(false);
+      if (coverInputRef.current) coverInputRef.current.value = "";
+    }
   };
 
   const handleSubmit = async () => {
@@ -115,12 +164,18 @@ function Quadras() {
       toast.error("Nome e Arena são obrigatórios");
       return;
     }
+    const payload = {
+      nome: name,
+      arena_id: arenaId,
+      tipo: tipo || null,
+      cover_image_url: coverUrl,
+    };
     if (editing) {
-      const { error } = await supabase.from("quadras").update({ nome: name, arena_id: arenaId }).eq("id", editing.id);
+      const { error } = await supabase.from("quadras").update(payload).eq("id", editing.id);
       if (error) return toast.error("Erro ao atualizar quadra");
       toast.success("Quadra atualizada");
     } else {
-      const { error } = await supabase.from("quadras").insert([{ nome: name, arena_id: arenaId }]);
+      const { error } = await supabase.from("quadras").insert([payload]);
       if (error) return toast.error("Erro ao criar quadra");
       toast.success("Quadra criada");
     }
@@ -168,13 +223,51 @@ function Quadras() {
                 <Plus className="mr-2 h-5 w-5" /> Nova Quadra
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-2xl border-none shadow-2xl">
+            <DialogContent className="rounded-2xl border-none shadow-2xl max-w-xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
                   {editing ? "Editar Quadra" : "Configurar Quadra"}
                 </DialogTitle>
               </DialogHeader>
-              <div className="grid gap-6 py-6">
+              <div className="grid gap-5 py-6">
+                {/* Cover upload */}
+                <div className="grid gap-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Imagem de Capa</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="h-24 w-32 rounded-2xl bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                      {coverUrl ? (
+                        <img src={coverUrl} alt="Capa" className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-7 w-7 text-gray-300" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2 flex-1">
+                      <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleCoverUpload(f);
+                        }}
+                      />
+                      <div className="flex gap-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => coverInputRef.current?.click()} disabled={uploadingCover} className="rounded-xl font-bold border-gray-200">
+                          <Upload className="h-4 w-4 mr-2" />
+                          {uploadingCover ? "Enviando..." : coverUrl ? "Trocar" : "Enviar capa"}
+                        </Button>
+                        {coverUrl && (
+                          <Button type="button" variant="ghost" size="sm" onClick={() => setCoverUrl(null)} className="rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50">
+                            <X className="h-4 w-4 mr-1" /> Remover
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">PNG, JPG ou WebP — até 8MB.</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid gap-2">
                   <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Complexo (Arena)</Label>
                   <Select value={arenaId} onValueChange={setArenaId}>
@@ -190,14 +283,30 @@ function Quadras() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Quadra</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Quadra 01 - Central" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+
+                <div className="grid gap-5 sm:grid-cols-[1fr_200px]">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Quadra</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Quadra 01 - Central" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tipo de Piso</Label>
+                    <Select value={tipo || undefined} onValueChange={(v) => setTipo(v as QuadraTipo)}>
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIPO_OPTIONS.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
+                <Button onClick={handleSubmit} disabled={uploadingCover} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
@@ -287,12 +396,22 @@ function Quadras() {
                   <TableRow key={q.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
                     <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
                       <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white shrink-0">
-                          <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
+                        <div className="h-12 w-16 sm:h-14 sm:w-20 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 overflow-hidden shrink-0 border border-gray-100">
+                          {q.cover_image_url ? (
+                            <img src={q.cover_image_url} alt={q.nome} className="h-full w-full object-cover" />
+                          ) : (
+                            <Layout className="h-5 w-5" />
+                          )}
                         </div>
                         <div className="min-w-0">
                           <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{q.nome}</span>
-                          <p className="text-[10px] font-medium text-muted-foreground truncate">ID: {q.id.slice(0, 8)}...</p>
+                          {q.tipo ? (
+                            <span className="inline-block mt-1 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-orange/10 text-brand-orange">
+                              {TIPO_LABEL[q.tipo]}
+                            </span>
+                          ) : (
+                            <p className="text-[10px] font-medium text-muted-foreground truncate">Sem tipo definido</p>
+                          )}
                         </div>
                       </div>
                     </TableCell>

@@ -595,21 +595,27 @@ export type Database = {
       quadras: {
         Row: {
           arena_id: string
+          cover_image_url: string | null
           created_at: string
           id: string
           nome: string
+          tipo: string | null
         }
         Insert: {
           arena_id: string
+          cover_image_url?: string | null
           created_at?: string
           id?: string
           nome: string
+          tipo?: string | null
         }
         Update: {
           arena_id?: string
+          cover_image_url?: string | null
           created_at?: string
           id?: string
           nome?: string
+          tipo?: string | null
         }
         Relationships: [
           {
