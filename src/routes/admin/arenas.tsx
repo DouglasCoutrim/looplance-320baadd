@@ -458,6 +458,49 @@ function Arenas() {
         </div>
       </div>
 
+      {/* Filtro por cidade — arenas só aparecem depois de escolher */}
+      <div className="glass-card bg-white shadow-xl border border-gray-100 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="h-10 w-10 rounded-xl bg-brand-orange/10 flex items-center justify-center text-brand-orange shrink-0">
+            <MapPin className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Filtrar por cidade</p>
+            <p className="text-sm font-bold text-gray-800 truncate">
+              {cityFilter
+                ? `Mostrando arenas em ${cityFilter}`
+                : "Selecione uma cidade para ver as arenas"}
+            </p>
+          </div>
+        </div>
+        <div className="sm:w-72">
+          <Select value={cityFilter || "__none"} onValueChange={(v) => setCityFilter(v === "__none" ? "" : v)}>
+            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+              <SelectValue placeholder={availableCities.length ? "Escolha a cidade" : "Nenhuma cidade cadastrada"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none">Nenhuma (limpar)</SelectItem>
+              {availableCities.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {!cityFilter ? (
+        <div className="glass-card bg-white shadow-xl border border-gray-100 p-16 text-center">
+          <div className="mx-auto h-16 w-16 rounded-2xl bg-brand-orange/10 flex items-center justify-center text-brand-orange mb-4">
+            <MapPin className="h-8 w-8" />
+          </div>
+          <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">Escolha uma cidade</h3>
+          <p className="text-sm text-muted-foreground font-medium mt-1">
+            {availableCities.length
+              ? "As arenas serão exibidas após você selecionar uma cidade acima."
+              : "Ainda não há arenas cadastradas com cidade. Cadastre uma arena para começar."}
+          </p>
+        </div>
+      ) : (
       <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
         <Table>
           <TableHeader className="bg-gray-50/50 border-b border-gray-100">
