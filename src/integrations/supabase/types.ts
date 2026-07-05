@@ -51,10 +51,12 @@ export type Database = {
       }
       arenas: {
         Row: {
+          cep: string | null
           cidade: string | null
           created_at: string
           edge_device_id: string | null
           endereco: string | null
+          estado: string | null
           final_overlay_url: string | null
           foto_url: string | null
           id: string
@@ -68,10 +70,12 @@ export type Database = {
           telefone: string | null
         }
         Insert: {
+          cep?: string | null
           cidade?: string | null
           created_at?: string
           edge_device_id?: string | null
           endereco?: string | null
+          estado?: string | null
           final_overlay_url?: string | null
           foto_url?: string | null
           id?: string
@@ -85,10 +89,12 @@ export type Database = {
           telefone?: string | null
         }
         Update: {
+          cep?: string | null
           cidade?: string | null
           created_at?: string
           edge_device_id?: string | null
           endereco?: string | null
+          estado?: string | null
           final_overlay_url?: string | null
           foto_url?: string | null
           id?: string
