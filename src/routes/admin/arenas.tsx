@@ -150,24 +150,6 @@ function Arenas() {
     }
   };
 
-  const captureLocation = () => {
-    if (!navigator.geolocation) {
-      toast.error("Geolocalização não disponível neste navegador");
-      return;
-    }
-    toast.loading("Capturando localização...", { id: "geo" });
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setLatitude(pos.coords.latitude.toFixed(7));
-        setLongitude(pos.coords.longitude.toFixed(7));
-        toast.success("Localização capturada", { id: "geo" });
-      },
-      (err) => {
-        toast.error(err.message || "Não foi possível obter a localização", { id: "geo" });
-      },
-      { enableHighAccuracy: true, timeout: 10000 }
-    );
-  };
 
   const handleSubmit = async () => {
     if (!name.trim()) return toast.error("Informe o nome da arena");
