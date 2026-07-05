@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv } from "lucide-react";
+import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv, MapPin, Building2 } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -28,12 +28,18 @@ interface Quadra {
   id: string;
   nome: string;
   arena_id: string;
-  arenas?: { nome: string } | null;
+  arenas?: { nome: string; cidade: string | null } | null;
+}
+
+interface ArenaOpt {
+  id: string;
+  nome: string;
+  cidade: string | null;
 }
 
 function Quadras() {
   const [quadras, setQuadras] = useState<Quadra[]>([]);
-  const [arenas, setArenas] = useState<any[]>([]);
+  const [arenas, setArenas] = useState<ArenaOpt[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -42,11 +48,15 @@ function Quadras() {
   const [editing, setEditing] = useState<Quadra | null>(null);
   const [deleting, setDeleting] = useState<Quadra | null>(null);
 
+  // Cascading filters: cidade -> arena -> quadras
+  const [cityFilter, setCityFilter] = useState<string>("");
+  const [arenaFilter, setArenaFilter] = useState<string>("");
+
   const fetchData = async () => {
     setLoading(true);
     const [qRes, aRes] = await Promise.all([
-      supabase.from("quadras").select("*, arenas(nome)").order("nome"),
-      supabase.from("arenas").select("id, nome").order("nome")
+      supabase.from("quadras").select("*, arenas(nome, cidade)").order("nome"),
+      supabase.from("arenas").select("id, nome, cidade").order("nome"),
     ]);
     setQuadras(qRes.data || []);
     setArenas(aRes.data || []);
@@ -57,9 +67,34 @@ function Quadras() {
     fetchData();
   }, []);
 
+  // Only cities that actually have at least one arena registered
+  const availableCities = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of arenas) {
+      const c = (a.cidade || "").trim();
+      if (c) set.add(c);
+    }
+    return Array.from(set).sort((x, y) => x.localeCompare(y, "pt-BR"));
+  }, [arenas]);
+
+  const arenasInCity = useMemo(
+    () => (cityFilter ? arenas.filter((a) => (a.cidade || "").trim() === cityFilter) : []),
+    [arenas, cityFilter]
+  );
+
+  const visibleQuadras = useMemo(
+    () => (arenaFilter ? quadras.filter((q) => q.arena_id === arenaFilter) : []),
+    [quadras, arenaFilter]
+  );
+
+  // Reset arena filter when city changes
+  useEffect(() => {
+    setArenaFilter("");
+  }, [cityFilter]);
+
   const resetForm = () => {
     setName("");
-    setArenaId("");
+    setArenaId(arenaFilter || "");
     setEditing(null);
   };
 
@@ -105,6 +140,8 @@ function Quadras() {
     setDeleting(null);
   };
 
+  const selectedArena = arenas.find((a) => a.id === arenaFilter);
+
   return (
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
@@ -113,7 +150,7 @@ function Quadras() {
             Quadras <span className="brand-text">Pistas</span>
           </h1>
           <p className="text-muted-foreground mt-1 font-medium text-base sm:text-lg">
-            Vincule quadras específicas aos seus complexos.
+            Selecione cidade e arena para visualizar as quadras.
           </p>
         </div>
         <div className="flex gap-3">
@@ -122,7 +159,12 @@ function Quadras() {
           </Button>
           <Dialog open={isDialogOpen} onOpenChange={(o) => { setIsDialogOpen(o); if (!o) resetForm(); }}>
             <DialogTrigger asChild>
-              <Button onClick={openCreate} className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none">
+              <Button
+                onClick={openCreate}
+                disabled={!arenaFilter}
+                title={!arenaFilter ? "Escolha cidade e arena antes de criar" : undefined}
+                className="brand-gradient brand-glow text-white font-black uppercase tracking-widest px-4 sm:px-6 h-10 sm:h-12 rounded-xl transition-transform hover:scale-[1.02] text-xs sm:text-sm flex-1 sm:flex-none disabled:opacity-50 disabled:cursor-not-allowed"
+              >
                 <Plus className="mr-2 h-5 w-5" /> Nova Quadra
               </Button>
             </DialogTrigger>
@@ -140,7 +182,11 @@ function Quadras() {
                       <SelectValue placeholder="Selecione a arena" />
                     </SelectTrigger>
                     <SelectContent className="rounded-xl border-gray-100 shadow-xl">
-                      {arenas.map((a) => <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>)}
+                      {arenas.map((a) => (
+                        <SelectItem key={a.id} value={a.id}>
+                          {a.nome}{a.cidade ? ` — ${a.cidade}` : ""}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                 </div>
@@ -158,58 +204,121 @@ function Quadras() {
         </div>
       </div>
 
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
-        <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Quadra / Court</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Arena Vinculada</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {quadras.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={3} className="h-40 text-center text-muted-foreground font-medium italic">
-                  Nenhuma quadra encontrada para os filtros atuais.
-                </TableCell>
+      {/* Cascading filters: cidade -> arena */}
+      <div className="glass-card bg-white shadow-xl border border-gray-100 p-4 sm:p-5 grid gap-4 sm:grid-cols-2">
+        <div className="grid gap-2">
+          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5" /> 1. Cidade
+          </Label>
+          <Select value={cityFilter || "__none"} onValueChange={(v) => setCityFilter(v === "__none" ? "" : v)}>
+            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+              <SelectValue placeholder={availableCities.length ? "Escolha a cidade" : "Nenhuma cidade cadastrada"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none">Nenhuma (limpar)</SelectItem>
+              {availableCities.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="grid gap-2">
+          <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-1.5">
+            <Building2 className="h-3.5 w-3.5" /> 2. Arena
+          </Label>
+          <Select
+            value={arenaFilter || "__none"}
+            onValueChange={(v) => setArenaFilter(v === "__none" ? "" : v)}
+            disabled={!cityFilter}
+          >
+            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+              <SelectValue placeholder={cityFilter ? (arenasInCity.length ? "Escolha a arena" : "Sem arenas nesta cidade") : "Escolha a cidade primeiro"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none">Nenhuma (limpar)</SelectItem>
+              {arenasInCity.map((a) => (
+                <SelectItem key={a.id} value={a.id}>{a.nome}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {!arenaFilter ? (
+        <div className="glass-card bg-white shadow-xl border border-gray-100 p-16 text-center">
+          <div className="mx-auto h-16 w-16 rounded-2xl bg-brand-orange/10 flex items-center justify-center text-brand-orange mb-4">
+            {cityFilter ? <Building2 className="h-8 w-8" /> : <MapPin className="h-8 w-8" />}
+          </div>
+          <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">
+            {cityFilter ? "Escolha a arena" : "Escolha uma cidade"}
+          </h3>
+          <p className="text-sm text-muted-foreground font-medium mt-1">
+            {cityFilter
+              ? `Selecione uma arena de ${cityFilter} para ver suas quadras.`
+              : "Primeiro escolha a cidade, depois a arena, e as quadras aparecerão aqui."}
+          </p>
+        </div>
+      ) : (
+        <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
+          <div className="px-4 sm:px-6 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2 text-xs font-bold text-gray-600">
+            <MapPin className="h-3.5 w-3.5 text-brand-orange" />
+            <span>{cityFilter}</span>
+            <span className="text-gray-300">/</span>
+            <Building2 className="h-3.5 w-3.5 text-brand-orange" />
+            <span>{selectedArena?.nome}</span>
+          </div>
+          <Table>
+            <TableHeader className="bg-gray-50/50 border-b border-gray-100">
+              <TableRow className="hover:bg-transparent">
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Quadra / Court</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Arena Vinculada</TableHead>
+                <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Ações</TableHead>
               </TableRow>
-            ) : (
-              quadras.map((q) => (
-                <TableRow key={q.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
-                  <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
-                    <div className="flex items-center gap-3 sm:gap-4">
-                      <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white shrink-0">
-                        <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
-                      </div>
-                      <div className="min-w-0">
-                        <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{q.nome}</span>
-                        <p className="text-[10px] font-medium text-muted-foreground truncate">ID: {q.id.slice(0, 8)}...</p>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
-                    <div className="flex items-center gap-2">
-                      <Tv className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-orange shrink-0" />
-                      <span className="font-bold text-gray-700 text-xs sm:text-sm truncate">{q.arenas?.nome}</span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
-                    <div className="flex justify-end gap-1 sm:gap-2">
-                      <Button variant="ghost" size="icon" onClick={() => openEdit(q)} className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
-                        <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => setDeleting(q)} className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                        <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                      </Button>
-                    </div>
+            </TableHeader>
+            <TableBody>
+              {visibleQuadras.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3} className="h-40 text-center text-muted-foreground font-medium italic">
+                    Nenhuma quadra cadastrada nesta arena.
                   </TableCell>
                 </TableRow>
-              ))
-            )}
-          </TableBody>
-        </Table>
-      </div>
+              ) : (
+                visibleQuadras.map((q) => (
+                  <TableRow key={q.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                    <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
+                      <div className="flex items-center gap-3 sm:gap-4">
+                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white shrink-0">
+                          <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
+                        </div>
+                        <div className="min-w-0">
+                          <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{q.nome}</span>
+                          <p className="text-[10px] font-medium text-muted-foreground truncate">ID: {q.id.slice(0, 8)}...</p>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
+                      <div className="flex items-center gap-2">
+                        <Tv className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-brand-orange shrink-0" />
+                        <span className="font-bold text-gray-700 text-xs sm:text-sm truncate">{q.arenas?.nome}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
+                      <div className="flex justify-end gap-1 sm:gap-2">
+                        <Button variant="ghost" size="icon" onClick={() => openEdit(q)} className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
+                          <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => setDeleting(q)} className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
+                          <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent className="rounded-2xl">

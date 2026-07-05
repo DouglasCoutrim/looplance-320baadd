@@ -30,6 +30,7 @@ interface Arena {
   nome: string;
   edge_device_id: string | null;
   endereco: string | null;
+  cidade: string | null;
   telefone: string | null;
   logo_url: string | null;
   latitude: number | null;
@@ -48,7 +49,7 @@ interface EdgeDevice {
   client_id: string | null;
 }
 
-const ARENA_SELECT = "id, nome, edge_device_id, endereco, telefone, logo_url, latitude, longitude, created_at";
+const ARENA_SELECT = "id, nome, edge_device_id, endereco, cidade, telefone, logo_url, latitude, longitude, created_at";
 
 function Arenas() {
   const [arenas, setArenas] = useState<Arena[]>([]);
@@ -62,6 +63,7 @@ function Arenas() {
   const [clientId, setClientId] = useState<string>("");
   const [edgeId, setEdgeId] = useState<string>("");
   const [endereco, setEndereco] = useState("");
+  const [cidade, setCidade] = useState("");
   const [telefone, setTelefone] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
@@ -69,6 +71,9 @@ function Arenas() {
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
+
+  // filter state (must pick a city to see arenas)
+  const [cityFilter, setCityFilter] = useState<string>("");
 
   const [editing, setEditing] = useState<Arena | null>(null);
   const [deleting, setDeleting] = useState<Arena | null>(null);
@@ -95,10 +100,25 @@ function Arenas() {
     [edges, clientId]
   );
 
+  // Only cities that actually have at least one arena registered
+  const availableCities = useMemo(() => {
+    const set = new Set<string>();
+    for (const a of arenas) {
+      const c = (a.cidade || "").trim();
+      if (c) set.add(c);
+    }
+    return Array.from(set).sort((x, y) => x.localeCompare(y, "pt-BR"));
+  }, [arenas]);
+
+  const visibleArenas = useMemo(() => {
+    if (!cityFilter) return [];
+    return arenas.filter((a) => (a.cidade || "").trim() === cityFilter);
+  }, [arenas, cityFilter]);
+
   const resetForm = () => {
     setEditing(null);
     setName(""); setClientId(""); setEdgeId("");
-    setEndereco(""); setTelefone("");
+    setEndereco(""); setCidade(""); setTelefone("");
     setLatitude(""); setLongitude("");
     setLogoUrl(null);
   };
@@ -115,6 +135,7 @@ function Arenas() {
     setClientId(edge?.client_id ?? "");
     setEdgeId(a.edge_device_id ?? "");
     setEndereco(a.endereco ?? "");
+    setCidade(a.cidade ?? "");
     setTelefone(a.telefone ?? "");
     setLatitude(a.latitude != null ? String(a.latitude) : "");
     setLongitude(a.longitude != null ? String(a.longitude) : "");
@@ -153,6 +174,7 @@ function Arenas() {
 
   const handleSubmit = async () => {
     if (!name.trim()) return toast.error("Informe o nome da arena");
+    if (!cidade.trim()) return toast.error("Informe a cidade da arena");
     if (!clientId) return toast.error("Selecione o cliente");
     if (!edgeId) return toast.error("Selecione o Edge Device");
 
@@ -174,6 +196,7 @@ function Arenas() {
       nome: name.trim(),
       edge_device_id: edgeId,
       endereco: endereco.trim() || null,
+      cidade: cidade.trim() || null,
       telefone: telefone.trim() || null,
       logo_url: logoUrl,
       latitude: lat,
@@ -327,10 +350,27 @@ function Arenas() {
                   </div>
                 </div>
 
-                {/* Nome */}
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                {/* Nome + Cidade */}
+                <div className="grid gap-5 sm:grid-cols-[1fr_240px]">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="cidade" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cidade</Label>
+                    <Input
+                      id="cidade"
+                      value={cidade}
+                      onChange={(e) => setCidade(e.target.value)}
+                      maxLength={80}
+                      placeholder="Ex: Florianópolis"
+                      list="arena-cidades"
+                      className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange"
+                    />
+                    <datalist id="arena-cidades">
+                      {availableCities.map((c) => <option key={c} value={c} />)}
+                    </datalist>
+                  </div>
                 </div>
 
                 {/* Endereço + Telefone */}
@@ -342,7 +382,7 @@ function Arenas() {
                       value={endereco}
                       onChange={(e) => setEndereco(e.target.value)}
                       maxLength={255}
-                      placeholder="Rua, número, bairro, cidade"
+                      placeholder="Rua, número, bairro"
                       className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange"
                     />
                   </div>
@@ -361,6 +401,7 @@ function Arenas() {
                     </div>
                   </div>
                 </div>
+
 
                 {/* Localização no mapa */}
                 <div className="grid gap-2">
@@ -417,6 +458,49 @@ function Arenas() {
         </div>
       </div>
 
+      {/* Filtro por cidade — arenas só aparecem depois de escolher */}
+      <div className="glass-card bg-white shadow-xl border border-gray-100 p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-5">
+        <div className="flex items-center gap-3 flex-1 min-w-0">
+          <div className="h-10 w-10 rounded-xl bg-brand-orange/10 flex items-center justify-center text-brand-orange shrink-0">
+            <MapPin className="h-5 w-5" />
+          </div>
+          <div className="min-w-0">
+            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Filtrar por cidade</p>
+            <p className="text-sm font-bold text-gray-800 truncate">
+              {cityFilter
+                ? `Mostrando arenas em ${cityFilter}`
+                : "Selecione uma cidade para ver as arenas"}
+            </p>
+          </div>
+        </div>
+        <div className="sm:w-72">
+          <Select value={cityFilter || "__none"} onValueChange={(v) => setCityFilter(v === "__none" ? "" : v)}>
+            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+              <SelectValue placeholder={availableCities.length ? "Escolha a cidade" : "Nenhuma cidade cadastrada"} />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="__none">Nenhuma (limpar)</SelectItem>
+              {availableCities.map((c) => (
+                <SelectItem key={c} value={c}>{c}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {!cityFilter ? (
+        <div className="glass-card bg-white shadow-xl border border-gray-100 p-16 text-center">
+          <div className="mx-auto h-16 w-16 rounded-2xl bg-brand-orange/10 flex items-center justify-center text-brand-orange mb-4">
+            <MapPin className="h-8 w-8" />
+          </div>
+          <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">Escolha uma cidade</h3>
+          <p className="text-sm text-muted-foreground font-medium mt-1">
+            {availableCities.length
+              ? "As arenas serão exibidas após você selecionar uma cidade acima."
+              : "Ainda não há arenas cadastradas com cidade. Cadastre uma arena para começar."}
+          </p>
+        </div>
+      ) : (
       <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
         <Table>
           <TableHeader className="bg-gray-50/50 border-b border-gray-100">
@@ -429,14 +513,14 @@ function Arenas() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {arenas.length === 0 ? (
+            {visibleArenas.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium italic">
-                  Nenhuma arena cadastrada no momento.
+                  Nenhuma arena cadastrada em {cityFilter}.
                 </TableCell>
               </TableRow>
             ) : (
-              arenas.map((a) => {
+              visibleArenas.map((a) => {
                 const mapLink = mapsUrl(a);
                 return (
                   <TableRow key={a.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
@@ -494,6 +578,8 @@ function Arenas() {
           </TableBody>
         </Table>
       </div>
+      )}
+
 
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent className="rounded-2xl">
@@ -515,7 +601,7 @@ function Arenas() {
         onOpenChange={setMapPickerOpen}
         initialLat={latitude ? parseFloat(latitude) : null}
         initialLng={longitude ? parseFloat(longitude) : null}
-        addressHint={endereco}
+        addressHint={[endereco, cidade].filter(Boolean).join(", ")}
         onConfirm={(lat, lng) => {
           setLatitude(lat.toFixed(7));
           setLongitude(lng.toFixed(7));
