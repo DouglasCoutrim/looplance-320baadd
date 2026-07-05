@@ -58,6 +58,9 @@ export type Database = {
           final_overlay_url: string | null
           foto_url: string | null
           id: string
+          latitude: number | null
+          logo_url: string | null
+          longitude: number | null
           nome: string
           sponsor_logo_center: string | null
           sponsor_logo_left: string | null
@@ -72,6 +75,9 @@ export type Database = {
           final_overlay_url?: string | null
           foto_url?: string | null
           id?: string
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
           nome: string
           sponsor_logo_center?: string | null
           sponsor_logo_left?: string | null
@@ -86,6 +92,9 @@ export type Database = {
           final_overlay_url?: string | null
           foto_url?: string | null
           id?: string
+          latitude?: number | null
+          logo_url?: string | null
+          longitude?: number | null
           nome?: string
           sponsor_logo_center?: string | null
           sponsor_logo_left?: string | null
