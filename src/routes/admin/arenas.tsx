@@ -509,6 +509,19 @@ function Arenas() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <MapPickerDialog
+        open={mapPickerOpen}
+        onOpenChange={setMapPickerOpen}
+        initialLat={latitude ? parseFloat(latitude) : null}
+        initialLng={longitude ? parseFloat(longitude) : null}
+        addressHint={endereco}
+        onConfirm={(lat, lng) => {
+          setLatitude(lat.toFixed(7));
+          setLongitude(lng.toFixed(7));
+          toast.success("Localização definida");
+        }}
+      />
     </div>
   );
 }
