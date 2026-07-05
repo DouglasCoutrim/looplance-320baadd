@@ -135,12 +135,12 @@ function Arenas() {
   const filterCitySuggestions = useMemo(() => citiesForState(filterEstado), [arenas, filterEstado]);
 
   const visibleArenas = useMemo(() => {
-    if (!filterEstado || !cityFilter) return [];
-    return arenas.filter(
-      (a) =>
-        (a.estado || "").trim().toUpperCase() === filterEstado.toUpperCase() &&
-        (a.cidade || "").trim() === cityFilter
-    );
+    if (!cityFilter) return [];
+    return arenas.filter((a) => {
+      const cityOk = (a.cidade || "").trim() === cityFilter;
+      const stateOk = !filterEstado || (a.estado || "").trim().toUpperCase() === filterEstado.toUpperCase();
+      return cityOk && stateOk;
+    });
   }, [arenas, cityFilter, filterEstado]);
 
   const resetForm = () => {
