@@ -68,6 +68,7 @@ function Arenas() {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const [mapPickerOpen, setMapPickerOpen] = useState(false);
 
   const [editing, setEditing] = useState<Arena | null>(null);
   const [deleting, setDeleting] = useState<Arena | null>(null);
