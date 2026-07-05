@@ -1,9 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv, MapPin, Building2 } from "lucide-react";
+import { Plus, RefreshCw, Layout, Edit2, Trash2, Tv, MapPin, Building2, Upload, X, ImageIcon } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -24,10 +24,23 @@ export const Route = createFileRoute("/admin/quadras")({
   component: Quadras,
 });
 
+type QuadraTipo = "grama" | "sintetico" | "areia" | "terra" | "cimento";
+
+const TIPO_OPTIONS: { value: QuadraTipo; label: string }[] = [
+  { value: "grama", label: "Grama" },
+  { value: "sintetico", label: "Sintético" },
+  { value: "areia", label: "Areia" },
+  { value: "terra", label: "Terra" },
+  { value: "cimento", label: "Cimento" },
+];
+const TIPO_LABEL: Record<string, string> = Object.fromEntries(TIPO_OPTIONS.map(o => [o.value, o.label]));
+
 interface Quadra {
   id: string;
   nome: string;
   arena_id: string;
+  tipo: QuadraTipo | null;
+  cover_image_url: string | null;
   arenas?: { nome: string; cidade: string | null } | null;
 }
 
@@ -45,6 +58,10 @@ function Quadras() {
 
   const [name, setName] = useState("");
   const [arenaId, setArenaId] = useState("");
+  const [tipo, setTipo] = useState<QuadraTipo | "">("");
+  const [coverUrl, setCoverUrl] = useState<string | null>(null);
+  const [uploadingCover, setUploadingCover] = useState(false);
+  const coverInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState<Quadra | null>(null);
   const [deleting, setDeleting] = useState<Quadra | null>(null);
 
