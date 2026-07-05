@@ -350,10 +350,27 @@ function Arenas() {
                   </div>
                 </div>
 
-                {/* Nome */}
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                {/* Nome + Cidade */}
+                <div className="grid gap-5 sm:grid-cols-[1fr_240px]">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label htmlFor="cidade" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cidade</Label>
+                    <Input
+                      id="cidade"
+                      value={cidade}
+                      onChange={(e) => setCidade(e.target.value)}
+                      maxLength={80}
+                      placeholder="Ex: Florianópolis"
+                      list="arena-cidades"
+                      className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange"
+                    />
+                    <datalist id="arena-cidades">
+                      {availableCities.map((c) => <option key={c} value={c} />)}
+                    </datalist>
+                  </div>
                 </div>
 
                 {/* Endereço + Telefone */}
@@ -365,7 +382,7 @@ function Arenas() {
                       value={endereco}
                       onChange={(e) => setEndereco(e.target.value)}
                       maxLength={255}
-                      placeholder="Rua, número, bairro, cidade"
+                      placeholder="Rua, número, bairro"
                       className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange"
                     />
                   </div>
@@ -384,6 +401,7 @@ function Arenas() {
                     </div>
                   </div>
                 </div>
+
 
                 {/* Localização no mapa */}
                 <div className="grid gap-2">
