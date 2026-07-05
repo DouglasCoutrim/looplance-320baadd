@@ -49,13 +49,44 @@ async function geocodeAddress(address: string): Promise<{ lat: number; lng: numb
   }
 }
 
+export interface PickedLocation {
+  lat: number;
+  lng: number;
+  cidade?: string | null;
+  estado?: string | null; // UF sigla (2 letras)
+  cep?: string | null;
+}
+
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialLat: number | null;
   initialLng: number | null;
   addressHint?: string;
-  onConfirm: (lat: number, lng: number) => void;
+  onConfirm: (loc: PickedLocation) => void;
+}
+
+async function reverseGeocode(lat: number, lng: number): Promise<Partial<PickedLocation>> {
+  try {
+    const google = await loadMapsApi();
+    const geocoder = new google.maps.Geocoder();
+    const res = await geocoder.geocode({ location: { lat, lng } });
+    const result = res.results?.[0];
+    if (!result) return {};
+    let cidade: string | null = null;
+    let estado: string | null = null;
+    let cep: string | null = null;
+    for (const comp of result.address_components) {
+      const types = comp.types;
+      if (types.includes("administrative_area_level_2") && !cidade) cidade = comp.long_name;
+      else if (types.includes("locality") && !cidade) cidade = comp.long_name;
+      if (types.includes("administrative_area_level_1")) estado = comp.short_name;
+      if (types.includes("postal_code")) cep = comp.long_name;
+    }
+    return { cidade, estado, cep };
+  } catch {
+    return {};
+  }
 }
 
 export function MapPickerDialog({ open, onOpenChange, initialLat, initialLng, addressHint, onConfirm }: Props) {
