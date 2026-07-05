@@ -223,13 +223,51 @@ function Quadras() {
                 <Plus className="mr-2 h-5 w-5" /> Nova Quadra
               </Button>
             </DialogTrigger>
-            <DialogContent className="rounded-2xl border-none shadow-2xl">
+            <DialogContent className="rounded-2xl border-none shadow-2xl max-w-xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
                   {editing ? "Editar Quadra" : "Configurar Quadra"}
                 </DialogTitle>
               </DialogHeader>
-              <div className="grid gap-6 py-6">
+              <div className="grid gap-5 py-6">
+                {/* Cover upload */}
+                <div className="grid gap-2">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Imagem de Capa</Label>
+                  <div className="flex items-center gap-4">
+                    <div className="h-24 w-32 rounded-2xl bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                      {coverUrl ? (
+                        <img src={coverUrl} alt="Capa" className="h-full w-full object-cover" />
+                      ) : (
+                        <ImageIcon className="h-7 w-7 text-gray-300" />
+                      )}
+                    </div>
+                    <div className="flex flex-col gap-2 flex-1">
+                      <input
+                        ref={coverInputRef}
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const f = e.target.files?.[0];
+                          if (f) handleCoverUpload(f);
+                        }}
+                      />
+                      <div className="flex gap-2">
+                        <Button type="button" variant="outline" size="sm" onClick={() => coverInputRef.current?.click()} disabled={uploadingCover} className="rounded-xl font-bold border-gray-200">
+                          <Upload className="h-4 w-4 mr-2" />
+                          {uploadingCover ? "Enviando..." : coverUrl ? "Trocar" : "Enviar capa"}
+                        </Button>
+                        {coverUrl && (
+                          <Button type="button" variant="ghost" size="sm" onClick={() => setCoverUrl(null)} className="rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50">
+                            <X className="h-4 w-4 mr-1" /> Remover
+                          </Button>
+                        )}
+                      </div>
+                      <p className="text-[11px] text-muted-foreground">PNG, JPG ou WebP — até 8MB.</p>
+                    </div>
+                  </div>
+                </div>
+
                 <div className="grid gap-2">
                   <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Complexo (Arena)</Label>
                   <Select value={arenaId} onValueChange={setArenaId}>
@@ -245,14 +283,30 @@ function Quadras() {
                     </SelectContent>
                   </Select>
                 </div>
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Quadra</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Quadra 01 - Central" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+
+                <div className="grid gap-5 sm:grid-cols-[1fr_200px]">
+                  <div className="grid gap-2">
+                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Quadra</Label>
+                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Quadra 01 - Central" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tipo de Piso</Label>
+                    <Select value={tipo || undefined} onValueChange={(v) => setTipo(v as QuadraTipo)}>
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+                        <SelectValue placeholder="Selecione" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {TIPO_OPTIONS.map((t) => (
+                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
+                <Button onClick={handleSubmit} disabled={uploadingCover} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
               </DialogFooter>
             </DialogContent>
           </Dialog>
