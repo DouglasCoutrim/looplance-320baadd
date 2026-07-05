@@ -396,12 +396,22 @@ function Quadras() {
                   <TableRow key={q.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
                     <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
                       <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white shrink-0">
-                          <Layout className="h-5 w-5 sm:h-6 sm:w-6" />
+                        <div className="h-12 w-16 sm:h-14 sm:w-20 rounded-xl bg-blue-500/10 flex items-center justify-center text-blue-500 overflow-hidden shrink-0 border border-gray-100">
+                          {q.cover_image_url ? (
+                            <img src={q.cover_image_url} alt={q.nome} className="h-full w-full object-cover" />
+                          ) : (
+                            <Layout className="h-5 w-5" />
+                          )}
                         </div>
                         <div className="min-w-0">
                           <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{q.nome}</span>
-                          <p className="text-[10px] font-medium text-muted-foreground truncate">ID: {q.id.slice(0, 8)}...</p>
+                          {q.tipo ? (
+                            <span className="inline-block mt-1 text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full bg-brand-orange/10 text-brand-orange">
+                              {TIPO_LABEL[q.tipo]}
+                            </span>
+                          ) : (
+                            <p className="text-[10px] font-medium text-muted-foreground truncate">Sem tipo definido</p>
+                          )}
                         </div>
                       </div>
                     </TableCell>
