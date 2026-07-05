@@ -30,6 +30,7 @@ interface Arena {
   nome: string;
   edge_device_id: string | null;
   endereco: string | null;
+  cidade: string | null;
   telefone: string | null;
   logo_url: string | null;
   latitude: number | null;
@@ -48,7 +49,7 @@ interface EdgeDevice {
   client_id: string | null;
 }
 
-const ARENA_SELECT = "id, nome, edge_device_id, endereco, telefone, logo_url, latitude, longitude, created_at";
+const ARENA_SELECT = "id, nome, edge_device_id, endereco, cidade, telefone, logo_url, latitude, longitude, created_at";
 
 function Arenas() {
   const [arenas, setArenas] = useState<Arena[]>([]);
