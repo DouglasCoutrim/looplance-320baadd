@@ -71,6 +71,8 @@ function Arenas() {
   const [edgeId, setEdgeId] = useState<string>("");
   const [endereco, setEndereco] = useState("");
   const [cidade, setCidade] = useState("");
+  const [estado, setEstado] = useState("");
+  const [cep, setCep] = useState("");
   const [telefone, setTelefone] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
@@ -80,6 +82,7 @@ function Arenas() {
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
 
   // filter state (must pick a city to see arenas)
+  const [filterEstado, setFilterEstado] = useState<string>("");
   const [cityFilter, setCityFilter] = useState<string>("");
 
   const [editing, setEditing] = useState<Arena | null>(null);
