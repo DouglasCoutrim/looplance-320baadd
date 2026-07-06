@@ -429,6 +429,93 @@ export type Database = {
           },
         ]
       }
+      email_send_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          message_id: string | null
+          metadata: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email: string
+          status: string
+          template_name: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          message_id?: string | null
+          metadata?: Json | null
+          recipient_email?: string
+          status?: string
+          template_name?: string
+        }
+        Relationships: []
+      }
+      email_send_state: {
+        Row: {
+          auth_email_ttl_minutes: number
+          batch_size: number
+          id: number
+          retry_after_until: string | null
+          send_delay_ms: number
+          transactional_email_ttl_minutes: number
+          updated_at: string
+        }
+        Insert: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Update: {
+          auth_email_ttl_minutes?: number
+          batch_size?: number
+          id?: number
+          retry_after_until?: string | null
+          send_delay_ms?: number
+          transactional_email_ttl_minutes?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      email_unsubscribe_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          token: string
+          used_at: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          token: string
+          used_at?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          token?: string
+          used_at?: string | null
+        }
+        Relationships: []
+      }
       input_boards: {
         Row: {
           created_at: string | null
@@ -529,50 +616,68 @@ export type Database = {
       profiles: {
         Row: {
           arena_id: string | null
+          avatar_url: string | null
           birth_date: string | null
+          city: string | null
           client_id: string | null
           consent_accepted: boolean | null
           consent_timestamp: string | null
           cpf: string | null
           created_at: string
           email: string | null
+          favorite_arenas: string[]
+          favorite_sports: string[]
           full_name: string | null
+          gender: string | null
           id: string
           is_arena_owner: boolean | null
           is_super_admin: boolean | null
           role: string | null
+          state: string | null
           updated_at: string
         }
         Insert: {
           arena_id?: string | null
+          avatar_url?: string | null
           birth_date?: string | null
+          city?: string | null
           client_id?: string | null
           consent_accepted?: boolean | null
           consent_timestamp?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
+          favorite_arenas?: string[]
+          favorite_sports?: string[]
           full_name?: string | null
+          gender?: string | null
           id: string
           is_arena_owner?: boolean | null
           is_super_admin?: boolean | null
           role?: string | null
+          state?: string | null
           updated_at?: string
         }
         Update: {
           arena_id?: string | null
+          avatar_url?: string | null
           birth_date?: string | null
+          city?: string | null
           client_id?: string | null
           consent_accepted?: boolean | null
           consent_timestamp?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
+          favorite_arenas?: string[]
+          favorite_sports?: string[]
           full_name?: string | null
+          gender?: string | null
           id?: string
           is_arena_owner?: boolean | null
           is_super_admin?: boolean | null
           role?: string | null
+          state?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -664,6 +769,7 @@ export type Database = {
           id: string
           quadra_id: string
           r2_key: string | null
+          user_id: string | null
           video_url: string
         }
         Insert: {
@@ -675,6 +781,7 @@ export type Database = {
           id?: string
           quadra_id: string
           r2_key?: string | null
+          user_id?: string | null
           video_url: string
         }
         Update: {
@@ -686,6 +793,7 @@ export type Database = {
           id?: string
           quadra_id?: string
           r2_key?: string | null
+          user_id?: string | null
           video_url?: string
         }
         Relationships: [
@@ -711,6 +819,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppressed_emails: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          metadata: Json | null
+          reason: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          metadata?: Json | null
+          reason: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          metadata?: Json | null
+          reason?: string
+        }
+        Relationships: []
       }
       user_activity_logs: {
         Row: {
@@ -911,6 +1043,15 @@ export type Database = {
             }
             Returns: undefined
           }
+      delete_email: {
+        Args: { message_id: number; queue_name: string }
+        Returns: boolean
+      }
+      email_queue_dispatch: { Args: never; Returns: undefined }
+      enqueue_email: {
+        Args: { payload: Json; queue_name: string }
+        Returns: number
+      }
       fn_expire_replays: {
         Args: never
         Returns: {
@@ -943,6 +1084,7 @@ export type Database = {
           id: string
           quadra_id: string
           r2_key: string | null
+          user_id: string | null
           video_url: string
         }
         SetofOptions: {
@@ -981,6 +1123,23 @@ export type Database = {
           p_resource_type?: string
         }
         Returns: string
+      }
+      move_to_dlq: {
+        Args: {
+          dlq_name: string
+          message_id: number
+          payload: Json
+          source_queue: string
+        }
+        Returns: number
+      }
+      read_email_batch: {
+        Args: { batch_size: number; queue_name: string; vt: number }
+        Returns: {
+          message: Json
+          msg_id: number
+          read_ct: number
+        }[]
       }
     }
     Enums: {
