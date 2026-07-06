@@ -122,6 +122,8 @@ function AuthPage() {
     if (result.redirected) return; // browser navigating to provider
     // popup flow completed
     navigate({ to: "/" });
+  };
+
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-10">
