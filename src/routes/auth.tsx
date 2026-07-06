@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import { lovable } from "@/integrations/lovable/index";
 import logoUrl from "@/assets/looplance-logo.png";
 import { LogIn, UserPlus, Loader2, X } from "lucide-react";
 
