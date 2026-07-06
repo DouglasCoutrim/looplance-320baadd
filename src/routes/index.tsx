@@ -161,7 +161,7 @@ function Home() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
-      <Toaster theme="light" position="top-center" />
+      <Toaster theme="dark" position="top-center" />
 
       {/* XP pop overlay */}
       <div className="pointer-events-none fixed right-6 top-24 z-50">
