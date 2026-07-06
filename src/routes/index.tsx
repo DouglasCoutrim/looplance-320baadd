@@ -360,21 +360,22 @@ function Home() {
         {/* Feed */}
         <section className="space-y-5">
           <div className="flex items-center justify-between px-1">
-            <h2 className="flex items-center gap-2 text-xl font-black text-gray-900">
-              <Sparkles className="h-5 w-5 text-brand-orange" />
+            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white">
+              <Flame className="h-4 w-4 text-brand-orange" />
               Feed de Lances
             </h2>
-            <span className="text-sm font-medium text-muted-foreground">{replays.length} lances</span>
+            <span className="text-xs font-medium text-zinc-500">{replays.length} lances</span>
           </div>
 
           {replays.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {replays.map((r) => <ReplayCard key={r.id} replay={r} onReward={reward} />)}
             </div>
           )}
         </section>
+
       </main>
       )}
     </div>
