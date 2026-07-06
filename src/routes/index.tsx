@@ -335,10 +335,11 @@ function Home() {
 
         {/* Sponsors Carousel */}
         {sponsors.length > 0 && (
-          <section className="glass-card overflow-hidden p-6 bg-white shadow-md border border-gray-200">
-            <div className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/80">
+          <section className="overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900 p-6">
+            <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-zinc-500">
               <Sparkles className="h-3.5 w-3.5 text-brand-orange" /> Patrocinadores
             </div>
+
             <div className="relative overflow-hidden">
               <div
                 className="flex gap-10 animate-marquee items-center"
