@@ -80,7 +80,12 @@ function ModerationPage() {
     setSnapshots(snaps);
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { if (authorized) load(); }, [authorized]);
+
+  if (authorized === null) {
+    return <div className="min-h-screen grid place-items-center bg-zinc-950"><Loader2 className="h-6 w-6 animate-spin text-zinc-500" /></div>;
+  }
+  if (authorized === false) return null;
 
   const dismiss = async (r: ReportRow) => {
     setBusy(r.id);
