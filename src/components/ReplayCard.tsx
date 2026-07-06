@@ -1,9 +1,11 @@
-import { Download, Clock, Play, X } from "lucide-react";
+import { Download, Clock, Play, X, MoreVertical, Flag } from "lucide-react";
 import { toast } from "sonner";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
+import * as Popover from "@radix-ui/react-popover";
 import { supabase } from "@/integrations/supabase/client";
 import { SocialActions } from "@/components/SocialActions";
+import { ReportDialog, useIsReported } from "@/components/ReportDialog";
 
 interface Replay {
   id: string;
@@ -14,6 +16,10 @@ interface Replay {
 
 export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () => void }) {
   const [isOpen, setIsOpen] = useState(false);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [uid, setUid] = useState<string | null>(null);
+  useEffect(() => { supabase.auth.getUser().then(({ data }) => setUid(data.user?.id ?? null)); }, []);
+  const hidden = useIsReported(uid, "replay", replay.id);
 
   const time = new Date(replay.created_at).toLocaleTimeString("pt-BR", {
     hour: "2-digit",
