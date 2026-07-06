@@ -1,8 +1,9 @@
-import { Download, Share2, Clock, Play, X } from "lucide-react";
+import { Download, Clock, Play, X } from "lucide-react";
 import { toast } from "sonner";
 import { useState } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { supabase } from "@/integrations/supabase/client";
+import { SocialActions } from "@/components/SocialActions";
 
 interface Replay {
   id: string;
