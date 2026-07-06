@@ -15,6 +15,7 @@ import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as ProfileSettingsRouteImport } from './routes/profile.settings'
+import { Route as ProfileIdRouteImport } from './routes/profile.$id'
 import { Route as ArenaIdRouteImport } from './routes/arena.$id'
 import { Route as AdminUsersRouteImport } from './routes/admin/users'
 import { Route as AdminTerminalRouteImport } from './routes/admin/terminal'
@@ -67,6 +68,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
 const ProfileSettingsRoute = ProfileSettingsRouteImport.update({
   id: '/profile/settings',
   path: '/profile/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProfileIdRoute = ProfileIdRouteImport.update({
+  id: '/profile/$id',
+  path: '/profile/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ArenaIdRoute = ArenaIdRouteImport.update({
@@ -207,6 +213,7 @@ export interface FileRoutesByFullPath {
   '/admin/terminal': typeof AdminTerminalRoute
   '/admin/users': typeof AdminUsersRoute
   '/arena/$id': typeof ArenaIdRoute
+  '/profile/$id': typeof ProfileIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/install': typeof ApiPublicInstallRoute
@@ -237,6 +244,7 @@ export interface FileRoutesByTo {
   '/admin/terminal': typeof AdminTerminalRoute
   '/admin/users': typeof AdminUsersRoute
   '/arena/$id': typeof ArenaIdRoute
+  '/profile/$id': typeof ProfileIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/admin': typeof AdminIndexRoute
   '/api/public/install': typeof ApiPublicInstallRoute
@@ -269,6 +277,7 @@ export interface FileRoutesById {
   '/admin/terminal': typeof AdminTerminalRoute
   '/admin/users': typeof AdminUsersRoute
   '/arena/$id': typeof ArenaIdRoute
+  '/profile/$id': typeof ProfileIdRoute
   '/profile/settings': typeof ProfileSettingsRoute
   '/admin/': typeof AdminIndexRoute
   '/api/public/install': typeof ApiPublicInstallRoute
@@ -302,6 +311,7 @@ export interface FileRouteTypes {
     | '/admin/terminal'
     | '/admin/users'
     | '/arena/$id'
+    | '/profile/$id'
     | '/profile/settings'
     | '/admin/'
     | '/api/public/install'
@@ -332,6 +342,7 @@ export interface FileRouteTypes {
     | '/admin/terminal'
     | '/admin/users'
     | '/arena/$id'
+    | '/profile/$id'
     | '/profile/settings'
     | '/admin'
     | '/api/public/install'
@@ -363,6 +374,7 @@ export interface FileRouteTypes {
     | '/admin/terminal'
     | '/admin/users'
     | '/arena/$id'
+    | '/profile/$id'
     | '/profile/settings'
     | '/admin/'
     | '/api/public/install'
@@ -385,6 +397,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   InstallRoute: typeof InstallRoute
   ArenaIdRoute: typeof ArenaIdRoute
+  ProfileIdRoute: typeof ProfileIdRoute
   ProfileSettingsRoute: typeof ProfileSettingsRoute
   ApiPublicInstallRoute: typeof ApiPublicInstallRoute
   ApiPublicCronCleanupReplaysRoute: typeof ApiPublicCronCleanupReplaysRoute
@@ -442,6 +455,13 @@ declare module '@tanstack/react-router' {
       path: '/profile/settings'
       fullPath: '/profile/settings'
       preLoaderRoute: typeof ProfileSettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/profile/$id': {
+      id: '/profile/$id'
+      path: '/profile/$id'
+      fullPath: '/profile/$id'
+      preLoaderRoute: typeof ProfileIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/arena/$id': {
@@ -644,6 +664,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   InstallRoute: InstallRoute,
   ArenaIdRoute: ArenaIdRoute,
+  ProfileIdRoute: ProfileIdRoute,
   ProfileSettingsRoute: ProfileSettingsRoute,
   ApiPublicInstallRoute: ApiPublicInstallRoute,
   ApiPublicCronCleanupReplaysRoute: ApiPublicCronCleanupReplaysRoute,
