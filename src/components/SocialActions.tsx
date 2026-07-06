@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Share2, Trash2, Send, Copy, MessageCircleMore } from "lucide-react";
+import { Heart, MessageCircle, Share2, Trash2, Send, Copy, MessageCircleMore, Flag } from "lucide-react";
+import { ReportDialog, loadReported } from "@/components/ReportDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import * as Popover from "@radix-ui/react-popover";
