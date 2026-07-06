@@ -12,7 +12,7 @@ import {
   AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Textarea } from "@/components/ui/textarea";
-import { Plus, Edit2, Trash2, Building2, Snowflake, Play } from "lucide-react";
+import { Plus, Edit2, Trash2, Building2, Snowflake, Play, Mail, Phone, MapPin } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/admin/clients")({
@@ -191,73 +191,135 @@ function ClientsPage() {
         </Dialog>
       </div>
 
-      <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
-        {loading ? (
-          <div className="py-16 text-center text-sm text-muted-foreground">Carregando...</div>
-        ) : clients.length === 0 ? (
-          <div className="py-16 text-center">
-            <Building2 className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
-            <p className="text-sm text-muted-foreground font-medium">Nenhum cliente cadastrado ainda</p>
-          </div>
-        ) : (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Cliente</TableHead>
-                <TableHead>Documento</TableHead>
-                <TableHead>Localização</TableHead>
-                <TableHead>Contato</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="text-right">Ações</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {clients.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell>
-                    <div className="font-bold text-gray-900">{c.nome}</div>
-                    {c.email && <div className="text-xs text-muted-foreground">{c.email}</div>}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {c.documento ? (
-                      <>
-                        <div className="font-mono">{c.documento}</div>
-                        <div className="text-[10px] uppercase tracking-widest text-muted-foreground">{c.documento_tipo}</div>
-                      </>
-                    ) : <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="text-sm">
-                    {c.cidade || c.estado ? `${c.cidade ?? ""}${c.cidade && c.estado ? " / " : ""}${c.estado ?? ""}` : <span className="text-muted-foreground">—</span>}
-                  </TableCell>
-                  <TableCell className="text-sm">{c.telefone || <span className="text-muted-foreground">—</span>}</TableCell>
-                  <TableCell>
-                    {c.is_frozen ? (
-                      <Badge className="bg-blue-100 text-blue-800 border-blue-200 gap-1"><Snowflake className="h-3 w-3" /> Congelado</Badge>
-                    ) : (
-                      <Badge className="bg-green-100 text-green-800 border-green-200">Ativo</Badge>
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <div className="inline-flex gap-1">
+      {loading ? (
+        <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900 py-16 text-center text-sm text-zinc-400">Carregando...</div>
+      ) : clients.length === 0 ? (
+        <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900 py-16 text-center">
+          <Building2 className="h-10 w-10 text-zinc-600 mx-auto mb-3" />
+          <p className="text-sm text-zinc-400 font-medium">Nenhum cliente cadastrado ainda</p>
+        </div>
+      ) : (
+        <>
+          {/* Mobile cards */}
+          <ul className="space-y-3 md:hidden">
+            {clients.map((c) => {
+              const location = [c.cidade, c.estado].filter(Boolean).join(" / ");
+              return (
+                <li
+                  key={c.id}
+                  className="rounded-xl border border-zinc-800/60 bg-zinc-900 p-4 transition-all duration-300 ease-out hover:border-zinc-700"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <h3 className="text-base font-bold text-white tracking-tight truncate">{c.nome}</h3>
+                      <div className="space-y-1 text-sm text-zinc-400">
+                        {c.email && (
+                          <p className="flex items-center gap-1.5 truncate"><Mail className="h-3.5 w-3.5 shrink-0 text-zinc-500" /> {c.email}</p>
+                        )}
+                        {c.telefone && (
+                          <p className="flex items-center gap-1.5 truncate"><Phone className="h-3.5 w-3.5 shrink-0 text-zinc-500" /> {c.telefone}</p>
+                        )}
+                        {c.documento && (
+                          <p className="font-mono text-xs text-zinc-500 uppercase">{c.documento_tipo} · {c.documento}</p>
+                        )}
+                      </div>
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        {location && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300">
+                            <MapPin className="h-3 w-3" /> {location}
+                          </span>
+                        )}
+                        {c.is_frozen ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-blue-500/15 px-2.5 py-1 text-xs text-blue-300 border border-blue-500/20">
+                            <Snowflake className="h-3 w-3" /> Congelado
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2.5 py-1 text-xs text-emerald-300 border border-emerald-500/20">
+                            Ativo
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-1">
                       <Button
                         size="icon"
                         variant="ghost"
                         onClick={() => { setFreezing(c); setFreezeReason(c.frozen_reason ?? ""); }}
-                        title={c.is_frozen ? "Reativar" : "Congelar"}
-                        className={c.is_frozen ? "text-green-600 hover:text-green-700" : "text-blue-600 hover:text-blue-700"}
+                        className="h-8 w-8 text-zinc-400 hover:text-brand-orange hover:bg-zinc-800"
                       >
                         {c.is_frozen ? <Play className="h-4 w-4" /> : <Snowflake className="h-4 w-4" />}
                       </Button>
-                      <Button size="icon" variant="ghost" onClick={() => openEdit(c)}><Edit2 className="h-4 w-4" /></Button>
-                      <Button size="icon" variant="ghost" onClick={() => setDeleting(c)} className="text-red-600 hover:text-red-700"><Trash2 className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => openEdit(c)} className="h-8 w-8 text-zinc-400 hover:text-brand-orange hover:bg-zinc-800"><Edit2 className="h-4 w-4" /></Button>
+                      <Button size="icon" variant="ghost" onClick={() => setDeleting(c)} className="h-8 w-8 text-zinc-400 hover:text-red-400 hover:bg-zinc-800"><Trash2 className="h-4 w-4" /></Button>
                     </div>
-                  </TableCell>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+          {/* Desktop table */}
+          <div className="hidden md:block rounded-2xl border border-zinc-800/60 bg-zinc-900 overflow-hidden">
+            <Table>
+              <TableHeader>
+                <TableRow className="border-zinc-800 hover:bg-transparent">
+                  <TableHead className="text-zinc-400">Cliente</TableHead>
+                  <TableHead className="text-zinc-400">Documento</TableHead>
+                  <TableHead className="text-zinc-400">Localização</TableHead>
+                  <TableHead className="text-zinc-400">Contato</TableHead>
+                  <TableHead className="text-zinc-400">Status</TableHead>
+                  <TableHead className="text-right text-zinc-400">Ações</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        )}
-      </div>
+              </TableHeader>
+              <TableBody>
+                {clients.map((c) => (
+                  <TableRow key={c.id} className="border-zinc-800/60 hover:bg-zinc-800/40">
+                    <TableCell>
+                      <div className="font-bold text-white">{c.nome}</div>
+                      {c.email && <div className="text-xs text-zinc-400">{c.email}</div>}
+                    </TableCell>
+                    <TableCell className="text-sm text-zinc-300">
+                      {c.documento ? (
+                        <>
+                          <div className="font-mono">{c.documento}</div>
+                          <div className="text-[10px] uppercase tracking-widest text-zinc-500">{c.documento_tipo}</div>
+                        </>
+                      ) : <span className="text-zinc-500">—</span>}
+                    </TableCell>
+                    <TableCell className="text-sm text-zinc-300">
+                      {c.cidade || c.estado ? `${c.cidade ?? ""}${c.cidade && c.estado ? " / " : ""}${c.estado ?? ""}` : <span className="text-zinc-500">—</span>}
+                    </TableCell>
+                    <TableCell className="text-sm text-zinc-300">{c.telefone || <span className="text-zinc-500">—</span>}</TableCell>
+                    <TableCell>
+                      {c.is_frozen ? (
+                        <Badge className="bg-blue-500/15 text-blue-300 border border-blue-500/20 gap-1"><Snowflake className="h-3 w-3" /> Congelado</Badge>
+                      ) : (
+                        <Badge className="bg-emerald-500/15 text-emerald-300 border border-emerald-500/20">Ativo</Badge>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="inline-flex gap-1">
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          onClick={() => { setFreezing(c); setFreezeReason(c.frozen_reason ?? ""); }}
+                          title={c.is_frozen ? "Reativar" : "Congelar"}
+                          className="text-zinc-400 hover:text-brand-orange hover:bg-zinc-800"
+                        >
+                          {c.is_frozen ? <Play className="h-4 w-4" /> : <Snowflake className="h-4 w-4" />}
+                        </Button>
+                        <Button size="icon" variant="ghost" onClick={() => openEdit(c)} className="text-zinc-400 hover:text-brand-orange hover:bg-zinc-800"><Edit2 className="h-4 w-4" /></Button>
+                        <Button size="icon" variant="ghost" onClick={() => setDeleting(c)} className="text-zinc-400 hover:text-red-400 hover:bg-zinc-800"><Trash2 className="h-4 w-4" /></Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </>
+      )}
+
 
       {/* Freeze / unfreeze dialog */}
       <Dialog open={!!freezing} onOpenChange={(o) => { if (!o) { setFreezing(null); setFreezeReason(""); } }}>

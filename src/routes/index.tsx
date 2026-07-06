@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { Sparkles, Play, Trophy, LayoutDashboard, User as UserIcon, Radio } from "lucide-react";
+import { Sparkles, Play, Trophy, LayoutDashboard, User as UserIcon, Radio, Tv, Flame } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import logoUrl from "@/assets/looplance-logo.png";
@@ -161,7 +161,7 @@ function Home() {
 
   return (
     <div className="relative min-h-screen bg-background text-foreground">
-      <Toaster theme="light" position="top-center" />
+      <Toaster theme="dark" position="top-center" />
 
       {/* XP pop overlay */}
       <div className="pointer-events-none fixed right-6 top-24 z-50">
@@ -283,20 +283,22 @@ function Home() {
         {/* Live now — horizontal scroll */}
         <section className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h2 className="flex items-center gap-2 text-base font-black text-gray-900">
-              🎥 Assista Ao Vivo
+            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white">
+              <Tv className="h-4 w-4 text-brand-orange" />
+              Assista Ao Vivo
             </h2>
             {liveList.length > 0 && (
-              <span className="text-xs font-medium text-muted-foreground">{liveList.length} ao vivo</span>
+              <span className="text-xs font-medium text-zinc-500">{liveList.length} ao vivo</span>
             )}
           </div>
 
           {liveList.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-200 bg-white/60 px-4 py-6 text-center">
-              <p className="text-xs font-medium text-muted-foreground">
+            <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/60 px-4 py-6 text-center">
+              <p className="text-xs font-medium text-zinc-400">
                 Nenhuma transmissão ao vivo agora. Volte em breve!
               </p>
             </div>
+
           ) : (
             <div className="-mx-6 overflow-x-auto px-6 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex gap-3 w-max">
@@ -333,10 +335,11 @@ function Home() {
 
         {/* Sponsors Carousel */}
         {sponsors.length > 0 && (
-          <section className="glass-card overflow-hidden p-6 bg-white shadow-md border border-gray-200">
-            <div className="mb-4 flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-muted-foreground/80">
+          <section className="overflow-hidden rounded-2xl border border-zinc-800/60 bg-zinc-900 p-6">
+            <div className="mb-4 flex items-center gap-2 text-xs font-medium uppercase tracking-widest text-zinc-500">
               <Sparkles className="h-3.5 w-3.5 text-brand-orange" /> Patrocinadores
             </div>
+
             <div className="relative overflow-hidden">
               <div
                 className="flex gap-10 animate-marquee items-center"
@@ -358,21 +361,22 @@ function Home() {
         {/* Feed */}
         <section className="space-y-5">
           <div className="flex items-center justify-between px-1">
-            <h2 className="flex items-center gap-2 text-xl font-black text-gray-900">
-              <Sparkles className="h-5 w-5 text-brand-orange" />
+            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white">
+              <Flame className="h-4 w-4 text-brand-orange" />
               Feed de Lances
             </h2>
-            <span className="text-sm font-medium text-muted-foreground">{replays.length} lances</span>
+            <span className="text-xs font-medium text-zinc-500">{replays.length} lances</span>
           </div>
 
           {replays.length === 0 ? (
             <EmptyState />
           ) : (
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-5">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
               {replays.map((r) => <ReplayCard key={r.id} replay={r} onReward={reward} />)}
             </div>
           )}
         </section>
+
       </main>
       )}
     </div>
@@ -381,16 +385,17 @@ function Home() {
 
 function EmptyState() {
   return (
-    <div className="glass-card flex flex-col items-center gap-6 px-6 py-16 text-center bg-white shadow-md border border-gray-200">
+    <div className="flex flex-col items-center gap-6 rounded-2xl border border-zinc-800/60 bg-zinc-900 px-6 py-16 text-center">
       <div className="brand-gradient grid h-20 w-20 place-items-center rounded-full brand-glow shadow-lg transition-transform hover:scale-105">
         <Play className="h-9 w-9 fill-white text-white" />
       </div>
       <div className="max-w-[280px] space-y-2">
-        <h3 className="text-lg font-black text-gray-900">Aguardando o lance...</h3>
-        <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+        <h3 className="text-lg font-bold tracking-tight text-white">Aguardando o lance...</h3>
+        <p className="text-sm font-medium text-zinc-400 leading-relaxed">
           Aperte o botão na quadra e o seu replay aparecerá aqui em poucos segundos!
         </p>
       </div>
+
     </div>
   );
 }

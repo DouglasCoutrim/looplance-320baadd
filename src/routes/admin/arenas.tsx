@@ -576,12 +576,12 @@ function Arenas() {
       </div>
 
       {!cityFilter ? (
-        <div className="glass-card bg-white shadow-xl border border-gray-100 p-16 text-center">
+        <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900 p-16 text-center">
           <div className="mx-auto h-16 w-16 rounded-2xl bg-brand-orange/10 flex items-center justify-center text-brand-orange mb-4">
             <MapPin className="h-8 w-8" />
           </div>
-          <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">Escolha uma cidade</h3>
-          <p className="text-sm text-muted-foreground font-medium mt-1">
+          <h3 className="text-lg font-bold tracking-tight text-white">Escolha uma cidade</h3>
+          <p className="text-sm text-zinc-400 font-medium mt-1">
             {availableStates.length || filterCitySuggestions.length
               ? "Selecione uma cidade acima para ver as arenas. A UF é opcional para filtrar."
               : "Ainda não há arenas cadastradas. Cadastre uma arena para começar."}
@@ -589,85 +589,151 @@ function Arenas() {
         </div>
 
 
+
       ) : (
-      <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
-        <Table>
-          <TableHeader className="bg-gray-50/50 border-b border-gray-100">
-            <TableRow className="hover:bg-transparent">
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-3 sm:py-4 px-4 sm:px-6">Arena</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-3 sm:py-4 px-4 sm:px-6 hidden md:table-cell">Cliente</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-3 sm:py-4 px-4 sm:px-6 hidden lg:table-cell">Contato</TableHead>
-              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-3 sm:py-4 px-4 sm:px-6 hidden md:table-cell">Edge</TableHead>
-              <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-3 sm:py-4 px-4 sm:px-6">Ações</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {visibleArenas.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium italic">
-                  Nenhuma arena cadastrada em {cityFilter}.
-                </TableCell>
-              </TableRow>
-            ) : (
-              visibleArenas.map((a) => {
-                const mapLink = mapsUrl(a);
-                return (
-                  <TableRow key={a.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
-                    <TableCell className="py-4 sm:py-5 px-4 sm:px-6">
-                      <div className="flex items-center gap-3 sm:gap-4">
-                        <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-xl sm:rounded-2xl bg-brand-orange/10 flex items-center justify-center text-brand-orange overflow-hidden shrink-0">
-                          {a.logo_url ? (
-                            <img src={a.logo_url} alt={a.nome} className="h-full w-full object-cover" />
-                          ) : (
-                            <MapPin className="h-5 w-5 sm:h-6 sm:w-6" />
-                          )}
-                        </div>
-                        <div className="min-w-0">
-                          <span className="font-black text-base sm:text-lg text-gray-900 uppercase tracking-tight block truncate">{a.nome}</span>
-                          {a.endereco && (
-                            <p className="text-[11px] text-muted-foreground truncate hidden sm:block">{a.endereco}</p>
-                          )}
-                          <p className="text-[10px] font-medium text-muted-foreground truncate md:hidden">
-                            {clientName(a.edge_device_id)} • {edgeName(a.edge_device_id)}
-                          </p>
-                        </div>
+      <>
+        {/* Mobile card list */}
+        <ul className="space-y-3 md:hidden">
+          {visibleArenas.length === 0 ? (
+            <li className="rounded-xl border border-zinc-800/60 bg-zinc-900 p-6 text-center text-sm text-zinc-400 italic">
+              Nenhuma arena cadastrada em {cityFilter}.
+            </li>
+          ) : (
+            visibleArenas.map((a) => {
+              const mapLink = mapsUrl(a);
+              const location = [a.cidade, a.estado].filter(Boolean).join(" / ");
+              return (
+                <li
+                  key={a.id}
+                  className="rounded-xl border border-zinc-800/60 bg-zinc-900 p-4 transition-all duration-300 ease-out hover:border-zinc-700 hover:scale-[1.01]"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="h-12 w-12 shrink-0 overflow-hidden rounded-xl bg-brand-orange/10 text-brand-orange grid place-items-center">
+                      {a.logo_url ? (
+                        <img src={a.logo_url} alt={a.nome} className="h-full w-full object-cover" />
+                      ) : (
+                        <MapPin className="h-5 w-5" />
+                      )}
+                    </div>
+                    <div className="min-w-0 flex-1 space-y-1.5">
+                      <h3 className="text-base font-bold text-white tracking-tight truncate">{a.nome}</h3>
+                      <div className="space-y-1 text-sm text-zinc-400">
+                        <p className="truncate">{clientName(a.edge_device_id)} · <span className="font-mono text-xs text-zinc-500">{edgeName(a.edge_device_id)}</span></p>
+                        {a.telefone && (
+                          <p className="flex items-center gap-1.5 truncate"><Phone className="h-3.5 w-3.5 shrink-0 text-zinc-500" /> {a.telefone}</p>
+                        )}
                       </div>
-                    </TableCell>
-                    <TableCell className="py-4 sm:py-5 px-4 sm:px-6 hidden md:table-cell text-sm font-semibold text-gray-700">
-                      {clientName(a.edge_device_id)}
-                    </TableCell>
-                    <TableCell className="py-4 sm:py-5 px-4 sm:px-6 hidden lg:table-cell text-xs text-gray-600">
-                      <div className="space-y-0.5">
-                        {a.telefone && <div className="flex items-center gap-1.5"><Phone className="h-3 w-3 text-gray-400" />{a.telefone}</div>}
+                      <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                        {location && (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-zinc-800 px-2.5 py-1 text-xs text-zinc-300">
+                            <MapPin className="h-3 w-3" /> {location}
+                          </span>
+                        )}
                         {mapLink && (
-                          <a href={mapLink} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-brand-orange font-bold hover:underline">
+                          <a
+                            href={mapLink}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1 rounded-full border border-brand-orange/30 bg-brand-orange/10 px-2.5 py-1 text-xs font-medium text-brand-orange hover:bg-brand-orange/20 transition"
+                          >
                             <MapPin className="h-3 w-3" /> Ver no mapa
                           </a>
                         )}
-                        {!a.telefone && !mapLink && <span className="italic text-gray-300">—</span>}
                       </div>
-                    </TableCell>
-                    <TableCell className="py-4 sm:py-5 px-4 sm:px-6 hidden md:table-cell text-sm font-mono text-gray-700">
-                      {edgeName(a.edge_device_id)}
-                    </TableCell>
-                    <TableCell className="text-right py-4 sm:py-5 px-4 sm:px-6 shrink-0">
-                      <div className="flex justify-end gap-1 sm:gap-2">
-                        <Button variant="ghost" size="icon" onClick={() => openEdit(a)} className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-brand-orange hover:bg-brand-orange/5 transition-colors">
-                          <Edit2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        </Button>
-                        <Button variant="ghost" size="icon" onClick={() => setDeleting(a)} className="h-8 w-8 sm:h-10 sm:w-10 rounded-lg sm:rounded-xl text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors">
-                          <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
-      </div>
+                    </div>
+                    <div className="flex shrink-0 flex-col gap-1">
+                      <Button variant="ghost" size="icon" onClick={() => openEdit(a)} className="h-8 w-8 text-zinc-400 hover:text-brand-orange hover:bg-zinc-800">
+                        <Edit2 className="h-4 w-4" />
+                      </Button>
+                      <Button variant="ghost" size="icon" onClick={() => setDeleting(a)} className="h-8 w-8 text-zinc-400 hover:text-red-400 hover:bg-zinc-800">
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </li>
+              );
+            })
+          )}
+        </ul>
+
+        {/* Desktop table */}
+        <div className="hidden md:block rounded-2xl border border-zinc-800/60 bg-zinc-900 overflow-hidden">
+          <Table>
+            <TableHeader className="bg-zinc-950/40 border-b border-zinc-800/60">
+              <TableRow className="hover:bg-transparent border-zinc-800/60">
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 py-4 px-6">Arena</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 py-4 px-6">Cliente</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 py-4 px-6">Contato</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 py-4 px-6">Edge</TableHead>
+                <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-zinc-400 py-4 px-6">Ações</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {visibleArenas.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="h-40 text-center text-zinc-400 font-medium italic">
+                    Nenhuma arena cadastrada em {cityFilter}.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                visibleArenas.map((a) => {
+                  const mapLink = mapsUrl(a);
+                  return (
+                    <TableRow key={a.id} className="hover:bg-zinc-800/40 transition-colors border-b border-zinc-800/60 last:border-0 group">
+                      <TableCell className="py-5 px-6">
+                        <div className="flex items-center gap-4">
+                          <div className="h-12 w-12 rounded-2xl bg-brand-orange/10 flex items-center justify-center text-brand-orange overflow-hidden shrink-0">
+                            {a.logo_url ? (
+                              <img src={a.logo_url} alt={a.nome} className="h-full w-full object-cover" />
+                            ) : (
+                              <MapPin className="h-6 w-6" />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-bold text-base text-white tracking-tight block truncate">{a.nome}</span>
+                            {a.endereco && (
+                              <p className="text-xs text-zinc-400 truncate">{a.endereco}</p>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-5 px-6 text-sm font-semibold text-zinc-200">
+                        {clientName(a.edge_device_id)}
+                      </TableCell>
+                      <TableCell className="py-5 px-6 text-xs text-zinc-300">
+                        <div className="space-y-0.5">
+                          {a.telefone && <div className="flex items-center gap-1.5"><Phone className="h-3 w-3 text-zinc-500" />{a.telefone}</div>}
+                          {mapLink && (
+                            <a href={mapLink} target="_blank" rel="noreferrer" className="flex items-center gap-1.5 text-brand-orange font-bold hover:underline">
+                              <MapPin className="h-3 w-3" /> Ver no mapa
+                            </a>
+                          )}
+                          {!a.telefone && !mapLink && <span className="italic text-zinc-500">—</span>}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-5 px-6 text-sm font-mono text-zinc-300">
+                        {edgeName(a.edge_device_id)}
+                      </TableCell>
+                      <TableCell className="text-right py-5 px-6 shrink-0">
+                        <div className="flex justify-end gap-2">
+                          <Button variant="ghost" size="icon" onClick={() => openEdit(a)} className="h-10 w-10 rounded-xl text-zinc-400 hover:text-brand-orange hover:bg-zinc-800 transition-colors">
+                            <Edit2 className="h-4 w-4" />
+                          </Button>
+                          <Button variant="ghost" size="icon" onClick={() => setDeleting(a)} className="h-10 w-10 rounded-xl text-zinc-400 hover:text-red-400 hover:bg-zinc-800 transition-colors">
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </>
       )}
+
 
 
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
