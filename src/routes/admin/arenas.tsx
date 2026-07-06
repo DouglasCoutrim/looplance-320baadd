@@ -576,17 +576,18 @@ function Arenas() {
       </div>
 
       {!cityFilter ? (
-        <div className="glass-card bg-white shadow-xl border border-gray-100 p-16 text-center">
+        <div className="rounded-2xl border border-zinc-800/60 bg-zinc-900 p-16 text-center">
           <div className="mx-auto h-16 w-16 rounded-2xl bg-brand-orange/10 flex items-center justify-center text-brand-orange mb-4">
             <MapPin className="h-8 w-8" />
           </div>
-          <h3 className="text-lg font-black uppercase tracking-tight text-gray-900">Escolha uma cidade</h3>
-          <p className="text-sm text-muted-foreground font-medium mt-1">
+          <h3 className="text-lg font-bold tracking-tight text-white">Escolha uma cidade</h3>
+          <p className="text-sm text-zinc-400 font-medium mt-1">
             {availableStates.length || filterCitySuggestions.length
               ? "Selecione uma cidade acima para ver as arenas. A UF é opcional para filtrar."
               : "Ainda não há arenas cadastradas. Cadastre uma arena para começar."}
           </p>
         </div>
+
 
 
       ) : (
