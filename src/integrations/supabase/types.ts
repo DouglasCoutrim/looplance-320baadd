@@ -616,50 +616,68 @@ export type Database = {
       profiles: {
         Row: {
           arena_id: string | null
+          avatar_url: string | null
           birth_date: string | null
+          city: string | null
           client_id: string | null
           consent_accepted: boolean | null
           consent_timestamp: string | null
           cpf: string | null
           created_at: string
           email: string | null
+          favorite_arenas: string[]
+          favorite_sports: string[]
           full_name: string | null
+          gender: string | null
           id: string
           is_arena_owner: boolean | null
           is_super_admin: boolean | null
           role: string | null
+          state: string | null
           updated_at: string
         }
         Insert: {
           arena_id?: string | null
+          avatar_url?: string | null
           birth_date?: string | null
+          city?: string | null
           client_id?: string | null
           consent_accepted?: boolean | null
           consent_timestamp?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
+          favorite_arenas?: string[]
+          favorite_sports?: string[]
           full_name?: string | null
+          gender?: string | null
           id: string
           is_arena_owner?: boolean | null
           is_super_admin?: boolean | null
           role?: string | null
+          state?: string | null
           updated_at?: string
         }
         Update: {
           arena_id?: string | null
+          avatar_url?: string | null
           birth_date?: string | null
+          city?: string | null
           client_id?: string | null
           consent_accepted?: boolean | null
           consent_timestamp?: string | null
           cpf?: string | null
           created_at?: string
           email?: string | null
+          favorite_arenas?: string[]
+          favorite_sports?: string[]
           full_name?: string | null
+          gender?: string | null
           id?: string
           is_arena_owner?: boolean | null
           is_super_admin?: boolean | null
           role?: string | null
+          state?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -751,6 +769,7 @@ export type Database = {
           id: string
           quadra_id: string
           r2_key: string | null
+          user_id: string | null
           video_url: string
         }
         Insert: {
@@ -762,6 +781,7 @@ export type Database = {
           id?: string
           quadra_id: string
           r2_key?: string | null
+          user_id?: string | null
           video_url: string
         }
         Update: {
@@ -773,6 +793,7 @@ export type Database = {
           id?: string
           quadra_id?: string
           r2_key?: string | null
+          user_id?: string | null
           video_url?: string
         }
         Relationships: [
@@ -1063,6 +1084,7 @@ export type Database = {
           id: string
           quadra_id: string
           r2_key: string | null
+          user_id: string | null
           video_url: string
         }
         SetofOptions: {
