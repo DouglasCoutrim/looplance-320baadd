@@ -30,10 +30,22 @@ interface ContentSnapshot {
 }
 
 function ModerationPage() {
+  const navigate = useNavigate();
+  const [authorized, setAuthorized] = useState<boolean | null>(null);
   const [loading, setLoading] = useState(true);
   const [reports, setReports] = useState<ReportRow[]>([]);
   const [snapshots, setSnapshots] = useState<Record<string, ContentSnapshot>>({});
   const [busy, setBusy] = useState<string | null>(null);
+
+  useEffect(() => {
+    (async () => {
+      const { data: sess } = await supabase.auth.getSession();
+      if (!sess.session) { navigate({ to: "/auth" }); return; }
+      const { data: p } = await supabase.from("profiles").select("is_super_admin").eq("id", sess.session.user.id).maybeSingle();
+      if (!p?.is_super_admin) { setAuthorized(false); navigate({ to: "/" }); return; }
+      setAuthorized(true);
+    })();
+  }, [navigate]);
 
   const load = async () => {
     setLoading(true);
