@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import { Heart, MessageCircle, Share2, Trash2, Send, Copy, MessageCircleMore } from "lucide-react";
+import { Heart, MessageCircle, Share2, Trash2, Send, Copy, MessageCircleMore, Flag } from "lucide-react";
+import { ReportDialog, loadReported } from "@/components/ReportDialog";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import * as Popover from "@radix-ui/react-popover";
@@ -42,6 +43,22 @@ export function SocialActions({ targetId, targetType, shareUrl, shareText }: Pro
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const loadedRef = useRef(false);
+  const [reportComment, setReportComment] = useState<string | null>(null);
+  const [reportedComments, setReportedComments] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!uid) return;
+    const rebuild = () => {
+      const all = loadReported(uid);
+      const ids = new Set<string>();
+      all.forEach((k) => { if (k.startsWith("comment:")) ids.add(k.slice("comment:".length)); });
+      setReportedComments(ids);
+    };
+    rebuild();
+    const onEvt = () => rebuild();
+    window.addEventListener("looplance:reported", onEvt);
+    return () => window.removeEventListener("looplance:reported", onEvt);
+  }, [uid]);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -193,27 +210,45 @@ export function SocialActions({ targetId, targetType, shareUrl, shareText }: Pro
             <div className="max-h-80 overflow-y-auto p-3 space-y-3">
               {comments.length === 0 ? (
                 <p className="text-center text-xs text-zinc-500 py-6">Seja o primeiro a comentar.</p>
-              ) : comments.map((c) => (
-                <div key={c.id} className="flex items-start gap-3 group">
-                  <Avatar url={c.profile?.avatar_url} name={c.profile?.full_name} />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-baseline gap-2">
-                      <span className="text-sm font-semibold text-zinc-100 truncate">{c.profile?.full_name ?? "Usuário"}</span>
-                      <span className="text-[11px] text-zinc-500">{timeAgo(c.created_at)}</span>
+              ) : comments.map((c) => {
+                const isReported = reportedComments.has(c.id);
+                if (isReported) {
+                  return (
+                    <div key={c.id} className="rounded-xl border border-zinc-800/60 bg-zinc-900/40 px-3 py-2 text-center text-[11px] text-zinc-500">
+                      Comentário ocultado após sua denúncia.
                     </div>
-                    <p className="text-sm text-zinc-200 break-words whitespace-pre-wrap">{c.content}</p>
+                  );
+                }
+                return (
+                  <div key={c.id} className="flex items-start gap-3 group">
+                    <Avatar url={c.profile?.avatar_url} name={c.profile?.full_name} />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-baseline gap-2">
+                        <span className="text-sm font-semibold text-zinc-100 truncate">{c.profile?.full_name ?? "Usuário"}</span>
+                        <span className="text-[11px] text-zinc-500">{timeAgo(c.created_at)}</span>
+                      </div>
+                      <p className="text-sm text-zinc-200 break-words whitespace-pre-wrap">{c.content}</p>
+                    </div>
+                    {uid === c.user_id ? (
+                      <button
+                        onClick={() => deleteComment(c.id)}
+                        className="opacity-0 group-hover:opacity-100 transition text-zinc-500 hover:text-rose-400 p-1"
+                        aria-label="Excluir comentário"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => setReportComment(c.id)}
+                        className="opacity-0 group-hover:opacity-100 transition text-zinc-500 hover:text-rose-400 p-1"
+                        aria-label="Denunciar comentário"
+                      >
+                        <Flag className="h-4 w-4" />
+                      </button>
+                    )}
                   </div>
-                  {uid === c.user_id && (
-                    <button
-                      onClick={() => deleteComment(c.id)}
-                      className="opacity-0 group-hover:opacity-100 transition text-zinc-500 hover:text-rose-400 p-1"
-                      aria-label="Excluir comentário"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  )}
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Input */}
@@ -239,6 +274,15 @@ export function SocialActions({ targetId, targetType, shareUrl, shareText }: Pro
           </div>
         </div>
       </div>
+
+      {reportComment && (
+        <ReportDialog
+          open={!!reportComment}
+          onOpenChange={(o) => { if (!o) setReportComment(null); }}
+          targetId={reportComment}
+          targetType="comment"
+        />
+      )}
     </div>
   );
 }

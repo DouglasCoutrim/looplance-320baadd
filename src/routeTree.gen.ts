@@ -23,6 +23,7 @@ import { Route as AdminTerminalRouteImport } from './routes/admin/terminal'
 import { Route as AdminReplaysRouteImport } from './routes/admin/replays'
 import { Route as AdminQuadrasRouteImport } from './routes/admin/quadras'
 import { Route as AdminMonitoringRouteImport } from './routes/admin/monitoring'
+import { Route as AdminModerationRouteImport } from './routes/admin/moderation'
 import { Route as AdminInputBoardsRouteImport } from './routes/admin/input-boards'
 import { Route as AdminEdgeDevicesRouteImport } from './routes/admin/edge-devices'
 import { Route as AdminClientsRouteImport } from './routes/admin/clients'
@@ -109,6 +110,11 @@ const AdminQuadrasRoute = AdminQuadrasRouteImport.update({
 const AdminMonitoringRoute = AdminMonitoringRouteImport.update({
   id: '/monitoring',
   path: '/monitoring',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminModerationRoute = AdminModerationRouteImport.update({
+  id: '/moderation',
+  path: '/moderation',
   getParentRoute: () => AdminRoute,
 } as any)
 const AdminInputBoardsRoute = AdminInputBoardsRouteImport.update({
@@ -214,6 +220,7 @@ export interface FileRoutesByFullPath {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/moderation': typeof AdminModerationRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/replays': typeof AdminReplaysRoute
@@ -246,6 +253,7 @@ export interface FileRoutesByTo {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/moderation': typeof AdminModerationRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/replays': typeof AdminReplaysRoute
@@ -280,6 +288,7 @@ export interface FileRoutesById {
   '/admin/clients': typeof AdminClientsRoute
   '/admin/edge-devices': typeof AdminEdgeDevicesRoute
   '/admin/input-boards': typeof AdminInputBoardsRoute
+  '/admin/moderation': typeof AdminModerationRoute
   '/admin/monitoring': typeof AdminMonitoringRoute
   '/admin/quadras': typeof AdminQuadrasRoute
   '/admin/replays': typeof AdminReplaysRoute
@@ -315,6 +324,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/edge-devices'
     | '/admin/input-boards'
+    | '/admin/moderation'
     | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/replays'
@@ -347,6 +357,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/edge-devices'
     | '/admin/input-boards'
+    | '/admin/moderation'
     | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/replays'
@@ -380,6 +391,7 @@ export interface FileRouteTypes {
     | '/admin/clients'
     | '/admin/edge-devices'
     | '/admin/input-boards'
+    | '/admin/moderation'
     | '/admin/monitoring'
     | '/admin/quadras'
     | '/admin/replays'
@@ -526,6 +538,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminMonitoringRouteImport
       parentRoute: typeof AdminRoute
     }
+    '/admin/moderation': {
+      id: '/admin/moderation'
+      path: '/moderation'
+      fullPath: '/admin/moderation'
+      preLoaderRoute: typeof AdminModerationRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/admin/input-boards': {
       id: '/admin/input-boards'
       path: '/input-boards'
@@ -654,6 +673,7 @@ interface AdminRouteChildren {
   AdminClientsRoute: typeof AdminClientsRoute
   AdminEdgeDevicesRoute: typeof AdminEdgeDevicesRoute
   AdminInputBoardsRoute: typeof AdminInputBoardsRoute
+  AdminModerationRoute: typeof AdminModerationRoute
   AdminMonitoringRoute: typeof AdminMonitoringRoute
   AdminQuadrasRoute: typeof AdminQuadrasRoute
   AdminReplaysRoute: typeof AdminReplaysRoute
@@ -668,6 +688,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminClientsRoute: AdminClientsRoute,
   AdminEdgeDevicesRoute: AdminEdgeDevicesRoute,
   AdminInputBoardsRoute: AdminInputBoardsRoute,
+  AdminModerationRoute: AdminModerationRoute,
   AdminMonitoringRoute: AdminMonitoringRoute,
   AdminQuadrasRoute: AdminQuadrasRoute,
   AdminReplaysRoute: AdminReplaysRoute,
