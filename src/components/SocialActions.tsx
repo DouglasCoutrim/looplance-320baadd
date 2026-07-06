@@ -43,6 +43,22 @@ export function SocialActions({ targetId, targetType, shareUrl, shareText }: Pro
   const [input, setInput] = useState("");
   const [sending, setSending] = useState(false);
   const loadedRef = useRef(false);
+  const [reportComment, setReportComment] = useState<string | null>(null);
+  const [reportedComments, setReportedComments] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    if (!uid) return;
+    const rebuild = () => {
+      const all = loadReported(uid);
+      const ids = new Set<string>();
+      all.forEach((k) => { if (k.startsWith("comment:")) ids.add(k.slice("comment:".length)); });
+      setReportedComments(ids);
+    };
+    rebuild();
+    const onEvt = () => rebuild();
+    window.addEventListener("looplance:reported", onEvt);
+    return () => window.removeEventListener("looplance:reported", onEvt);
+  }, [uid]);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
