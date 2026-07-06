@@ -80,31 +80,69 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
 
   return (
     <>
-      <button 
-        onClick={() => setIsOpen(true)}
-        className="glass-card group relative aspect-[9/16] w-full overflow-hidden transition hover:scale-[1.03] hover:shadow-md"
-      >
-        <video
-          src={`${replay.video_url}#t=3.0`}
-          playsInline
-          muted
-          preload="metadata"
-          className="h-full w-full object-cover"
-        />
-        <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-100 transition group-hover:bg-black/25">
-          <div className="brand-gradient grid h-8 w-8 place-items-center rounded-full text-white shadow-lg transition-transform group-hover:scale-110">
-            <Play className="h-4 w-4 fill-white" />
+      <div className={`glass-card group relative aspect-[9/16] w-full overflow-hidden transition hover:scale-[1.03] hover:shadow-md ${hidden ? "pointer-events-none" : ""}`}>
+        <button
+          onClick={() => setIsOpen(true)}
+          className="absolute inset-0 z-0 w-full h-full text-left"
+          aria-label="Abrir replay"
+        >
+          <video
+            src={`${replay.video_url}#t=3.0`}
+            playsInline
+            muted
+            preload="metadata"
+            className="h-full w-full object-cover"
+          />
+          <div className="absolute inset-0 flex items-center justify-center bg-black/10 opacity-100 transition group-hover:bg-black/25">
+            <div className="brand-gradient grid h-8 w-8 place-items-center rounded-full text-white shadow-lg transition-transform group-hover:scale-110">
+              <Play className="h-4 w-4 fill-white" />
+            </div>
           </div>
-        </div>
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left">
-          <p className="truncate text-[10px] font-bold text-white uppercase tracking-wider">
-            {replay.quadras?.nome ?? "Quadra"}
-          </p>
-          <p className="text-[9px] font-medium text-white/80">
-            {date} · {time}
-          </p>
-        </div>
-      </button>
+          <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 text-left">
+            <p className="truncate text-[10px] font-bold text-white uppercase tracking-wider">
+              {replay.quadras?.nome ?? "Quadra"}
+            </p>
+            <p className="text-[9px] font-medium text-white/80">
+              {date} · {time}
+            </p>
+          </div>
+        </button>
+
+        <Popover.Root>
+          <Popover.Trigger asChild>
+            <button
+              onClick={(e) => e.stopPropagation()}
+              className="absolute top-2 right-2 z-10 grid h-8 w-8 place-items-center rounded-full bg-black/50 text-white backdrop-blur-md opacity-80 hover:opacity-100 hover:bg-black/70 transition"
+              aria-label="Mais opções"
+            >
+              <MoreVertical className="h-4 w-4" />
+            </button>
+          </Popover.Trigger>
+          <Popover.Portal>
+            <Popover.Content
+              side="bottom" align="end" sideOffset={6}
+              className="z-[60] w-52 overflow-hidden rounded-2xl border border-zinc-800 bg-zinc-900/95 p-1.5 shadow-2xl backdrop-blur-md animate-in fade-in zoom-in-95"
+            >
+              <Popover.Close asChild>
+                <button
+                  onClick={() => setReportOpen(true)}
+                  className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm text-rose-300 hover:bg-zinc-800 transition"
+                >
+                  <Flag className="h-4 w-4" /> Denunciar conteúdo
+                </button>
+              </Popover.Close>
+            </Popover.Content>
+          </Popover.Portal>
+        </Popover.Root>
+
+        {hidden && (
+          <div className="absolute inset-0 z-20 flex items-center justify-center bg-zinc-950/85 backdrop-blur-xl p-3 text-center">
+            <p className="text-xs text-zinc-300">Conteúdo ocultado após sua denúncia.</p>
+          </div>
+        )}
+      </div>
+
+      <ReportDialog open={reportOpen} onOpenChange={setReportOpen} targetId={replay.id} targetType="replay" />
 
       <Dialog.Root open={isOpen} onOpenChange={setIsOpen}>
         <Dialog.Portal>
