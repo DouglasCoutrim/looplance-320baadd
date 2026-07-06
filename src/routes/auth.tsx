@@ -149,13 +149,14 @@ function AuthPage() {
           </button>
         </div>
 
-        <div className="mb-5 space-y-2.5">
+        <div className="mb-5 flex items-center justify-center gap-3">
           <button
             type="button"
             onClick={() => handleOAuth("google")}
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2.5 rounded-full border border-gray-300 bg-white px-4 py-2.5 text-sm font-bold text-gray-700 shadow-sm transition hover:bg-gray-50 disabled:opacity-60"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white transition hover:bg-gray-50 disabled:opacity-60"
             aria-label="Continuar com Google"
+            title="Continuar com Google"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
               <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.68 4.1-5.5 4.1a6.2 6.2 0 1 1 0-12.4c1.94 0 3.24.83 3.98 1.53l2.72-2.62A9.9 9.9 0 0 0 12 2a10 10 0 1 0 0 20c5.77 0 9.6-4.06 9.6-9.77 0-.66-.07-1.16-.16-1.66H12Z"/>
@@ -163,26 +164,21 @@ function AuthPage() {
               <path fill="#4A90E2" d="M12 22c2.7 0 4.97-.9 6.63-2.44l-3.15-2.58c-.86.6-2.02 1.03-3.48 1.03-2.83 0-5.23-1.9-6.08-4.48L2.7 15.9A10 10 0 0 0 12 22Z"/>
               <path fill="#FBBC05" d="M5.92 13.53a6.2 6.2 0 0 1 0-3.06L2.7 8.1a10 10 0 0 0 0 7.8l3.22-2.37Z"/>
             </svg>
-            Continuar com Google
           </button>
           <button
             type="button"
             onClick={() => handleOAuth("apple")}
             disabled={loading}
-            className="flex w-full items-center justify-center gap-2.5 rounded-full bg-black px-4 py-2.5 text-sm font-bold text-white shadow-sm transition hover:bg-gray-900 disabled:opacity-60"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-black transition hover:bg-gray-50 disabled:opacity-60"
             aria-label="Continuar com Apple"
+            title="Continuar com Apple"
           >
             <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
               <path d="M16.36 12.71c.02 2.3 2.02 3.06 2.04 3.07-.02.06-.32 1.09-1.05 2.15-.64.94-1.3 1.87-2.34 1.89-1.02.02-1.35-.6-2.51-.6-1.17 0-1.53.58-2.5.62-1 .04-1.77-1.01-2.41-1.94-1.32-1.9-2.33-5.38-.97-7.73.67-1.17 1.87-1.91 3.17-1.93.99-.02 1.92.67 2.52.67.6 0 1.74-.83 2.93-.71.5.02 1.9.2 2.8 1.52-.07.05-1.67.98-1.65 2.99Zm-1.94-5.83c.54-.65.9-1.55.8-2.44-.77.03-1.7.51-2.25 1.15-.5.57-.94 1.5-.82 2.37.86.07 1.74-.44 2.27-1.08Z"/>
             </svg>
-            Continuar com Apple
           </button>
-          <div className="my-3 flex items-center gap-3 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-            <span className="h-px flex-1 bg-gray-200" />
-            ou
-            <span className="h-px flex-1 bg-gray-200" />
-          </div>
         </div>
+
 
 
 
