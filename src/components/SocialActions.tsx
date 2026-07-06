@@ -274,6 +274,15 @@ export function SocialActions({ targetId, targetType, shareUrl, shareText }: Pro
           </div>
         </div>
       </div>
+
+      {reportComment && (
+        <ReportDialog
+          open={!!reportComment}
+          onOpenChange={(o) => { if (!o) setReportComment(null); }}
+          targetId={reportComment}
+          targetType="comment"
+        />
+      )}
     </div>
   );
 }
