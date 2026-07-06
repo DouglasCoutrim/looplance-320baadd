@@ -109,6 +109,20 @@ function AuthPage() {
     setLoginEmail(sEmail.trim());
   };
 
+  const handleOAuth = async (provider: "google" | "apple") => {
+    setLoading(true);
+    const result = await lovable.auth.signInWithOAuth(provider, {
+      redirect_uri: window.location.origin,
+    });
+    if (result.error) {
+      setLoading(false);
+      toast.error(result.error.message || "Falha ao autenticar");
+      return;
+    }
+    if (result.redirected) return; // browser navigating to provider
+    // popup flow completed
+    navigate({ to: "/" });
+
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-10">
       <Toaster theme="light" position="top-center" />
