@@ -283,20 +283,22 @@ function Home() {
         {/* Live now — horizontal scroll */}
         <section className="space-y-3">
           <div className="flex items-center justify-between px-1">
-            <h2 className="flex items-center gap-2 text-base font-black text-gray-900">
-              🎥 Assista Ao Vivo
+            <h2 className="flex items-center gap-2 text-lg font-semibold tracking-tight text-white">
+              <Tv className="h-4 w-4 text-brand-orange" />
+              Assista Ao Vivo
             </h2>
             {liveList.length > 0 && (
-              <span className="text-xs font-medium text-muted-foreground">{liveList.length} ao vivo</span>
+              <span className="text-xs font-medium text-zinc-500">{liveList.length} ao vivo</span>
             )}
           </div>
 
           {liveList.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-gray-200 bg-white/60 px-4 py-6 text-center">
-              <p className="text-xs font-medium text-muted-foreground">
+            <div className="rounded-2xl border border-dashed border-zinc-800 bg-zinc-900/60 px-4 py-6 text-center">
+              <p className="text-xs font-medium text-zinc-400">
                 Nenhuma transmissão ao vivo agora. Volte em breve!
               </p>
             </div>
+
           ) : (
             <div className="-mx-6 overflow-x-auto px-6 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               <div className="flex gap-3 w-max">
