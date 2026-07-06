@@ -119,31 +119,34 @@ export function ReplayCard({ replay, onReward }: { replay: Replay; onReward: () 
                 </Dialog.Close>
               </div>
 
-              <div className="mt-6 flex w-full items-center justify-between gap-4 rounded-3xl border border-white/10 bg-white/10 p-5 backdrop-blur-2xl shadow-xl">
-                <div className="min-w-0">
-                  <h3 className="truncate text-lg font-black text-white">
-                    {replay.quadras?.nome ?? "Quadra"}
-                  </h3>
-                  <p className="flex items-center gap-1.5 text-sm font-medium text-white/70">
-                    <Clock className="h-3.5 w-3.5" />
-                    {date} · {time}
-                    {replay.quadras?.arenas?.nome && <span>· {replay.quadras.arenas.nome}</span>}
-                  </p>
-                </div>
-                
-                <div className="flex shrink-0 items-center gap-3">
-                  <button
-                    onClick={handleShare}
-                    className="grid h-12 w-12 place-items-center rounded-full border border-white/20 bg-white/10 text-white transition hover:bg-white/20 active:scale-90"
-                  >
-                    <Share2 className="h-5 w-5" />
-                  </button>
+              <div className="mt-4 w-full rounded-3xl border border-zinc-800/60 bg-zinc-900/80 p-4 backdrop-blur-2xl shadow-xl">
+                <div className="flex items-center justify-between gap-4">
+                  <div className="min-w-0">
+                    <h3 className="truncate text-lg font-black text-white">
+                      {replay.quadras?.nome ?? "Quadra"}
+                    </h3>
+                    <p className="flex items-center gap-1.5 text-sm font-medium text-zinc-400">
+                      <Clock className="h-3.5 w-3.5" />
+                      {date} · {time}
+                      {replay.quadras?.arenas?.nome && <span>· {replay.quadras.arenas.nome}</span>}
+                    </p>
+                  </div>
                   <button
                     onClick={handleDownload}
-                    className="brand-gradient brand-glow grid h-12 w-12 place-items-center rounded-full text-white transition hover:scale-105 active:scale-95"
+                    className="brand-gradient brand-glow grid h-11 w-11 place-items-center rounded-full text-white transition hover:scale-105 active:scale-95 shrink-0"
+                    aria-label="Baixar"
                   >
                     <Download className="h-5 w-5" />
                   </button>
+                </div>
+
+                <div className="mt-2 border-t border-zinc-800/60 pt-1">
+                  <SocialActions
+                    targetId={replay.id}
+                    targetType="replay"
+                    shareUrl={replay.video_url}
+                    shareText={`Olha esse lance na ${replay.quadras?.nome ?? "quadra"}!`}
+                  />
                 </div>
               </div>
             </div>
