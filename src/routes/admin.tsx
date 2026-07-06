@@ -13,6 +13,7 @@ import {
   Building2,
   Play,
   Terminal,
+  Shield,
 } from "lucide-react";
 import { useState, useEffect } from "react";
 import logoUrl from "@/assets/looplance-logo.png";
