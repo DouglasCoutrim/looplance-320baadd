@@ -41,11 +41,22 @@ function Home() {
 
 
 
-  // Gate: require auth to see feed
+  // Gate: require auth to see feed; ensure profile is complete
   useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
+    supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) {
         navigate({ to: "/auth" });
+        return;
+      }
+      const uid = data.session.user.id;
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("cpf, birth_date, gender, city")
+        .eq("id", uid)
+        .maybeSingle();
+      const missing = !prof || !prof.cpf || !prof.birth_date || !prof.gender || !prof.city;
+      if (missing) {
+        navigate({ to: "/complete-profile" });
         return;
       }
       setUserEmail(data.session.user.email ?? null);
