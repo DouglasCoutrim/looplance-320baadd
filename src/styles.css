@@ -142,3 +142,102 @@ iframe[src*="lovable"] {
   100% { transform: translateX(-50%); }
 }
 .animate-marquee { animation: marquee 25s linear infinite; }
+
+/* ============================================================
+   Dark-theme safety net: neutralize hardcoded light-mode
+   Tailwind classes so legacy views inherit the premium dark
+   palette without touching every component.
+   ============================================================ */
+
+/* Backgrounds: force whites / light grays to elevated zinc */
+[class~="bg-white"],
+[class~="bg-gray-50"],
+[class~="bg-gray-100"],
+[class~="bg-slate-50"],
+[class~="bg-slate-100"],
+[class~="bg-neutral-50"],
+[class~="bg-neutral-100"],
+[class~="bg-zinc-50"],
+[class~="bg-zinc-100"] {
+  background-color: #18181b !important;
+}
+[class~="bg-gray-200"],
+[class~="bg-slate-200"],
+[class~="bg-neutral-200"],
+[class~="bg-zinc-200"] {
+  background-color: #27272a !important;
+}
+[class~="hover:bg-gray-50"]:hover,
+[class~="hover:bg-gray-100"]:hover,
+[class~="hover:bg-white"]:hover {
+  background-color: #27272a !important;
+}
+
+/* Borders: light borders → subtle zinc */
+[class~="border-gray-100"],
+[class~="border-gray-200"],
+[class~="border-slate-100"],
+[class~="border-slate-200"],
+[class~="border-neutral-100"],
+[class~="border-neutral-200"],
+[class~="border-zinc-100"],
+[class~="border-zinc-200"] {
+  border-color: #27272a !important;
+}
+
+/* Text: dark greys / blacks → light zinc for readability */
+[class~="text-black"],
+[class~="text-gray-900"],
+[class~="text-slate-900"],
+[class~="text-neutral-900"],
+[class~="text-zinc-900"],
+[class~="text-gray-800"],
+[class~="text-slate-800"],
+[class~="text-neutral-800"],
+[class~="text-zinc-800"] {
+  color: #fafafa !important;
+}
+[class~="text-gray-700"],
+[class~="text-slate-700"],
+[class~="text-neutral-700"],
+[class~="text-zinc-700"],
+[class~="text-gray-600"],
+[class~="text-slate-600"],
+[class~="text-neutral-600"],
+[class~="text-zinc-600"] {
+  color: #d4d4d8 !important;
+}
+[class~="text-gray-500"],
+[class~="text-slate-500"],
+[class~="text-neutral-500"],
+[class~="text-zinc-500"],
+[class~="text-gray-400"],
+[class~="text-slate-400"],
+[class~="text-neutral-400"],
+[class~="text-zinc-400"] {
+  color: #a1a1aa !important;
+}
+
+/* Inputs / textareas / selects: guarantee dark bg + light text */
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not([type="file"]),
+textarea,
+select {
+  background-color: #09090b;
+  color: #fafafa;
+  border-color: #27272a;
+}
+input::placeholder,
+textarea::placeholder {
+  color: #71717a !important;
+  opacity: 1;
+}
+
+/* Native autofill (Chrome) — keep dark */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-text-fill-color: #fafafa !important;
+  -webkit-box-shadow: 0 0 0 1000px #09090b inset !important;
+  caret-color: #fafafa;
+}
+
