@@ -385,16 +385,17 @@ function Home() {
 
 function EmptyState() {
   return (
-    <div className="glass-card flex flex-col items-center gap-6 px-6 py-16 text-center bg-white shadow-md border border-gray-200">
+    <div className="flex flex-col items-center gap-6 rounded-2xl border border-zinc-800/60 bg-zinc-900 px-6 py-16 text-center">
       <div className="brand-gradient grid h-20 w-20 place-items-center rounded-full brand-glow shadow-lg transition-transform hover:scale-105">
         <Play className="h-9 w-9 fill-white text-white" />
       </div>
       <div className="max-w-[280px] space-y-2">
-        <h3 className="text-lg font-black text-gray-900">Aguardando o lance...</h3>
-        <p className="text-sm font-medium text-muted-foreground leading-relaxed">
+        <h3 className="text-lg font-bold tracking-tight text-white">Aguardando o lance...</h3>
+        <p className="text-sm font-medium text-zinc-400 leading-relaxed">
           Aperte o botão na quadra e o seu replay aparecerá aqui em poucos segundos!
         </p>
       </div>
+
     </div>
   );
 }
