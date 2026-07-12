@@ -58,19 +58,24 @@ class CameraBuffer:
 
     def _input_args(self) -> list[str]:
         camera = self.camera
-        url = camera.rtsp_url
+        url = (
+            getattr(camera, "rtsp_url", None)
+            or getattr(camera, "rtmp_url", None)
+            or ""
+        )
+
+        if not url:
+            log.warning(
+                "[%s] URL de transmissão não encontrada — câmera será ignorada",
+                camera.name,
+            )
+            return []
 
         if camera.stream_protocol == "rtmp":
-            if not url:
-                log.error("[%s] protocolo RTMP sem URL configurada", camera.name)
-                raise RuntimeError(f"rtsp_url ausente para câmera RTMP {camera.name}")
             if any(host in url for host in ("127.0.0.1", "0.0.0.0", "localhost")):
                 return ["-listen", "1", "-i", url]
             return ["-i", url]
 
-        if not url:
-            log.error("[%s] protocolo RTSP sem URL configurada", camera.name)
-            raise RuntimeError(f"rtsp_url ausente para câmera RTSP {camera.name}")
         return ["-rtsp_transport", "tcp", "-i", url]
 
     def start(self) -> None:
@@ -78,11 +83,17 @@ class CameraBuffer:
         for f in self.dir.glob("seg_*.ts"):
             f.unlink(missing_ok=True)
 
+        input_args = self._input_args()
+        if not input_args:
+            self.last_status = "offline"
+            self.last_error = "URL de transmissão não configurada"
+            return
+
         pattern = str(self.dir / "seg_%05d.ts")
         cmd = [
             "ffmpeg",
             "-nostdin",
-            *self._input_args(),
+            *input_args,
             "-c", "copy",
             "-f", "segment",
             "-segment_time", str(self.segment_seconds),
