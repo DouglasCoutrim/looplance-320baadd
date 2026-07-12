@@ -80,11 +80,20 @@ class LiveStreamer:
         playlist = self.dir / M3U8_NAME
         segment_pattern = str(self.dir / "seg_%05d.ts")
 
+        if self.camera.stream_protocol == "rtmp":
+            stream_key = self.camera.rtmp_stream_key
+            if not stream_key:
+                log.error("[%s] protocolo RTMP sem rtmp_stream_key", self.camera.name)
+                raise RuntimeError(f"rtmp_stream_key ausente para câmera {self.camera.name}")
+            input_args = ["-i", f"rtmp://127.0.0.1/live/{stream_key}"]
+        else:
+            rtsp_url = self.camera.rtsp_url
+            input_args = ["-rtsp_transport", "tcp", "-i", rtsp_url]
+
         cmd = [
             "ffmpeg",
             "-nostdin",
-            "-rtsp_transport", "tcp",
-            "-i", self.camera.rtsp_url,
+            *input_args,
             "-c", "copy",
             "-f", "hls",
             "-hls_time", str(self.settings.hls_segment_seconds),
