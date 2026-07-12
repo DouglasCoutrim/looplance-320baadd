@@ -73,7 +73,10 @@ class LiveStreamer:
     def start(self) -> None:
         self.dir.mkdir(parents=True, exist_ok=True)
         for f in list(self.dir.glob("*.ts")) + list(self.dir.glob("*.m3u8")):
-            f.unlink(missing_ok=True)
+            try:
+                f.unlink(missing_ok=True)
+            except PermissionError:
+                log.warning("[%s] sem permissão para remover %s", self.camera.name, f)
         # limpa bucket residual (fragmentos de sessão anterior)
         self._purge_remote()
 
@@ -81,21 +84,28 @@ class LiveStreamer:
         segment_pattern = str(self.dir / "seg_%05d.ts")
 
         camera = self.camera
-        url = camera.rtsp_url
+        url = (
+            getattr(camera, "rtsp_url", None)
+            or getattr(camera, "rtmp_url", None)
+            or ""
+        )
 
-        if camera.stream_protocol == "rtmp":
-            if not url:
-                log.error("[%s] protocolo RTMP sem URL configurada", camera.name)
-                raise RuntimeError(f"rtsp_url ausente para câmera RTMP {camera.name}")
+        if not url:
+            log.warning(
+                "[%s] URL de transmissão não encontrada — live HLS será ignorada",
+                camera.name,
+            )
+            input_args = []
+        elif camera.stream_protocol == "rtmp":
             if any(host in url for host in ("127.0.0.1", "0.0.0.0", "localhost")):
                 input_args = ["-listen", "1", "-i", url]
             else:
                 input_args = ["-i", url]
         else:
-            if not url:
-                log.error("[%s] protocolo RTSP sem URL configurada", camera.name)
-                raise RuntimeError(f"rtsp_url ausente para câmera RTSP {camera.name}")
             input_args = ["-rtsp_transport", "tcp", "-i", url]
+
+        if not input_args:
+            return
 
         cmd = [
             "ffmpeg",
