@@ -1,10 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Plus, RefreshCw, Camera, Video, Edit2, Trash2, Zap } from "lucide-react";
+import { Plus, RefreshCw, Camera, Video, Edit2, Trash2, Zap, WifiOff, X, Maximize2 } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
@@ -21,6 +21,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Toaster, toast } from "sonner";
+import Hls from "hls.js";
 
 export const Route = createFileRoute("/admin/cameras")({
   component: Cameras,
@@ -64,10 +65,203 @@ interface CameraType {
   active: boolean | null;
   stream_protocol: string;
   rtmp_stream_key: string | null;
+  streaming_status: string | null;
+  streaming_error: string | null;
   protocol_settings: any;
   quadras?: { nome: string; arena_id: string; arenas?: { nome: string } | null } | null;
   edge_devices?: { name: string } | null;
   input_boards?: { name: string } | null;
+}
+
+function CameraPreviewCell({ camera, onPlay }: { camera: CameraType; onPlay: () => void }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [hasError, setHasError] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!camera.rtmp_stream_key || !videoRef.current) return;
+    setHasError(false);
+    setLoaded(false);
+
+    const src = `https://live.izyia.com.br/live/${camera.rtmp_stream_key}.m3u8?t=${Date.now()}`;
+    let hls: Hls | null = null;
+
+    if (Hls.isSupported()) {
+      hls = new Hls({
+        lowLatencyMode: true,
+        enableWorker: true,
+        liveSyncDurationCount: 2,
+      });
+      hls.loadSource(src);
+      hls.attachMedia(videoRef.current);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        setLoaded(true);
+        videoRef.current?.play().catch(() => setHasError(true));
+      });
+      hls.on(Hls.Events.ERROR, (_e, data) => {
+        if (data.fatal) setHasError(true);
+      });
+    } else if (videoRef.current.canPlayType("application/vnd.apple.mpegurl")) {
+      videoRef.current.src = src;
+      videoRef.current.addEventListener("loadedmetadata", () => setLoaded(true));
+      videoRef.current.addEventListener("error", () => setHasError(true));
+      videoRef.current.play().catch(() => setHasError(true));
+    } else {
+      setHasError(true);
+    }
+
+    return () => { hls?.destroy(); };
+  }, [camera.rtmp_stream_key]);
+
+  const showPlaceholder = !camera.rtmp_stream_key || hasError;
+
+  return (
+    <button
+      type="button"
+      onClick={onPlay}
+      className="group relative h-24 w-40 overflow-hidden rounded-xl border border-gray-200 bg-gray-100 transition hover:border-brand-orange/50 hover:shadow-md"
+      title="Clique para abrir player ao vivo"
+    >
+      {showPlaceholder ? (
+        <div className="flex h-full w-full flex-col items-center justify-center gap-1">
+          <Video className="h-6 w-6 text-gray-300" />
+          <span className="text-[9px] font-bold uppercase tracking-wider text-gray-400">
+            {camera.rtmp_stream_key
+              ? hasError ? "Indisponível" : "Sem chave"
+              : "Sem stream"}
+          </span>
+        </div>
+      ) : (
+        <>
+          <video
+            ref={videoRef}
+            muted
+            playsInline
+            className="h-full w-full object-cover"
+          />
+          {!loaded && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+              <div className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+            </div>
+          )}
+        </>
+      )}
+      <div className="absolute inset-0 flex items-center justify-center opacity-0 transition group-hover:opacity-100">
+        <div className="rounded-full bg-black/60 p-2 backdrop-blur-sm">
+          <Maximize2 className="h-4 w-4 text-white" />
+        </div>
+      </div>
+    </button>
+  );
+}
+
+function LivePlayerDialog({
+  camera,
+  onClose,
+}: {
+  camera: CameraType | null;
+  onClose: () => void;
+}) {
+  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
+  const hlsRef = useRef<Hls | null>(null);
+  const [streamError, setStreamError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!camera) return;
+    if (!videoEl) return;
+
+    setStreamError(null);
+    const streamKey = camera.rtmp_stream_key;
+    if (!streamKey) {
+      setStreamError("Câmera sem chave de transmissão configurada.");
+      return;
+    }
+    const base = `https://live.izyia.com.br/live/${streamKey}.m3u8`;
+    const src = `${base}?t=${Date.now()}`;
+
+    let hls: Hls | null = null;
+    if (Hls.isSupported()) {
+      hls = new Hls({
+        lowLatencyMode: true,
+        enableWorker: true,
+        liveSyncDurationCount: 3,
+      });
+      hls.loadSource(src);
+      hls.attachMedia(videoEl);
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        videoEl.play().catch(() => {});
+      });
+      hls.on(Hls.Events.ERROR, (_e, data) => {
+        if (data.fatal) {
+          setStreamError("Transmissão indisponível no momento.");
+        }
+      });
+      hlsRef.current = hls;
+    } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
+      videoEl.src = src;
+      videoEl.addEventListener("error", () => setStreamError("Transmissão indisponível no momento."));
+      videoEl.play().catch(() => {});
+    }
+
+    return () => {
+      hls?.destroy();
+      hlsRef.current = null;
+    };
+  }, [camera?.rtmp_stream_key, videoEl]);
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 backdrop-blur-md animate-in fade-in duration-300"
+      onClick={onClose}
+    >
+      <div
+        className="relative w-full max-w-[95vw] sm:max-w-3xl animate-in zoom-in-95 duration-300"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl">
+          <div className="flex items-center justify-between border-b border-white/10 p-4">
+            <div>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-brand-orange">Ao vivo</p>
+              <h3 className="text-lg font-black text-white">
+                {camera?.name ?? "Transmissão ao vivo"}
+              </h3>
+            </div>
+            <button
+              type="button"
+              onClick={onClose}
+              className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20"
+            >
+              <X className="h-5 w-5" />
+            </button>
+          </div>
+
+          <div className="relative aspect-video w-full bg-black">
+            <video
+              ref={setVideoEl}
+              controls
+              autoPlay
+              playsInline
+              muted
+              className="h-full w-full object-contain"
+            />
+            {streamError && (
+              <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/90 p-8 text-center">
+                <div className="grid h-16 w-16 place-items-center rounded-full bg-white/5">
+                  <WifiOff className="h-8 w-8 text-white/60" />
+                </div>
+                <p className="text-base font-bold text-white">{streamError}</p>
+                <p className="text-sm text-white/60">
+                  Verifique se a câmera está publicando o stream RTMP e tente novamente.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function Cameras() {
@@ -79,6 +273,7 @@ function Cameras() {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editing, setEditing] = useState<CameraType | null>(null);
   const [deleting, setDeleting] = useState<CameraType | null>(null);
+  const [previewCamera, setPreviewCamera] = useState<CameraType | null>(null);
 
   const emptyForm = {
     name: "",
@@ -482,6 +677,7 @@ function Cameras() {
         <Table>
           <TableHeader className="bg-gray-50/50 border-b border-gray-100">
             <TableRow className="hover:bg-transparent">
+              <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Visualização</TableHead>
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Identificação</TableHead>
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Localização</TableHead>
               <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6 text-center">Config / Gatilho</TableHead>
@@ -492,13 +688,16 @@ function Cameras() {
           <TableBody>
             {cameras.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-40 text-center text-muted-foreground font-medium italic">
+                <TableCell colSpan={6} className="h-40 text-center text-muted-foreground font-medium italic">
                   Nenhuma câmera configurada. Comece adicionando sua primeira fonte de vídeo.
                 </TableCell>
               </TableRow>
             ) : (
               cameras.map((camera) => (
                 <TableRow key={camera.id} className="hover:bg-gray-50/50 transition-colors border-b border-gray-50 last:border-0 group">
+                  <TableCell className="py-3 px-6">
+                    <CameraPreviewCell camera={camera} onPlay={() => setPreviewCamera(camera)} />
+                  </TableCell>
                   <TableCell className="py-5 px-6">
                     <div className="flex items-center gap-4">
                       <div className="h-12 w-12 rounded-2xl bg-blue-500/10 flex items-center justify-center text-blue-500 transition-colors group-hover:brand-gradient group-hover:text-white">
@@ -568,6 +767,10 @@ function Cameras() {
           </TableBody>
         </Table>
       </div>
+
+      {previewCamera && (
+        <LivePlayerDialog camera={previewCamera} onClose={() => setPreviewCamera(null)} />
+      )}
 
       <Toaster theme="light" position="top-center" />
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
