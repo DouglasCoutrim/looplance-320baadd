@@ -136,14 +136,26 @@ class CameraBuffer:
             try:
                 for f in sorted(self.dir.glob("seg_*.ts")):
                     key = f.name
-                    if key in self._known_files:
-                        continue
-                    # pequeno delay para garantir que o ffmpeg terminou de escrever
-                    self._known_files.add(key)
+                    try:
+                        cur_mtime = f.stat().st_mtime
+                    except OSError:
+                        continue  # arquivo pode ter sumido entre glob e stat
                     with self._lock:
-                        self._segments.append(Segment(path=f, created_at=time.time()))
+                        existing = next(
+                            (s for s in self._segments if s.path.name == key), None
+                        )
+                        if existing is not None:
+                            # FFmpeg reciclou o arquivo (segment_wrap):
+                            # atualiza created_at para o mtime real
+                            if abs(existing.created_at - cur_mtime) > self.segment_seconds:
+                                existing.created_at = cur_mtime
+                                existing.path = f
+                            continue
+                        if key in self._known_files:
+                            continue
+                        self._known_files.add(key)
+                        self._segments.append(Segment(path=f, created_at=cur_mtime))
                         if len(self._segments) == self.wrap_count:
-                            # limpa referências de arquivos que o ffmpeg já reciclou
                             valid = {s.path.name for s in self._segments}
                             self._known_files &= valid
                 self.last_status = "online" if self.is_alive() else "offline"
@@ -159,8 +171,23 @@ class CameraBuffer:
                 self.last_error = tail[-500:]
 
     def segments_for_window(self, seconds: int) -> list[Path]:
-        """Retorna os segmentos (em ordem) que cobrem os últimos `seconds`."""
-        cutoff = time.time() - seconds - self.segment_seconds  # folga de 1 segmento
+        """Retorna os segmentos finalizados (ordenados) que cobrem os últimos `seconds`.
+        Exclui sempre o segmento mais recente, que pode estar sendo escrito pelo FFmpeg.
+        Nenhum arquivo original é deletado ou movido — o FFmpeg mantém o controle
+        exclusivo da rotação via -segment_wrap.
+        """
         with self._lock:
-            chosen = [s.path for s in self._segments if s.created_at >= cutoff]
-        return chosen
+            if len(self._segments) < 2:
+                return []
+            # Filtra por janela temporal usando o mtime real do arquivo
+            cutoff = time.time() - seconds - self.segment_seconds
+            viable = [
+                s for s in self._segments
+                if s.created_at >= cutoff and s.path.exists()
+            ]
+            if len(viable) < 2:
+                return []
+            # Ordena por mtime ascendente (mais antigo primeiro)
+            viable.sort(key=lambda s: s.created_at)
+            # Exclui o segmento mais recente (ainda sendo escrito pelo FFmpeg)
+            return [s.path for s in viable[:-1]]

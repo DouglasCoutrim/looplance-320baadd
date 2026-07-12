@@ -28,12 +28,28 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     if not segments:
         raise ClipBuildError("nenhum segmento disponível no buffer ainda")
 
+    # Filtra segmentos que ainda existem (o FFmpeg pode ter reciclado algum
+    # entre a listagem e a montagem do clipe)
+    valid_segments = [s for s in segments if s.exists()]
+    if len(valid_segments) < 2:
+        log.warning(
+            "[%s] apenas %d segmento(s) disponíveis (de %d) — insuficiente para montar clipe",
+            camera.name, len(valid_segments), len(segments),
+        )
+        raise ClipBuildError("segmentos insuficientes ou reciclados durante a montagem")
+
+    if len(valid_segments) != len(segments):
+        log.warning(
+            "[%s] %d segmento(s) reciclado(s) durante a montagem, continuando com %d",
+            camera.name, len(segments) - len(valid_segments), len(valid_segments),
+        )
+
     tmp_dir = settings.ram_buffer_dir / "tmp"
     tmp_dir.mkdir(parents=True, exist_ok=True)
 
     clip_id = uuid.uuid4().hex
     concat_list = tmp_dir / f"{clip_id}_list.txt"
-    concat_list.write_text("".join(f"file '{s.resolve()}'\n" for s in segments))
+    concat_list.write_text("".join(f"file '{s.resolve()}'\n" for s in valid_segments))
 
     output_path = tmp_dir / f"{clip_id}.mp4"
 
