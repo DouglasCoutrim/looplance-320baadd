@@ -26,20 +26,20 @@ ENV_PATH = Path(os.environ.get("LOOPLANCE_ENV_FILE", "/etc/looplance/edge.env"))
 class CameraConfig:
     id: str
     quadra_id: str
-    arena_id: str
     name: str
     rtsp_url: str
     buffer_seconds: int
     replay_seconds: int
     trigger_button: int
-    overlay_url: str | None
-    final_overlay_url: str | None
-    video_x: int
-    video_y: int
-    video_width: int
-    video_height: int
-    active: bool
-    arena_id: str | None = None
+
+    arena_id: str = "unknown-arena"
+    overlay_url: str | None = None
+    final_overlay_url: str | None = None
+    video_x: int = 0
+    video_y: int = 0
+    video_width: int = 0
+    video_height: int = 0
+    active: bool = True
     stream_protocol: str = "rtsp"
     rtmp_stream_key: str | None = None
     protocol_settings: dict | None = None
