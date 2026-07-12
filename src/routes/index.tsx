@@ -1,9 +1,10 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
-import { Play, Search, Flame, Radio, Tv, Sparkles } from "lucide-react";
+import {
+  Search, Sparkles, Plus, Play, Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Radio,
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { ReplayCard } from "@/components/ReplayCard";
 import { SocialShell } from "@/components/SocialShell";
 
 export const Route = createFileRoute("/")({
@@ -24,20 +25,33 @@ interface Replay {
   quadras?: { nome: string; arenas?: { nome: string } | null } | null;
 }
 
+interface StoryProfile {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+}
+
+function timeAgo(iso: string) {
+  const diff = (Date.now() - new Date(iso).getTime()) / 1000;
+  if (diff < 60) return `${Math.floor(diff)}s`;
+  if (diff < 3600) return `${Math.floor(diff / 60)} min`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)} h`;
+  return `${Math.floor(diff / 86400)} d`;
+}
+
 function Home() {
   const navigate = useNavigate();
   const [authChecked, setAuthChecked] = useState(false);
-  const [featuredReplays, setFeaturedReplays] = useState<Replay[]>([]);
-  const [currentSlide, setCurrentSlide] = useState(0);
   const [replays, setReplays] = useState<Replay[]>([]);
-  const [sponsors, setSponsors] = useState<string[]>([]);
+  const [stories, setStories] = useState<StoryProfile[]>([]);
   const [liveList, setLiveList] = useState<
     Array<{ quadra_id: string; quadra_nome: string; arena_id: string; arena_nome: string }>
   >([]);
   const [search, setSearch] = useState("");
   const [points, setPoints] = useState(0);
-  const [xpPops, setXpPops] = useState<{ id: number }[]>([]);
-  const [aspects, setAspects] = useState<Record<string, number>>({});
+  const [liked, setLiked] = useState<Set<string>>(new Set());
+  const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [playing, setPlaying] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
@@ -61,12 +75,40 @@ function Home() {
   useEffect(() => {
     if (!authChecked) return;
     fetchReplays();
-    fetchFeatured();
-    fetchSponsors();
+    fetchStories();
     fetchLive();
     const iv = setInterval(fetchLive, 30000);
     return () => clearInterval(iv);
   }, [authChecked]);
+
+  useEffect(() => {
+    const ch = supabase
+      .channel("replays-feed")
+      .on("postgres_changes", { event: "INSERT", schema: "public", table: "replays" }, () => {
+        fetchReplays();
+        toast("🔥 Novo lance na quadra!");
+      })
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, []);
+
+  const fetchReplays = async () => {
+    const { data } = await supabase
+      .from("replays")
+      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .order("created_at", { ascending: false })
+      .limit(30);
+    setReplays((data ?? []) as Replay[]);
+  };
+
+  const fetchStories = async () => {
+    const { data } = await supabase
+      .from("profiles")
+      .select("id, full_name, avatar_url")
+      .not("avatar_url", "is", null)
+      .limit(10);
+    setStories((data ?? []) as StoryProfile[]);
+  };
 
   const fetchLive = async () => {
     const { data } = await supabase
@@ -85,59 +127,22 @@ function Home() {
     setLiveList(list.filter((x) => (seen.has(x.quadra_id) ? false : seen.add(x.quadra_id))));
   };
 
-  const fetchFeatured = async () => {
-    const { data } = await supabase
-      .from("replays")
-      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
-      .order("created_at", { ascending: false })
-      .limit(3);
-    setFeaturedReplays((data ?? []) as Replay[]);
+  const toggleLike = (id: string) => {
+    setLiked((prev) => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
+    setPoints((p) => p + 5);
   };
+  const toggleSave = (id: string) =>
+    setSaved((prev) => {
+      const n = new Set(prev);
+      n.has(id) ? n.delete(id) : n.add(id);
+      return n;
+    });
 
-  const fetchSponsors = async () => {
-    const { data } = await supabase
-      .from("arenas")
-      .select("sponsor_logo_left, sponsor_logo_center, sponsor_logo_right");
-    const logos = (data ?? [])
-      .flatMap((a: any) => [a.sponsor_logo_left, a.sponsor_logo_center, a.sponsor_logo_right])
-      .filter((u): u is string => !!u);
-    setSponsors(Array.from(new Set(logos)));
-  };
-
-  useEffect(() => {
-    if (featuredReplays.length <= 1) return;
-    const t = setInterval(() => setCurrentSlide((p) => (p + 1) % featuredReplays.length), 5000);
-    return () => clearInterval(t);
-  }, [featuredReplays]);
-
-  const fetchReplays = async () => {
-    const { data } = await supabase
-      .from("replays")
-      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
-      .order("created_at", { ascending: false })
-      .limit(100);
-    setReplays((data ?? []) as Replay[]);
-  };
-
-  useEffect(() => {
-    const ch = supabase
-      .channel("replays-feed")
-      .on("postgres_changes", { event: "INSERT", schema: "public", table: "replays" }, () => {
-        fetchReplays();
-        toast("🔥 Novo lance na quadra!");
-      })
-      .subscribe();
-    return () => { supabase.removeChannel(ch); };
-  }, []);
-
-  const reward = () => {
-    setPoints((p) => p + 10);
-    const id = Date.now() + Math.random();
-    setXpPops((arr) => [...arr, { id }]);
-    setTimeout(() => setXpPops((arr) => arr.filter((p) => p.id !== id)), 1300);
-  };
-
-  const filteredReplays = search
+  const filtered = search
     ? replays.filter((r) =>
         (r.quadras?.nome || "").toLowerCase().includes(search.toLowerCase()) ||
         (r.quadras?.arenas?.nome || "").toLowerCase().includes(search.toLowerCase())
@@ -148,25 +153,18 @@ function Home() {
     <SocialShell active="feed">
       <Toaster theme="dark" position="top-center" />
 
-      {/* XP pop */}
-      <div className="pointer-events-none fixed right-6 top-24 z-50">
-        {xpPops.map((p) => (
-          <div key={p.id} className="animate-xp-pop brand-text text-2xl font-black">+10 XP</div>
-        ))}
-      </div>
-
       {!authChecked ? (
         <div className="flex items-center justify-center py-32 text-muted-foreground text-sm">Carregando...</div>
       ) : (
-        <div className="space-y-6">
-          {/* Points chip */}
+        <div className="space-y-5">
+          {/* Header */}
           <div className="flex items-center justify-between">
             <div>
               <h1
                 className="text-3xl font-black uppercase tracking-wide"
                 style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
               >
-                Feed
+                Início
               </h1>
               <p className="text-xs text-muted-foreground mt-1">Os melhores lances da quadra, em tempo real.</p>
             </div>
@@ -188,183 +186,222 @@ function Home() {
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar arenas, quadras, lances..."
+              placeholder="Buscar atletas, esportes, arenas..."
               className="w-full bg-secondary border border-border rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-primary/60 transition"
             />
           </div>
 
-          {/* Hero featured player */}
-          {featuredReplays.length > 0 && (
-            <section
-              className="relative mx-auto overflow-hidden rounded-2xl bg-black shadow-2xl ring-1 ring-white/10"
-              style={{
-                aspectRatio: aspects[featuredReplays[currentSlide]?.id ?? ""] ?? 16 / 9,
-                maxHeight: "60vh",
-              }}
-            >
-              {featuredReplays.map((replay, idx) => (
-                <div
-                  key={replay.id}
-                  className={`absolute inset-0 transition-opacity duration-1000 ${idx === currentSlide ? "opacity-100" : "opacity-0"}`}
-                >
-                  <video
-                    src={`${replay.video_url}#t=3.0`}
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    onLoadedMetadata={(e) => {
-                      const v = e.currentTarget;
-                      if (v.videoWidth && v.videoHeight)
-                        setAspects((prev) => (prev[replay.id] ? prev : { ...prev, [replay.id]: v.videoWidth / v.videoHeight }));
-                    }}
-                    className="h-full w-full object-contain bg-black"
-                  />
+          {/* Stories row (com "seu story" no início) */}
+          <div className="flex gap-3.5 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <div className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group">
+              <div className="p-[2.5px] rounded-full bg-secondary">
+                <div className="w-14 h-14 rounded-full overflow-hidden bg-card border-2 border-background flex items-center justify-center">
+                  <Plus className="w-5 h-5 text-muted-foreground" />
                 </div>
-              ))}
-              <div className="pointer-events-none absolute inset-x-0 bottom-0 h-1/2 bg-gradient-to-t from-black/80 to-transparent" />
-              <div className="absolute inset-x-0 bottom-0 flex flex-col px-5 pb-6">
-                <h2
-                  className="text-2xl font-black uppercase tracking-tight text-white drop-shadow"
-                  style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
-                >
-                  Seus lances <span className="brand-text">em loop.</span>
-                </h2>
-                <p className="mt-1 text-xs text-white/80 font-medium">Reviva cada jogada, compartilhe cada vitória.</p>
               </div>
-              {featuredReplays.length > 1 && (
-                <div className="absolute bottom-2 left-1/2 flex -translate-x-1/2 gap-1.5">
-                  {featuredReplays.map((_, idx) => (
-                    <div
-                      key={idx}
-                      className={`h-1 rounded-full transition-all ${idx === currentSlide ? "w-5 brand-gradient" : "w-1 bg-white/30"}`}
-                    />
-                  ))}
-                </div>
-              )}
-            </section>
-          )}
-
-          {/* Live now */}
-          <section className="space-y-3">
-            <div className="flex items-center justify-between px-1">
-              <h2
-                className="flex items-center gap-2 text-lg font-black uppercase tracking-wide"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
-              >
-                <Tv className="h-4 w-4 text-brand-orange" />
-                Ao Vivo
-              </h2>
-              {liveList.length > 0 && (
-                <span className="text-xs font-medium text-muted-foreground">{liveList.length} ao vivo</span>
-              )}
+              <span className="text-[11px] text-muted-foreground text-center w-16 truncate">Seu Story</span>
             </div>
-
-            {liveList.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-border bg-card px-4 py-6 text-center">
-                <p className="text-xs font-medium text-muted-foreground">
-                  Nenhuma transmissão ao vivo agora. Volte em breve!
-                </p>
-              </div>
-            ) : (
-              <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-                <div className="flex gap-3 w-max">
-                  {liveList.map((l) => (
-                    <Link
-                      key={l.quadra_id}
-                      to="/arena/$id"
-                      params={{ id: l.arena_id }}
-                      search={{ live: l.quadra_id }}
-                      className="group relative flex min-w-[220px] aspect-video flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-3 transition hover:border-primary/60"
-                    >
-                      <div className="absolute inset-0 opacity-70" style={{ background: "var(--gradient-brand-soft)" }} />
-                      <div className="relative flex items-center justify-between">
-                        <span className="inline-flex items-center gap-1 rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white">
-                          <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
-                          AO VIVO
-                        </span>
-                        <Radio className="h-4 w-4 text-brand-orange" />
-                      </div>
-                      <div className="relative">
-                        <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                          {l.arena_nome}
-                        </p>
-                        <p className="mt-0.5 truncate text-sm font-black text-foreground">{l.quadra_nome}</p>
-                      </div>
-                    </Link>
-                  ))}
-                </div>
-              </div>
-            )}
-          </section>
-
-          {/* Sponsors */}
-          {sponsors.length > 0 && (
-            <section className="overflow-hidden rounded-2xl border border-border bg-card p-5">
-              <div className="mb-3 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-muted-foreground">
-                <Sparkles className="h-3.5 w-3.5 text-brand-orange" /> Patrocinadores
-              </div>
-              <div className="relative overflow-hidden">
-                <div className="flex gap-10 animate-marquee items-center" style={{ width: "max-content" }}>
-                  {[...sponsors, ...sponsors].map((url, i) => (
-                    <img key={i} src={url} alt="" className="h-12 w-auto object-contain grayscale hover:grayscale-0 transition" />
-                  ))}
-                </div>
-              </div>
-            </section>
-          )}
-
-          {/* Feed */}
-          <section className="space-y-4">
-            <div className="flex items-center justify-between px-1">
-              <h2
-                className="flex items-center gap-2 text-lg font-black uppercase tracking-wide"
-                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+            {stories.map((s) => (
+              <Link
+                key={s.id}
+                to="/profile/$id"
+                params={{ id: s.id }}
+                className="flex flex-col items-center gap-1.5 shrink-0 group"
               >
-                <Flame className="h-4 w-4 text-brand-orange" />
-                Feed de Lances
-              </h2>
-              <span
-                className="text-xs font-bold text-muted-foreground"
-                style={{ fontFamily: "'JetBrains Mono', monospace" }}
-              >
-                {filteredReplays.length}
-              </span>
-            </div>
+                <div className="p-[2.5px] rounded-full brand-gradient transition-transform group-hover:scale-105">
+                  <div className="w-14 h-14 rounded-full overflow-hidden bg-card border-2 border-background">
+                    {s.avatar_url ? (
+                      <img src={s.avatar_url} alt={s.full_name || ""} className="w-full h-full object-cover" />
+                    ) : (
+                      <div className="w-full h-full grid place-items-center text-xs font-bold text-muted-foreground">
+                        {(s.full_name || "?").slice(0, 1).toUpperCase()}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <span className="text-[11px] text-muted-foreground text-center w-16 truncate">
+                  {(s.full_name || "Atleta").split(" ")[0]}
+                </span>
+              </Link>
+            ))}
+          </div>
 
-            {filteredReplays.length === 0 ? (
-              <EmptyState />
-            ) : (
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                {filteredReplays.map((r) => (
-                  <ReplayCard key={r.id} replay={r} onReward={reward} />
+          {/* Live now strip */}
+          {liveList.length > 0 && (
+            <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+              <div className="flex gap-3 w-max">
+                {liveList.map((l) => (
+                  <Link
+                    key={l.quadra_id}
+                    to="/arena/$id"
+                    params={{ id: l.arena_id }}
+                    search={{ live: l.quadra_id }}
+                    className="group relative flex min-w-[220px] aspect-video flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-3 transition hover:border-primary/60"
+                  >
+                    <div className="absolute inset-0 opacity-70" style={{ background: "var(--gradient-brand-soft)" }} />
+                    <div className="relative flex items-center justify-between">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-red-500 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-white">
+                        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-white" />
+                        AO VIVO
+                      </span>
+                      <Radio className="h-4 w-4 text-brand-orange" />
+                    </div>
+                    <div className="relative">
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                        {l.arena_nome}
+                      </p>
+                      <p className="mt-0.5 truncate text-sm font-black text-foreground">{l.quadra_nome}</p>
+                    </div>
+                  </Link>
                 ))}
               </div>
-            )}
-          </section>
+            </div>
+          )}
+
+          {/* Posts */}
+          {filtered.length === 0 ? (
+            <div className="flex flex-col items-center gap-4 rounded-2xl border border-border bg-card px-6 py-16 text-center">
+              <div className="brand-gradient grid h-16 w-16 place-items-center rounded-full shadow-lg">
+                <Play className="h-7 w-7 fill-black text-black" />
+              </div>
+              <h3
+                className="text-lg font-black uppercase tracking-wide"
+                style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
+              >
+                Aguardando o lance...
+              </h3>
+              <p className="text-sm text-muted-foreground max-w-[280px]">
+                Aperte o botão na quadra e o seu replay aparecerá aqui em segundos!
+              </p>
+            </div>
+          ) : (
+            filtered.map((post) => {
+              const isLiked = liked.has(post.id);
+              const isSaved = saved.has(post.id);
+              const isPlaying = playing === post.id;
+              return (
+                <article
+                  key={post.id}
+                  className="bg-card rounded-2xl overflow-hidden border border-border hover:border-white/10 transition-colors"
+                >
+                  {/* Header */}
+                  <div className="flex items-center gap-3 p-4">
+                    <div className="w-11 h-11 rounded-full overflow-hidden shrink-0 p-[2px] brand-gradient">
+                      <div className="w-full h-full rounded-full overflow-hidden bg-background grid place-items-center text-xs font-black">
+                        {(post.quadras?.arenas?.nome || post.quadras?.nome || "L").slice(0, 1)}
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1.5">
+                        <span className="font-bold text-sm truncate">{post.quadras?.nome || "Quadra"}</span>
+                        <span className="w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-black text-black shrink-0 brand-gradient">
+                          ✓
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5 flex-wrap">
+                        <span>🏟️ {post.quadras?.arenas?.nome || "Arena"}</span>
+                        <span>·</span>
+                        <span>{timeAgo(post.created_at)}</span>
+                      </div>
+                    </div>
+                    <button className="text-muted-foreground hover:text-foreground transition p-1">
+                      <MoreHorizontal className="w-5 h-5" />
+                    </button>
+                  </div>
+
+                  {/* Video */}
+                  <div
+                    className="relative aspect-video bg-secondary group cursor-pointer"
+                    onClick={() => setPlaying(isPlaying ? null : post.id)}
+                  >
+                    <video
+                      key={isPlaying ? `${post.id}-play` : post.id}
+                      src={isPlaying ? post.video_url : `${post.video_url}#t=3.0`}
+                      autoPlay={isPlaying}
+                      controls={isPlaying}
+                      muted={!isPlaying}
+                      playsInline
+                      preload="metadata"
+                      className="w-full h-full object-cover bg-black"
+                    />
+                    {!isPlaying && (
+                      <>
+                        <div className="absolute inset-0 bg-black/20 group-hover:bg-black/30 transition-colors pointer-events-none" />
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="w-16 h-16 rounded-full flex items-center justify-center backdrop-blur-sm shadow-2xl transition-transform group-hover:scale-110 brand-gradient">
+                            <Play className="w-7 h-7 text-black fill-black ml-1" />
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+
+                  {/* Actions */}
+                  <div className="px-4 py-3.5">
+                    <div className="flex items-center gap-5 mb-3">
+                      <button
+                        onClick={() => toggleLike(post.id)}
+                        className={`flex items-center gap-1.5 text-sm font-semibold transition-all ${
+                          isLiked ? "text-orange-400" : "text-muted-foreground hover:text-orange-400"
+                        }`}
+                      >
+                        <Heart className={`w-5 h-5 ${isLiked ? "fill-current scale-110" : ""}`} />
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>
+                          {isLiked ? 1 : 0}
+                        </span>
+                      </button>
+                      <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition">
+                        <MessageCircle className="w-5 h-5" />
+                        <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>0</span>
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            if (navigator.share) {
+                              await navigator.share({ title: "Looplance", url: post.video_url });
+                            } else {
+                              await navigator.clipboard.writeText(post.video_url);
+                              toast.success("Link copiado!");
+                            }
+                          } catch {}
+                        }}
+                        className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition"
+                      >
+                        <Share2 className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => toggleSave(post.id)}
+                        className={`ml-auto transition-all ${
+                          isSaved ? "text-yellow-400" : "text-muted-foreground hover:text-yellow-400"
+                        }`}
+                      >
+                        <Bookmark className={`w-5 h-5 ${isSaved ? "fill-current" : ""}`} />
+                      </button>
+                    </div>
+                    <p className="text-sm leading-relaxed text-foreground/90">
+                      Novo lance capturado na{" "}
+                      <span className="font-bold">{post.quadras?.nome || "quadra"}</span>. Reviva e compartilhe!
+                    </p>
+                    <div className="flex flex-wrap gap-1.5 mt-2.5">
+                      {["#LoopLance", "#Replay", `#${(post.quadras?.arenas?.nome || "Arena").replace(/\s+/g, "")}`].map(
+                        (tag) => (
+                          <span
+                            key={tag}
+                            className="text-xs font-semibold px-2.5 py-1 rounded-full bg-secondary cursor-pointer hover:bg-orange-400/10 transition-colors"
+                            style={{ color: "#ff9500" }}
+                          >
+                            {tag}
+                          </span>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </article>
+              );
+            })
+          )}
         </div>
       )}
     </SocialShell>
-  );
-}
-
-function EmptyState() {
-  return (
-    <div className="flex flex-col items-center gap-6 rounded-2xl border border-border bg-card px-6 py-16 text-center">
-      <div className="brand-gradient grid h-20 w-20 place-items-center rounded-full shadow-lg">
-        <Play className="h-9 w-9 fill-black text-black" />
-      </div>
-      <div className="max-w-[280px] space-y-2">
-        <h3
-          className="text-lg font-black uppercase tracking-wide"
-          style={{ fontFamily: "'Barlow Condensed', sans-serif" }}
-        >
-          Aguardando o lance...
-        </h3>
-        <p className="text-sm font-medium text-muted-foreground leading-relaxed">
-          Aperte o botão na quadra e o seu replay aparecerá aqui em poucos segundos!
-        </p>
-      </div>
-    </div>
   );
 }

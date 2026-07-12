@@ -9,7 +9,10 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as ReplaysRouteImport } from './routes/replays'
+import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as InstallRouteImport } from './routes/install'
+import { Route as ExploreRouteImport } from './routes/explore'
 import { Route as CompleteProfileRouteImport } from './routes/complete-profile'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AdminRouteImport } from './routes/admin'
@@ -42,9 +45,24 @@ import { Route as ApiPublicEdgeAgentManifestRouteImport } from './routes/api/pub
 import { Route as ApiPublicEdgeAgentFileRouteImport } from './routes/api/public/edge-agent/file'
 import { Route as ApiPublicCronCleanupReplaysRouteImport } from './routes/api/public/cron/cleanup-replays'
 
+const ReplaysRoute = ReplaysRouteImport.update({
+  id: '/replays',
+  path: '/replays',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MessagesRoute = MessagesRouteImport.update({
+  id: '/messages',
+  path: '/messages',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const InstallRoute = InstallRouteImport.update({
   id: '/install',
   path: '/install',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ExploreRoute = ExploreRouteImport.update({
+  id: '/explore',
+  path: '/explore',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CompleteProfileRoute = CompleteProfileRouteImport.update({
@@ -214,7 +232,10 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/complete-profile': typeof CompleteProfileRoute
+  '/explore': typeof ExploreRoute
   '/install': typeof InstallRoute
+  '/messages': typeof MessagesRoute
+  '/replays': typeof ReplaysRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -247,7 +268,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/complete-profile': typeof CompleteProfileRoute
+  '/explore': typeof ExploreRoute
   '/install': typeof InstallRoute
+  '/messages': typeof MessagesRoute
+  '/replays': typeof ReplaysRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -282,7 +306,10 @@ export interface FileRoutesById {
   '/admin': typeof AdminRouteWithChildren
   '/auth': typeof AuthRoute
   '/complete-profile': typeof CompleteProfileRoute
+  '/explore': typeof ExploreRoute
   '/install': typeof InstallRoute
+  '/messages': typeof MessagesRoute
+  '/replays': typeof ReplaysRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
   '/admin/clients': typeof AdminClientsRoute
@@ -318,7 +345,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/complete-profile'
+    | '/explore'
     | '/install'
+    | '/messages'
+    | '/replays'
     | '/admin/arenas'
     | '/admin/cameras'
     | '/admin/clients'
@@ -351,7 +381,10 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/complete-profile'
+    | '/explore'
     | '/install'
+    | '/messages'
+    | '/replays'
     | '/admin/arenas'
     | '/admin/cameras'
     | '/admin/clients'
@@ -385,7 +418,10 @@ export interface FileRouteTypes {
     | '/admin'
     | '/auth'
     | '/complete-profile'
+    | '/explore'
     | '/install'
+    | '/messages'
+    | '/replays'
     | '/admin/arenas'
     | '/admin/cameras'
     | '/admin/clients'
@@ -420,7 +456,10 @@ export interface RootRouteChildren {
   AdminRoute: typeof AdminRouteWithChildren
   AuthRoute: typeof AuthRoute
   CompleteProfileRoute: typeof CompleteProfileRoute
+  ExploreRoute: typeof ExploreRoute
   InstallRoute: typeof InstallRoute
+  MessagesRoute: typeof MessagesRoute
+  ReplaysRoute: typeof ReplaysRoute
   ArenaIdRoute: typeof ArenaIdRoute
   ProfileIdRoute: typeof ProfileIdRoute
   ProfileSettingsRoute: typeof ProfileSettingsRoute
@@ -440,11 +479,32 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/replays': {
+      id: '/replays'
+      path: '/replays'
+      fullPath: '/replays'
+      preLoaderRoute: typeof ReplaysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/messages': {
+      id: '/messages'
+      path: '/messages'
+      fullPath: '/messages'
+      preLoaderRoute: typeof MessagesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/install': {
       id: '/install'
       path: '/install'
       fullPath: '/install'
       preLoaderRoute: typeof InstallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/explore': {
+      id: '/explore'
+      path: '/explore'
+      fullPath: '/explore'
+      preLoaderRoute: typeof ExploreRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/complete-profile': {
@@ -704,7 +764,10 @@ const rootRouteChildren: RootRouteChildren = {
   AdminRoute: AdminRouteWithChildren,
   AuthRoute: AuthRoute,
   CompleteProfileRoute: CompleteProfileRoute,
+  ExploreRoute: ExploreRoute,
   InstallRoute: InstallRoute,
+  MessagesRoute: MessagesRoute,
+  ReplaysRoute: ReplaysRoute,
   ArenaIdRoute: ArenaIdRoute,
   ProfileIdRoute: ProfileIdRoute,
   ProfileSettingsRoute: ProfileSettingsRoute,
