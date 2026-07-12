@@ -60,6 +60,43 @@ def fetch_pending_triggers(settings: Settings) -> list[dict]:
         return []
 
 
+def register_replay_draft(
+    settings: Settings,
+    *,
+    quadra_id: str,
+) -> dict:
+    """Registra replay com status 'processing' antes do upload.
+    Retorna o replay recém-criado (contém o id)."""
+    body = {
+        "quadra_id": quadra_id,
+        "status": "processing",
+    }
+    resp = _post_signed(settings, "/api/public/edge/replay", body, timeout=20)
+    return resp.json()
+
+
+def update_replay_status(
+    settings: Settings,
+    *,
+    replay_id: str,
+    status: str,
+    r2_key: str = "",
+    video_url: str = "",
+    duration_sec: float = 0.0,
+    file_size_bytes: int = 0,
+) -> None:
+    """Atualiza replay com status final e dados do upload."""
+    body = {
+        "replay_id": replay_id,
+        "status": status,
+        "r2_key": r2_key,
+        "video_url": video_url,
+        "duration_sec": round(duration_sec, 2),
+        "file_size_bytes": file_size_bytes,
+    }
+    _post_signed(settings, "/api/public/edge/replay-complete", body, timeout=20)
+
+
 def register_replay(
     settings: Settings,
     *,

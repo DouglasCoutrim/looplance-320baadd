@@ -6,10 +6,11 @@ import { requireEdgeDevice, requireEdgeSignature, EdgeAuthError } from "@/lib/ed
 
 interface ReplayBody {
   quadra_id: string;
-  r2_key: string;
-  video_url: string;
-  duration_sec: number;
-  file_size_bytes: number;
+  r2_key?: string;
+  video_url?: string;
+  duration_sec?: number;
+  file_size_bytes?: number;
+  status?: string;
 }
 
 export const Route = createFileRoute("/api/public/edge/replay")({
@@ -22,19 +23,11 @@ export const Route = createFileRoute("/api/public/edge/replay")({
           await requireEdgeSignature(request, rawBody);
           const body = JSON.parse(rawBody) as Partial<ReplayBody>;
 
-          for (const field of [
-            "quadra_id",
-            "r2_key",
-            "video_url",
-            "duration_sec",
-            "file_size_bytes",
-          ] as const) {
-            if (body[field] === undefined || body[field] === null) {
-              return Response.json(
-                { error: `campo obrigatório ausente: ${field}` },
-                { status: 400 },
-              );
-            }
+          if (!body.quadra_id) {
+            return Response.json(
+              { error: "campo obrigatório ausente: quadra_id" },
+              { status: 400 },
+            );
           }
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -42,7 +35,7 @@ export const Route = createFileRoute("/api/public/edge/replay")({
           const { data: quadra, error: quadraErr } = await supabaseAdmin
             .from("quadras")
             .select("id, arena_id")
-            .eq("id", body.quadra_id!)
+            .eq("id", body.quadra_id)
             .maybeSingle();
 
           if (quadraErr) throw new EdgeAuthError(`Erro lendo quadra: ${quadraErr.message}`, 500);
@@ -54,17 +47,20 @@ export const Route = createFileRoute("/api/public/edge/replay")({
             );
           }
 
+          const insertData: Record<string, unknown> = {
+            arena_id: quadra.arena_id,
+            quadra_id: quadra.id,
+            edge_device_id: device.id,
+            status: body.status ?? "ready",
+          };
+          if (body.video_url) insertData.video_url = body.video_url;
+          if (body.r2_key) insertData.r2_key = body.r2_key;
+          if (body.duration_sec !== undefined) insertData.duration_sec = body.duration_sec;
+          if (body.file_size_bytes !== undefined) insertData.file_size_bytes = body.file_size_bytes;
+
           const { data: replay, error: insertErr } = await supabaseAdmin
             .from("replays")
-            .insert({
-              arena_id: quadra.arena_id,
-              quadra_id: quadra.id,
-              edge_device_id: device.id,
-              video_url: body.video_url!,
-              r2_key: body.r2_key!,
-              duration_sec: body.duration_sec!,
-              file_size_bytes: body.file_size_bytes!,
-            })
+            .insert(insertData)
             .select()
             .single();
 

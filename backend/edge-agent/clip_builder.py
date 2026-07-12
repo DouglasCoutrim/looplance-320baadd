@@ -90,6 +90,7 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     proc = subprocess.run(cmd, capture_output=True, text=True)
     if proc.returncode != 0 or not output_path.exists():
         concat_list.unlink(missing_ok=True)
+        output_path.unlink(missing_ok=True)
         raise ClipBuildError(f"ffmpeg falhou ({proc.returncode}): {proc.stderr[-1000:]}")
 
     duration = time.time() - t0

@@ -33,6 +33,7 @@ function ExplorePage() {
     supabase
       .from("replays")
       .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .eq("status", "ready")
       .order("created_at", { ascending: false })
       .limit(60)
       .then(({ data }) => setReplays((data ?? []) as Replay[]));

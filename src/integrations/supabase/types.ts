@@ -859,6 +859,7 @@ export type Database = {
           id: string
           quadra_id: string
           r2_key: string | null
+          status: string
           user_id: string | null
           video_url: string
         }
@@ -871,8 +872,9 @@ export type Database = {
           id?: string
           quadra_id: string
           r2_key?: string | null
+          status?: string
           user_id?: string | null
-          video_url: string
+          video_url?: string
         }
         Update: {
           arena_id?: string | null
@@ -883,6 +885,7 @@ export type Database = {
           id?: string
           quadra_id?: string
           r2_key?: string | null
+          status?: string
           user_id?: string | null
           video_url?: string
         }

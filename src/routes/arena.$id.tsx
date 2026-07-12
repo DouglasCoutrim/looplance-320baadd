@@ -85,7 +85,7 @@ function ArenaView() {
       const [arenaRes, quadrasRes, replaysRes, camerasRes] = await Promise.all([
         supabase.from("arenas").select("id, nome, cidade, endereco, foto_url").eq("id", arenaId).maybeSingle(),
         supabase.from("quadras").select("id, nome, arena_id").eq("arena_id", arenaId).order("nome"),
-        supabase.from("replays").select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))").eq("arena_id", arenaId).order("created_at", { ascending: false }).limit(60),
+        supabase.from("replays").select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))").eq("arena_id", arenaId).eq("status", "ready").order("created_at", { ascending: false }).limit(60),
         supabase.from("cameras").select("quadra_id, streaming_status, stream_protocol, rtmp_stream_key"),
       ]);
       setArena((arenaRes.data as Arena) ?? null);
@@ -117,10 +117,12 @@ function ArenaView() {
         "postgres_changes",
         { event: "INSERT", schema: "public", table: "replays", filter: `arena_id=eq.${arenaId}` },
         async (payload) => {
+          const record = payload.new as Record<string, unknown>;
+          if (record.status !== "ready") return;
           const { data } = await supabase
             .from("replays")
             .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
-            .eq("id", (payload.new as any).id)
+            .eq("id", record.id)
             .maybeSingle();
           if (data) {
             setReplays((prev) => [data as Replay, ...prev]);

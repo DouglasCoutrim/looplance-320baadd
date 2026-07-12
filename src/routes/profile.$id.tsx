@@ -133,6 +133,7 @@ function ProfileView() {
           .from("replays")
           .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
           .eq("user_id", id)
+          .eq("status", "ready")
           .order("created_at", { ascending: false })
           .limit(60),
       ]);

@@ -28,6 +28,8 @@ import threading
 import time
 import uuid
 
+import shutil
+
 import api_client
 import config as cfg
 from clip_builder import ClipBuildError, build_clip
@@ -200,6 +202,21 @@ class EdgeAgent:
             log.exception("[%s] falha ao montar clip", cam.name)
             return
 
+        # Registra o replay como 'processing' antes do upload para que,
+        # mesmo que o upload ou a atualização de status falhem, o registro
+        # exista no banco e possa ser recuperado posteriormente.
+        draft = None
+        try:
+            draft = api_client.register_replay_draft(
+                self.settings,
+                quadra_id=cam.quadra_id,
+            )
+        except Exception:  # noqa: BLE001
+            log.exception("[%s] falha ao registrar draft do replay", cam.name)
+
+        r2_key = video_url = ""
+        size = 0
+        upload_ok = False
         try:
             r2_key, video_url, size = upload_clip(
                 self.settings,
@@ -208,19 +225,43 @@ class EdgeAgent:
                 replay_id=replay_id,
                 file_path=clip_path,
             )
-            api_client.register_replay(
-                self.settings,
-                quadra_id=cam.quadra_id,
-                r2_key=r2_key,
-                video_url=video_url,
-                duration_sec=duration,
-                file_size_bytes=size,
-            )
-            log.info("[%s] replay %s publicado: %s", cam.name, replay_id, video_url)
+            upload_ok = True
+            log.info("[%s] replay %s enviado ao R2", cam.name, replay_id)
         except Exception:  # noqa: BLE001
-            log.exception("[%s] falha ao publicar replay", cam.name)
-        finally:
+            log.exception("[%s] falha ao enviar clip ao R2", cam.name)
+
+        # Atualiza o draft com o status final
+        if draft:
+            draft_id = draft.get("replay", {}).get("id", "")
+            if draft_id and upload_ok:
+                try:
+                    api_client.update_replay_status(
+                        self.settings,
+                        replay_id=draft_id,
+                        status="ready",
+                        r2_key=r2_key,
+                        video_url=video_url,
+                        duration_sec=duration,
+                        file_size_bytes=size,
+                    )
+                    log.info("[%s] replay %s publicado com sucesso", cam.name, replay_id)
+                except Exception:  # noqa: BLE001
+                    log.exception("[%s] falha ao atualizar status do replay", cam.name)
+            elif draft_id:
+                try:
+                    api_client.update_replay_status(
+                        self.settings,
+                        replay_id=draft_id,
+                        status="failed",
+                    )
+                except Exception:  # noqa: BLE001
+                    log.exception("[%s] falha ao marcar replay como failed", cam.name)
+
+        # Cleanup: remove o MP4 temporário da RAM
+        try:
             clip_path.unlink(missing_ok=True)
+        except Exception:  # noqa: BLE001
+            pass
 
     # -- background loops --------------------------------------------------
 
@@ -289,9 +330,19 @@ class EdgeAgent:
 
 
 
+def _cleanup_tmp_dir(settings: cfg.Settings) -> None:
+    tmp_dir = settings.ram_buffer_dir / "tmp"
+    if tmp_dir.exists():
+        shutil.rmtree(tmp_dir, ignore_errors=True)
+        log.info("limpeza de %s concluída", tmp_dir)
+    tmp_dir.mkdir(parents=True, exist_ok=True)
+
+
 def main() -> None:
     settings = cfg.load_settings()
     cfg.fetch_remote_config(settings)
+
+    _cleanup_tmp_dir(settings)
 
     agent = EdgeAgent(settings)
 
