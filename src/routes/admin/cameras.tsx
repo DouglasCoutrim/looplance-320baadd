@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { toast } from "sonner";
+import { Toaster, toast } from "sonner";
 
 export const Route = createFileRoute("/admin/cameras")({
   component: Cameras,
@@ -569,6 +569,7 @@ function Cameras() {
         </Table>
       </div>
 
+      <Toaster theme="light" position="top-center" />
       <AlertDialog open={!!deleting} onOpenChange={(o) => !o && setDeleting(null)}>
         <AlertDialogContent className="rounded-2xl">
           <AlertDialogHeader>
