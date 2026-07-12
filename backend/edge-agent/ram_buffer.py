@@ -81,7 +81,10 @@ class CameraBuffer:
     def start(self) -> None:
         self.dir.mkdir(parents=True, exist_ok=True)
         for f in self.dir.glob("seg_*.ts"):
-            f.unlink(missing_ok=True)
+            try:
+                f.unlink(missing_ok=True)
+            except PermissionError:
+                log.warning("[%s] sem permissão para remover %s", self.camera.name, f)
 
         input_args = self._input_args()
         if not input_args:
