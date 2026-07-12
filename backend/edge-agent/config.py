@@ -27,12 +27,12 @@ class CameraConfig:
     id: str
     quadra_id: str
     name: str
-    rtsp_url: str
     buffer_seconds: int
     replay_seconds: int
     trigger_button: int
 
     arena_id: str = "unknown-arena"
+    rtsp_url: str = ""
     overlay_url: str | None = None
     final_overlay_url: str | None = None
     video_x: int = 0
@@ -174,7 +174,7 @@ def fetch_remote_config(settings: Settings, retries: int = 5) -> None:
                     quadra_id=c["quadra_id"],
                     arena_id=c.get("arena_id", "unknown-arena"),
                     name=c["name"],
-                    rtsp_url=c["rtsp_url"],
+                    rtsp_url=c.get("rtsp_url") or "",
                     buffer_seconds=c["buffer_seconds"],
                     replay_seconds=c["replay_seconds"],
                     trigger_button=c["trigger_button"],

@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Plus, RefreshCw, Camera, Video, Edit2, Trash2, Zap, WifiOff, X, Maximize2 } from "lucide-react";
-import { Dialog, DialogContent, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -499,7 +499,9 @@ function Cameras() {
             <DialogContent className="max-w-3xl rounded-2xl border-none shadow-2xl overflow-hidden p-0">
               <div className="brand-gradient p-6 text-white">
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight">{editing ? "Editar Câmera" : "Configurar Câmera"}</DialogTitle>
-                <p className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">Integração RTSP & Edge</p>
+                <DialogDescription className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">
+                  {formData.stream_protocol === "rtmp" ? "Integração RTMP & Ingestão Direta" : "Integração RTSP & Edge"}
+                </DialogDescription>
               </div>
               
               <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[70vh] overflow-y-auto">
@@ -605,7 +607,7 @@ function Cameras() {
 
                       <div className="grid gap-2">
                         <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">RTSP URL Final</Label>
-                        <Input value={formData.rtsp_url} onChange={(e) => setFormData({...formData, rtsp_url: e.target.value, brand: "custom"})} placeholder="rtsp://user:pass@ip:554/stream" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono text-[10px]" />
+                        <Input value={formData.rtsp_url} onChange={(e) => setFormData({...formData, rtsp_url: e.target.value, brand: "custom"})} placeholder={formData.stream_protocol === "rtmp" ? "rtmp://127.0.0.1/live/chave-da-camera" : "rtsp://usuario:senha@192.168.0.100:554/caminho/do/stream"} className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono text-[10px]" />
                       </div>
                     </div>
                   )}

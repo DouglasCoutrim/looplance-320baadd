@@ -17,6 +17,8 @@ Responsabilidades:
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import logging
 import signal
 import socket
@@ -61,6 +63,20 @@ class EdgeAgent:
         self.settings = settings
         self.buffers: dict[str, CameraBuffer] = {}
         self.livers: dict[str, LiveStreamer] = {}
+        self._camera_configs: dict[str, str] = {}
+
+    @staticmethod
+    def _camera_config_hash(camera: cfg.CameraConfig) -> str:
+        raw = json.dumps({
+            "rtsp_url": camera.rtsp_url,
+            "stream_protocol": camera.stream_protocol,
+            "buffer_seconds": camera.buffer_seconds,
+            "replay_seconds": camera.replay_seconds,
+            "active": camera.active,
+            "rtmp_stream_key": camera.rtmp_stream_key,
+            "protocol_settings": camera.protocol_settings,
+        }, sort_keys=True, default=str)
+        return hashlib.sha256(raw.encode()).hexdigest()
 
     # -- boot ------------------------------------------------------------
 
@@ -76,12 +92,14 @@ class EdgeAgent:
                 self.livers[cam.id] = live
             except Exception:  # noqa: BLE001
                 log.exception("[%s] falha ao iniciar live HLS", cam.name)
+            self._camera_configs[cam.id] = self._camera_config_hash(cam)
 
         start_trigger_listener(self._on_trigger, self._input_boards())
 
         threading.Thread(target=self._heartbeat_loop, daemon=True).start()
         threading.Thread(target=self._health_loop, daemon=True).start()
         threading.Thread(target=self._manual_trigger_loop, daemon=True).start()
+        threading.Thread(target=self._config_refresh_loop, daemon=True).start()
 
     def stop(self) -> None:
         for buf in self.buffers.values():
@@ -127,7 +145,10 @@ class EdgeAgent:
         threading.Thread(target=self._handle_replay, args=(cam,), daemon=True).start()
 
     def _sync_buffers(self) -> None:
-        """Garante buffer + live HLS para cada câmera ativa; encerra as removidas."""
+        """Garante buffer + live HLS para cada câmera ativa; encerra as removidas.
+        Detecta alterações de configuração (protocolo, URL, etc.) e reinicia
+        o processo do FFmpeg dinamicamente sem derrubar o serviço principal.
+        """
         active_ids = {c.id for c in self.settings.cameras}
         for cid in list(self.buffers.keys()):
             if cid not in active_ids:
@@ -136,9 +157,23 @@ class EdgeAgent:
                 live = self.livers.pop(cid, None)
                 if live:
                     live.stop()
+                self._camera_configs.pop(cid, None)
         for cam in self.settings.cameras:
-            if cam.id not in self.buffers:
-                log.info("iniciando buffer da nova câmera %s (%s)", cam.name, cam.id)
+            new_hash = self._camera_config_hash(cam)
+            old_hash = self._camera_configs.get(cam.id)
+            if old_hash is not None and old_hash != new_hash:
+                log.info(
+                    "[%s] config alterada (protocolo/URL), reiniciando buffer...",
+                    cam.name,
+                )
+                if cam.id in self.buffers:
+                    self.buffers.pop(cam.id).stop()
+                live = self.livers.pop(cam.id, None)
+                if live:
+                    live.stop()
+                old_hash = None
+            if cam.id not in self.buffers or old_hash is None:
+                log.info("iniciando buffer da câmera %s (%s)", cam.name, cam.id)
                 buf = CameraBuffer(self.settings, cam)
                 buf.start()
                 self.buffers[cam.id] = buf
@@ -148,6 +183,7 @@ class EdgeAgent:
                     self.livers[cam.id] = live
                 except Exception:  # noqa: BLE001
                     log.exception("[%s] falha ao iniciar live HLS", cam.name)
+            self._camera_configs[cam.id] = new_hash
 
     def _handle_replay(self, cam: cfg.CameraConfig) -> None:
         buf = self.buffers.get(cam.id)
@@ -237,6 +273,19 @@ class EdgeAgent:
             except Exception:  # noqa: BLE001
                 log.exception("erro no _manual_trigger_loop")
             _shutdown.wait(3)
+
+    def _config_refresh_loop(self) -> None:
+        """Recarrega config remota periodicamente e sincroniza buffers.
+        Detecta mudancas de protocolo/URL/cadastro no frontend e reinicia
+        os processos do FFmpeg dinamicamente sem derrubar o servico.
+        """
+        while not _shutdown.is_set():
+            _shutdown.wait(30)
+            try:
+                cfg.fetch_remote_config(self.settings)
+                self._sync_buffers()
+            except Exception:  # noqa: BLE001
+                log.exception("erro no _config_refresh_loop")
 
 
 
