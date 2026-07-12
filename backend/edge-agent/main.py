@@ -70,9 +70,6 @@ class EdgeAgent:
             buf = CameraBuffer(self.settings, cam)
             buf.start()
             self.buffers[cam.id] = buf
-            if cam.stream_protocol == "rtsp":
-                self._start_rtsp_relay(cam)
-
             live = LiveStreamer(self.settings, cam)
             try:
                 live.start()
