@@ -9,5 +9,5 @@ services:
       - "8080:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - /tmp/hls:/tmp/hls
+      - /tmp/hls:/tmp/live
     restart: always
