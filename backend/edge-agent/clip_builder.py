@@ -11,11 +11,18 @@ Monta o replay final a partir dos segmentos em RAM:
       superior (240px) e inferior (240px) do canvas 1080x1920
    5. grava o mp4 final em tmpfs
 
+MODO DE DIAGNÓSTICO:
+  Defina LOOPLANCE_TEST_OVERLAY=1 no environment para substituir os
+  patrocinadores reais por um PNG de teste (retângulo vermelho 1080×240
+  com texto "TESTE"). Útil para isolar problemas entre os arquivos de
+  logo baixados e o filter_complex do FFmpeg.
+
 O caller eh responsavel por apagar o mp4 final depois do upload.
 """
 from __future__ import annotations
 
 import logging
+import os
 import subprocess
 import time
 import uuid
@@ -81,7 +88,90 @@ def _aspect_label(w: int, h: int) -> str:
     return f"{w // g}:{h // g}"
 
 
-def _validate_sponsor_files(arena_id: str) -> list[dict]:
+def _generate_test_overlay(tmp_dir: Path) -> list[dict]:
+    """Gera um PNG de diagnostico 1080x240 com fundo vermelho e texto TESTE.
+
+    Usa o proprio FFmpeg para renderizar. Se drawtext falhar (fontconfig
+    ausente), cai para um retangulo solido vermelho. O PNG eh gerado uma
+    unica vez e reusado nas chamadas seguintes.
+
+    Retorna lista com um unico dict no formato de _validate_sponsor_files
+    (position_index=1, ou seja, topo).
+    """
+    test_path = tmp_dir / "test_overlay.png"
+    if test_path.is_file() and test_path.stat().st_size > 100:
+        log.info("[test] overlay de teste ja existe: %s", test_path)
+        return [{"path": str(test_path.resolve()), "position_index": 1}]
+
+    log.info("[test] gerando overlay de teste em %s ...", test_path)
+
+    # Tenta com drawtext (precisa de fontconfig)
+    fonts = [
+        "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
+        "/usr/share/fonts/truetype/ubuntu/Ubuntu-B.ttf",
+        "/usr/share/fonts/TTF/DejaVuSans-Bold.ttf",
+    ]
+    fontfile = None
+    for fp in fonts:
+        if Path(fp).is_file():
+            fontfile = fp
+            break
+
+    if fontfile:
+        cmd = [
+            "ffmpeg", "-y",
+            "-f", "lavfi", "-i", "color=c=red:s=1080x240:d=1",
+            "-vf", f"drawtext=text='TESTE':fontsize=80:fontcolor=white:"
+                   f"x=(w-text_w)/2:y=(h-text_h)/2:fontfile={fontfile}",
+            "-frames:v", "1",
+            str(test_path),
+        ]
+    else:
+        # Fallback: retangulo vermelho solido com bordas
+        cmd = [
+            "ffmpeg", "-y",
+            "-f", "lavfi", "-i",
+            "color=c=red:s=1080x240:d=1",
+            "-vf",
+            "drawbox=x=10:y=10:w=1060:h=220:color=white@0.8:w=4,"
+            "drawbox=x=20:y=20:w=1040:h=200:color=yellow@0.6:w=2",
+            "-frames:v", "1",
+            str(test_path),
+        ]
+
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, timeout=15)
+        if proc.returncode != 0 or not test_path.is_file():
+            log.warning("[test] ffmpeg falhou ao gerar overlay: %s", proc.stderr[-500:])
+            # Ultimo fallback: PNG 1x1 pixel vermelho (minimo via python)
+            _write_fallback_png(test_path)
+    except Exception as exc:
+        log.warning("[test] excecao ao gerar overlay: %s", exc)
+        _write_fallback_png(test_path)
+
+    size = test_path.stat().st_size if test_path.is_file() else 0
+    log.info("[test] overlay gerado: %s (%d bytes)", test_path, size)
+    return [{"path": str(test_path.resolve()), "position_index": 1}]
+
+
+def _write_fallback_png(path: Path) -> None:
+    """Cria um PNG vermelho 1080x240 via Python puro (fallback extremo)."""
+    import struct, zlib
+
+    def _chunk(tag: bytes, data: bytes) -> bytes:
+        c = tag + data
+        return struct.pack(">I", len(data)) + c + struct.pack(">I", zlib.crc32(c) & 0xFFFFFFFF)
+
+    sig = b"\x89PNG\r\n\x1a\n"
+    ihdr = _chunk(b"IHDR", struct.pack(">IIBBBBB", 1080, 240, 8, 2, 0, 0, 0))
+    raw = b"".join(b"\x00" + b"\xff\x00\x00" * 1080 for _ in range(240))
+    idat = _chunk(b"IDAT", zlib.compress(raw))
+    iend = _chunk(b"IEND", b"")
+    path.write_bytes(sig + ihdr + idat + iend)
+
+
+def _validate_sponsor_files(arena_id: str, tmp_dir: Path | None = None) -> list[dict]:
     """Varre o SSD em busca de slot_{position_index}.png.
 
     Retorna lista de dicts {path, position_index}
@@ -175,7 +265,13 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     log.info("Iniciando renderizacao de arena: %s | camera: %s", arena_id, camera.name)
 
     # ── Valida arquivos de patrocinadores ─────────────────────────────
-    sponsor_files = _validate_sponsor_files(arena_id)
+    # Modo diagnostico: LOOPLANCE_TEST_OVERLAY=1 substitui logos reais
+    # por um PNG de teste (retangulo vermelho com texto "TESTE").
+    if os.environ.get("LOOPLANCE_TEST_OVERLAY") == "1":
+        log.warning("[TEST] LOOPLANCE_TEST_OVERLAY=1 — usando overlay de teste em vez dos patrocinadores reais")
+        sponsor_files = _generate_test_overlay(tmp_dir)
+    else:
+        sponsor_files = _validate_sponsor_files(arena_id, tmp_dir)
     top_sponsors = [s for s in sponsor_files if s["position_index"] % 2 == 1]
     bottom_sponsors = [s for s in sponsor_files if s["position_index"] % 2 == 0]
     log.info(
@@ -302,6 +398,28 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     log.info("=== FILTER COMPLEX ===")
     log.info("%s", filter_complex)
     log.info("======================")
+
+    # Salva comando em arquivo para execucao manual
+    cmd_log_path = tmp_dir / f"{clip_id}_ffmpeg_cmd.txt"
+    cmd_log_path.write_text(
+        "#!/usr/bin/env bash\n"
+        "# Looplance clip builder — comando FFmpeg gerado\n"
+        f"# Camera: {camera.name}  Arena: {arena_id}\n"
+        f"# Video detectado: {in_w}x{in_h} ({aspect})\n"
+        f"# Gerado em: {time.strftime('%Y-%m-%dT%H:%M:%S%z')}\n"
+        f"#\n"
+        f"# Para executar manualmente:\n"
+        f"#   cd {tmp_dir} && bash {cmd_log_path.name}\n"
+        f"#\n"
+        f"# Filter complex:\n"
+        f"#   {filter_complex}\n"
+        f"#\n"
+        f"# Output esperado: {output_path.name}\n"
+        f"#\n"
+        f"{cmd_str}\n"
+    )
+    cmd_log_path.chmod(0o755)
+
     t0 = time.time()
 
     try:
@@ -312,12 +430,15 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
         raise ClipBuildError("ffmpeg timed out after 45s")
 
     if proc.returncode != 0 or not output_path.exists():
+        # Salva stderr completo para debug
+        stderr_log_path = tmp_dir / f"{clip_id}_ffmpeg_stderr.txt"
+        stderr_log_path.write_text(proc.stderr or "(empty)")
+        log.critical(
+            "CRITICAL ERROR — ffmpeg retornou codigo %d | stderr salvo em %s",
+            proc.returncode, stderr_log_path,
+        )
         concat_list.unlink(missing_ok=True)
         output_path.unlink(missing_ok=True)
-        log.critical(
-            "CRITICAL ERROR — ffmpeg retornou codigo %d | stderr: %s",
-            proc.returncode, proc.stderr[-2000:],
-        )
         raise ClipBuildError(f"ffmpeg falhou ({proc.returncode}): {proc.stderr[-1000:]}")
 
     duration = time.time() - t0
