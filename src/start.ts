@@ -1,6 +1,9 @@
 // © 2026 Looplance. All Rights Reserved.
 // Developed & Patented by Douglas Coutrim Silva.
 
+// © 2026 Looplance. All Rights Reserved.
+// Developed & Patented by Douglas Coutrim Silva.
+
 import { createStart, createMiddleware } from "@tanstack/react-start";
 
 import { renderErrorPage } from "./lib/error-page";
