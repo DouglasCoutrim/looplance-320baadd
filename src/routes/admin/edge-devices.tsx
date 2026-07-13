@@ -51,6 +51,7 @@ function EdgeDevices() {
   const [newName, setNewName] = useState("");
   const [newHostname, setNewHostname] = useState("");
   const [newClientId, setNewClientId] = useState<string>("");
+  const [viewMode, setViewMode] = useState(false);
 
   const installCommand = () => `curl -fsSL ${window.location.origin}/install | sudo bash`;
   const clientNameOf = (id: string | null) => id ? (clients.find((c) => c.id === id)?.nome ?? "—") : "—";
@@ -86,6 +87,7 @@ function EdgeDevices() {
     setNewHostname("");
     setNewClientId("");
     setEditingDevice(null);
+    setViewMode(false);
   };
 
   const openCreateDialog = () => {
@@ -95,6 +97,7 @@ function EdgeDevices() {
 
   const openEditDialog = (device: EdgeDevice) => {
     setEditingDevice(device);
+    setViewMode(true);
     setNewName(device.name);
     setNewHostname(device.hostname || "");
     setNewClientId(device.client_id || "");
@@ -122,8 +125,7 @@ function EdgeDevices() {
       if (error) toast.error("Erro ao atualizar dispositivo");
       else {
         toast.success("Dispositivo atualizado com sucesso");
-        setIsDialogOpen(false);
-        resetForm();
+        setViewMode(true);
         fetchDevices();
       }
     } else {
@@ -137,6 +139,8 @@ function EdgeDevices() {
       }
     }
   };
+
+  const enterEditMode = () => setViewMode(false);
 
   const handleDelete = async () => {
     if (!deletingDevice) return;
@@ -215,45 +219,71 @@ function EdgeDevices() {
         <DialogContent className="rounded-2xl border-none shadow-2xl">
           <DialogHeader>
             <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
-              {editingDevice ? "Editar Servidor" : "Provisionar Servidor"}
+              {viewMode ? editingDevice?.name : (editingDevice ? "Editar Servidor" : "Provisionar Servidor")}
             </DialogTitle>
           </DialogHeader>
-          <div className="grid gap-6 py-6">
-            <div className="grid gap-2">
-              <Label htmlFor="client" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cliente Responsável *</Label>
-              <select
-                id="client"
-                value={newClientId}
-                onChange={(e) => setNewClientId(e.target.value)}
-                className="rounded-xl border border-gray-100 bg-gray-50 h-12 px-3 text-sm font-medium focus:border-brand-orange focus:ring-brand-orange"
-              >
-                <option value="">Selecione um cliente</option>
-                {clients.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.nome}{c.is_frozen ? " (congelado)" : ""}
-                  </option>
-                ))}
-              </select>
-              {clients.length === 0 && (
-                <p className="text-xs text-muted-foreground">
-                  Nenhum cliente cadastrado. <a href="/admin/clients" className="text-brand-orange font-bold underline">Cadastre um cliente primeiro</a>.
-                </p>
-              )}
+          {viewMode ? (
+            <div className="grid gap-6 py-6">
+              <div className="grid gap-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cliente Responsável</Label>
+                <p className="text-sm font-medium">{clientNameOf(newClientId)}</p>
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome do Dispositivo</Label>
+                <p className="text-sm font-medium">{newName}</p>
+              </div>
+              <div className="grid gap-2">
+                <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Hostname</Label>
+                <p className="text-sm font-medium">{newHostname || "—"}</p>
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome do Dispositivo</Label>
-              <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex: Edge Server Arena 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+          ) : (
+            <div className="grid gap-6 py-6">
+              <div className="grid gap-2">
+                <Label htmlFor="client" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cliente Responsável *</Label>
+                <select
+                  id="client"
+                  value={newClientId}
+                  onChange={(e) => setNewClientId(e.target.value)}
+                  className="rounded-xl border border-gray-100 bg-gray-50 h-12 px-3 text-sm font-medium focus:border-brand-orange focus:ring-brand-orange"
+                >
+                  <option value="">Selecione um cliente</option>
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.nome}{c.is_frozen ? " (congelado)" : ""}
+                    </option>
+                  ))}
+                </select>
+                {clients.length === 0 && (
+                  <p className="text-xs text-muted-foreground">
+                    Nenhum cliente cadastrado. <a href="/admin/clients" className="text-brand-orange font-bold underline">Cadastre um cliente primeiro</a>.
+                  </p>
+                )}
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome do Dispositivo</Label>
+                <Input id="name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="Ex: Edge Server Arena 1" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="hostname" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Hostname (Opcional)</Label>
+                <Input id="hostname" value={newHostname} onChange={(e) => setNewHostname(e.target.value)} placeholder="Ex: edge-01.local" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+              </div>
             </div>
-            <div className="grid gap-2">
-              <Label htmlFor="hostname" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Hostname (Opcional)</Label>
-              <Input id="hostname" value={newHostname} onChange={(e) => setNewHostname(e.target.value)} placeholder="Ex: edge-01.local" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
-            </div>
-          </div>
+          )}
           <DialogFooter>
-            <Button variant="ghost" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="rounded-xl font-bold">Cancelar</Button>
-            <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
-              {editingDevice ? "Salvar" : "Provisionar"}
-            </Button>
+            {viewMode ? (
+              <>
+                <Button variant="ghost" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="rounded-xl font-bold">Fechar</Button>
+                <Button onClick={enterEditMode} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Editar Device</Button>
+              </>
+            ) : (
+              <>
+                <Button variant="ghost" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="rounded-xl font-bold">Cancelar</Button>
+                <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
+                  {editingDevice ? "Salvar" : "Provisionar"}
+                </Button>
+              </>
+            )}
           </DialogFooter>
         </DialogContent>
       </Dialog>

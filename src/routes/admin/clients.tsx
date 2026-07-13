@@ -55,6 +55,7 @@ function ClientsPage() {
   const [freezing, setFreezing] = useState<Client | null>(null);
   const [freezeReason, setFreezeReason] = useState("");
   const [form, setForm] = useState(emptyForm);
+  const [viewMode, setViewMode] = useState(false);
 
   const fetchClients = async () => {
     setLoading(true);
@@ -70,6 +71,7 @@ function ClientsPage() {
   const openCreate = () => { setEditing(null); setForm(emptyForm); setIsDialogOpen(true); };
   const openEdit = (c: Client) => {
     setEditing(c);
+    setViewMode(true);
     setForm({
       nome: c.nome ?? "",
       email: c.email ?? "",
@@ -104,11 +106,16 @@ function ClientsPage() {
       if (error) { toast.error(error.message); return; }
       toast.success("Cliente cadastrado");
     }
-    setIsDialogOpen(false);
-    setEditing(null);
-    setForm(emptyForm);
+    if (editing) {
+      setViewMode(true);
+    } else {
+      setIsDialogOpen(false);
+      setForm(emptyForm);
+    }
     fetchClients();
   };
+
+  const enterEditMode = () => setViewMode(false);
 
   const handleDelete = async () => {
     if (!deleting) return;
@@ -154,38 +161,80 @@ function ClientsPage() {
           <DialogContent className="rounded-2xl max-w-2xl">
             <DialogHeader>
               <DialogTitle className="text-2xl font-black uppercase tracking-tight">
-                {editing ? "Editar" : "Novo"} <span className="brand-text">Cliente</span>
+                {viewMode && editing ? editing.nome : editing ? "Editar Cliente" : "Adicionar Cliente"}
               </DialogTitle>
             </DialogHeader>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
-              <Field label="Nome / Razão Social *" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} className="sm:col-span-2" />
-              <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
-              <Field label="Telefone" value={form.telefone} onChange={(v) => setForm({ ...form, telefone: v })} />
-              <div className="grid grid-cols-3 gap-2 sm:col-span-2">
-                <div>
-                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Tipo</Label>
-                  <select
-                    value={form.documento_tipo}
-                    onChange={(e) => setForm({ ...form, documento_tipo: e.target.value as "cpf" | "cnpj" })}
-                    className="mt-1 h-11 w-full rounded-xl border border-input bg-background px-3 text-sm font-medium"
-                  >
-                    <option value="cpf">CPF</option>
-                    <option value="cnpj">CNPJ</option>
-                  </select>
+            {viewMode && editing ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
+                <div className="sm:col-span-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Nome / Razão Social</Label>
+                  <p className="mt-1 text-sm font-medium">{editing.nome}</p>
                 </div>
-                <div className="col-span-2">
-                  <Field label={form.documento_tipo === "cpf" ? "CPF" : "CNPJ"} value={form.documento} onChange={(v) => setForm({ ...form, documento: v })} />
+                <div>
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Email</Label>
+                  <p className="mt-1 text-sm font-medium">{editing.email || "\u2014"}</p>
+                </div>
+                <div>
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Telefone</Label>
+                  <p className="mt-1 text-sm font-medium">{editing.telefone || "\u2014"}</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Documento</Label>
+                  <p className="mt-1 text-sm font-medium">{editing.documento_tipo ? `${editing.documento_tipo.toUpperCase()} \u00b7 ${editing.documento || "\u2014"}` : "\u2014"}</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Endereço</Label>
+                  <p className="mt-1 text-sm font-medium">{editing.endereco || "\u2014"}</p>
+                </div>
+                <div>
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Cidade</Label>
+                  <p className="mt-1 text-sm font-medium">{editing.cidade || "\u2014"}</p>
+                </div>
+                <div>
+                  <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Estado</Label>
+                  <p className="mt-1 text-sm font-medium">{editing.estado || "\u2014"}</p>
                 </div>
               </div>
-              <Field label="Endereço" value={form.endereco} onChange={(v) => setForm({ ...form, endereco: v })} className="sm:col-span-2" />
-              <Field label="Cidade" value={form.cidade} onChange={(v) => setForm({ ...form, cidade: v })} />
-              <Field label="Estado (UF)" value={form.estado} onChange={(v) => setForm({ ...form, estado: v.toUpperCase().slice(0, 2) })} />
-            </div>
+            ) : (
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-2">
+                <Field label="Nome / Razão Social *" value={form.nome} onChange={(v) => setForm({ ...form, nome: v })} className="sm:col-span-2" />
+                <Field label="Email" type="email" value={form.email} onChange={(v) => setForm({ ...form, email: v })} />
+                <Field label="Telefone" value={form.telefone} onChange={(v) => setForm({ ...form, telefone: v })} />
+                <div className="grid grid-cols-3 gap-2 sm:col-span-2">
+                  <div>
+                    <Label className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Tipo</Label>
+                    <select
+                      value={form.documento_tipo}
+                      onChange={(e) => setForm({ ...form, documento_tipo: e.target.value as "cpf" | "cnpj" })}
+                      className="mt-1 h-11 w-full rounded-xl border border-input bg-background px-3 text-sm font-medium"
+                    >
+                      <option value="cpf">CPF</option>
+                      <option value="cnpj">CNPJ</option>
+                    </select>
+                  </div>
+                  <div className="col-span-2">
+                    <Field label={form.documento_tipo === "cpf" ? "CPF" : "CNPJ"} value={form.documento} onChange={(v) => setForm({ ...form, documento: v })} />
+                  </div>
+                </div>
+                <Field label="Endereço" value={form.endereco} onChange={(v) => setForm({ ...form, endereco: v })} className="sm:col-span-2" />
+                <Field label="Cidade" value={form.cidade} onChange={(v) => setForm({ ...form, cidade: v })} />
+                <Field label="Estado (UF)" value={form.estado} onChange={(v) => setForm({ ...form, estado: v.toUpperCase().slice(0, 2) })} />
+              </div>
+            )}
             <DialogFooter>
-              <Button variant="ghost" onClick={() => { setIsDialogOpen(false); setEditing(null); setForm(emptyForm); }} className="rounded-xl font-bold">Cancelar</Button>
-              <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
-                {editing ? "Salvar" : "Cadastrar"}
-              </Button>
+              {viewMode && editing ? (
+                <>
+                  <Button variant="ghost" onClick={() => { setForm(emptyForm); setIsDialogOpen(false); }} className="rounded-xl font-bold">Fechar</Button>
+                  <Button onClick={enterEditMode} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Editar Cliente</Button>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" onClick={() => { setIsDialogOpen(false); setEditing(null); setForm(emptyForm); }} className="rounded-xl font-bold">Cancelar</Button>
+                  <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
+                    {editing ? "Salvar" : "Cadastrar"}
+                  </Button>
+                </>
+              )}
             </DialogFooter>
           </DialogContent>
         </Dialog>

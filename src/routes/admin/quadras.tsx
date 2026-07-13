@@ -64,6 +64,8 @@ function Quadras() {
   const coverInputRef = useRef<HTMLInputElement>(null);
   const [editing, setEditing] = useState<Quadra | null>(null);
   const [deleting, setDeleting] = useState<Quadra | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
 
   // Cascading filters: cidade -> arena -> quadras
   const [cityFilter, setCityFilter] = useState<string>("");
@@ -115,6 +117,7 @@ function Quadras() {
     setTipo("");
     setCoverUrl(null);
     setEditing(null);
+    setViewMode(false);
   };
 
   const openCreate = () => {
@@ -124,6 +127,7 @@ function Quadras() {
 
   const openEdit = (q: Quadra) => {
     setEditing(q);
+    setViewMode(true);
     setName(q.nome);
     setArenaId(q.arena_id);
     setTipo(q.tipo ?? "");
@@ -179,10 +183,17 @@ function Quadras() {
       if (error) return toast.error("Erro ao criar quadra");
       toast.success("Quadra criada");
     }
-    setIsDialogOpen(false);
-    resetForm();
+    setSubmitting(false);
+    if (editing) {
+      setViewMode(true);
+    } else {
+      setIsDialogOpen(false);
+      resetForm();
+    }
     fetchData();
   };
+
+  const enterEditMode = () => setViewMode(false);
 
   const handleDelete = async () => {
     if (!deleting) return;
@@ -226,87 +237,124 @@ function Quadras() {
             <DialogContent className="rounded-2xl border-none shadow-2xl max-w-xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
-                  {editing ? "Editar Quadra" : "Configurar Quadra"}
+                  {viewMode && editing ? editing.nome : (editing ? "Editar Quadra" : "Adicionar Quadra")}
                 </DialogTitle>
               </DialogHeader>
-              <div className="grid gap-5 py-6">
-                {/* Cover upload */}
-                <div className="grid gap-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Imagem de Capa</Label>
-                  <div className="flex items-center gap-4">
-                    <div className="h-24 w-32 rounded-2xl bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
-                      {coverUrl ? (
-                        <img src={coverUrl} alt="Capa" className="h-full w-full object-cover" />
-                      ) : (
-                        <ImageIcon className="h-7 w-7 text-gray-300" />
-                      )}
+              {viewMode && editing ? (
+                <div className="grid gap-5 py-6">
+                  {editing.cover_image_url && (
+                    <div className="rounded-2xl overflow-hidden">
+                      <img src={editing.cover_image_url} alt={editing.nome} className="w-full h-48 object-cover" />
                     </div>
-                    <div className="flex flex-col gap-2 flex-1">
-                      <input
-                        ref={coverInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) handleCoverUpload(f);
-                        }}
-                      />
-                      <div className="flex gap-2">
-                        <Button type="button" variant="outline" size="sm" onClick={() => coverInputRef.current?.click()} disabled={uploadingCover} className="rounded-xl font-bold border-gray-200">
-                          <Upload className="h-4 w-4 mr-2" />
-                          {uploadingCover ? "Enviando..." : coverUrl ? "Trocar" : "Enviar capa"}
-                        </Button>
-                        {coverUrl && (
-                          <Button type="button" variant="ghost" size="sm" onClick={() => setCoverUrl(null)} className="rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50">
-                            <X className="h-4 w-4 mr-1" /> Remover
-                          </Button>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-muted-foreground">PNG, JPG ou WebP — até 8MB.</p>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Complexo (Arena)</Label>
-                  <Select value={arenaId} onValueChange={setArenaId}>
-                    <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
-                      <SelectValue placeholder="Selecione a arena" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl border-gray-100 shadow-xl">
-                      {arenas.map((a) => (
-                        <SelectItem key={a.id} value={a.id}>
-                          {a.nome}{a.cidade ? ` — ${a.cidade}` : ""}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid gap-5 sm:grid-cols-[1fr_200px]">
+                  )}
                   <div className="grid gap-2">
-                    <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Quadra</Label>
-                    <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Quadra 01 - Central" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Quadra</Label>
+                    <p className="text-lg font-bold text-gray-900">{editing.nome}</p>
+                  </div>
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Complexo (Arena)</Label>
+                    <p className="text-lg font-bold text-gray-900">{arenas.find((a) => a.id === editing.arena_id)?.nome || editing.arena_id}</p>
                   </div>
                   <div className="grid gap-2">
                     <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tipo de Piso</Label>
-                    <Select value={tipo || undefined} onValueChange={(v) => setTipo(v as QuadraTipo)}>
-                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
-                        <SelectValue placeholder="Selecione" />
+                    {editing.tipo ? (
+                      <span className="inline-block text-sm font-black uppercase tracking-widest px-3 py-1 rounded-full bg-brand-orange/10 text-brand-orange w-fit">
+                        {TIPO_LABEL[editing.tipo]}
+                      </span>
+                    ) : (
+                      <p className="text-sm text-muted-foreground font-medium">Não definido</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="grid gap-5 py-6">
+                  {/* Cover upload */}
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Imagem de Capa</Label>
+                    <div className="flex items-center gap-4">
+                      <div className="h-24 w-32 rounded-2xl bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                        {coverUrl ? (
+                          <img src={coverUrl} alt="Capa" className="h-full w-full object-cover" />
+                        ) : (
+                          <ImageIcon className="h-7 w-7 text-gray-300" />
+                        )}
+                      </div>
+                      <div className="flex flex-col gap-2 flex-1">
+                        <input
+                          ref={coverInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={(e) => {
+                            const f = e.target.files?.[0];
+                            if (f) handleCoverUpload(f);
+                          }}
+                        />
+                        <div className="flex gap-2">
+                          <Button type="button" variant="outline" size="sm" onClick={() => coverInputRef.current?.click()} disabled={uploadingCover} className="rounded-xl font-bold border-gray-200">
+                            <Upload className="h-4 w-4 mr-2" />
+                            {uploadingCover ? "Enviando..." : coverUrl ? "Trocar" : "Enviar capa"}
+                          </Button>
+                          {coverUrl && (
+                            <Button type="button" variant="ghost" size="sm" onClick={() => setCoverUrl(null)} className="rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50">
+                              <X className="h-4 w-4 mr-1" /> Remover
+                            </Button>
+                          )}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground">PNG, JPG ou WebP — até 8MB.</p>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Complexo (Arena)</Label>
+                    <Select value={arenaId} onValueChange={setArenaId}>
+                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                        <SelectValue placeholder="Selecione a arena" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {TIPO_OPTIONS.map((t) => (
-                          <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                      <SelectContent className="rounded-xl border-gray-100 shadow-xl">
+                        {arenas.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.nome}{a.cidade ? ` — ${a.cidade}` : ""}
+                          </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
+
+                  <div className="grid gap-5 sm:grid-cols-[1fr_200px]">
+                    <div className="grid gap-2">
+                      <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Quadra</Label>
+                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Quadra 01 - Central" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Tipo de Piso</Label>
+                      <Select value={tipo || undefined} onValueChange={(v) => setTipo(v as QuadraTipo)}>
+                        <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+                          <SelectValue placeholder="Selecione" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {TIPO_OPTIONS.map((t) => (
+                            <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              )}
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleSubmit} disabled={uploadingCover} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
+                {viewMode && editing ? (
+                  <>
+                    <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Fechar</Button>
+                    <Button onClick={enterEditMode} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Editar Quadra</Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
+                    <Button onClick={handleSubmit} disabled={uploadingCover} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">Salvar</Button>
+                  </>
+                )}
               </DialogFooter>
             </DialogContent>
           </Dialog>

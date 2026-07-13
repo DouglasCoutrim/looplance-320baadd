@@ -47,6 +47,7 @@ function InputBoards() {
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editing, setEditing] = useState<InputBoard | null>(null);
+  const [viewMode, setViewMode] = useState(false);
   const [deleting, setDeleting] = useState<InputBoard | null>(null);
 
   // Form state
@@ -98,13 +99,20 @@ function InputBoards() {
       toast.error(editing ? "Erro ao atualizar placa" : "Erro ao criar placa");
     } else {
       toast.success(editing ? "Placa atualizada" : "Placa criada com sucesso");
-      setIsDialogOpen(false);
-      resetForm();
+      if (editing) {
+        setViewMode(true);
+      } else {
+        setIsDialogOpen(false);
+        resetForm();
+      }
       fetchData();
     }
   };
 
+  const enterEditMode = () => setViewMode(false);
+
   const resetForm = () => {
+    setViewMode(false);
     setName("");
     setEdgeDeviceId("");
     setVendorId("");
@@ -120,6 +128,7 @@ function InputBoards() {
 
   const openEdit = (b: InputBoard) => {
     setEditing(b);
+    setViewMode(true);
     setName(b.name);
     setEdgeDeviceId(b.edge_device_id ?? "");
     setVendorId(b.vendor_id ?? "");
@@ -161,43 +170,79 @@ function InputBoards() {
               </Button>
             </DialogTrigger>
             <DialogContent className="rounded-2xl border-none shadow-2xl overflow-hidden p-0">
-               <div className="brand-gradient p-6 text-white">
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight">{editing ? "Editar Interface USB" : "Adicionar Interface USB"}</DialogTitle>
+              <div className="brand-gradient p-6 text-white">
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight">
+                  {viewMode && editing ? editing.name : (editing ? "Editar Interface USB" : "Adicionar Interface USB")}
+                </DialogTitle>
                 <p className="text-white/70 text-sm font-bold uppercase tracking-widest mt-1">Placas Zero Delay & Gatilhos</p>
               </div>
 
               <div className="p-8 space-y-6">
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome da Interface</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Placa Quadra 1 - Principal" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
-                </div>
-                <div className="grid gap-2">
-                  <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Servidor Vinculado (Edge Device)</Label>
-                  <Select value={edgeDeviceId} onValueChange={setEdgeDeviceId}>
-                    <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
-                      <SelectValue placeholder="Selecione o dispositivo" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl shadow-xl border-gray-100">
-                      {devices.map((d) => (
-                        <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="vendor_id" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Vendor ID (HEX)</Label>
-                    <Input id="vendor_id" value={vendorId} onChange={(e) => setVendorId(e.target.value)} placeholder="Ex: 0079" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono" />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="product_id" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Product ID (HEX)</Label>
-                    <Input id="product_id" value={productId} onChange={(e) => setProductId(e.target.value)} placeholder="Ex: 0006" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono" />
-                  </div>
-                </div>
+                {viewMode && editing ? (
+                  <>
+                    <div className="grid gap-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome da Interface</Label>
+                      <p className="text-lg font-bold text-gray-900">{editing.name}</p>
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Servidor Vinculado (Edge Device)</Label>
+                      <p className="text-lg font-bold text-gray-700">{editing.edge_devices?.name || "Desvinculada"}</p>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Vendor ID (HEX)</Label>
+                        <p className="text-lg font-bold text-gray-900 font-mono">{editing.vendor_id || "—"}</p>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Product ID (HEX)</Label>
+                        <p className="text-lg font-bold text-gray-900 font-mono">{editing.product_id || "—"}</p>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div className="grid gap-2">
+                      <Label htmlFor="name" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Nome da Interface</Label>
+                      <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="Ex: Placa Quadra 1 - Principal" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange" />
+                    </div>
+                    <div className="grid gap-2">
+                      <Label className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Servidor Vinculado (Edge Device)</Label>
+                      <Select value={edgeDeviceId} onValueChange={setEdgeDeviceId}>
+                        <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange">
+                          <SelectValue placeholder="Selecione o dispositivo" />
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl shadow-xl border-gray-100">
+                          {devices.map((d) => (
+                            <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="grid gap-2">
+                        <Label htmlFor="vendor_id" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Vendor ID (HEX)</Label>
+                        <Input id="vendor_id" value={vendorId} onChange={(e) => setVendorId(e.target.value)} placeholder="Ex: 0079" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono" />
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor="product_id" className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Product ID (HEX)</Label>
+                        <Input id="product_id" value={productId} onChange={(e) => setProductId(e.target.value)} placeholder="Ex: 0006" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:ring-brand-orange font-mono" />
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
               <DialogFooter className="bg-gray-50 p-6 flex justify-end gap-3 border-t border-gray-100">
-                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="font-bold rounded-xl">Cancelar</Button>
-                <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">{editing ? "Salvar Alterações" : "Cadastrar Placa"}</Button>
+                {viewMode && editing ? (
+                  <>
+                    <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="font-bold rounded-xl">Fechar</Button>
+                    <Button onClick={enterEditMode} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">Editar Placa</Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="font-bold rounded-xl">Cancelar</Button>
+                    <Button onClick={handleSubmit} className="brand-gradient text-white font-black uppercase tracking-widest px-8 h-12 rounded-xl shadow-lg shadow-brand-orange/20">{editing ? "Salvar Alterações" : "Cadastrar Placa"}</Button>
+                  </>
+                )}
               </DialogFooter>
             </DialogContent>
           </Dialog>

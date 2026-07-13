@@ -93,6 +93,7 @@ function Arenas() {
   const [editing, setEditing] = useState<Arena | null>(null);
   const [deleting, setDeleting] = useState<Arena | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [viewMode, setViewMode] = useState(false);
 
   const fetchAll = async () => {
     setLoading(true);
@@ -162,6 +163,7 @@ function Arenas() {
 
   const resetForm = () => {
     setEditing(null);
+    setViewMode(false);
     setName(""); setClientId(""); setEdgeId("");
     setEndereco(""); setCidade(""); setEstado(""); setCep(""); setTelefone("");
     setLatitude(""); setLongitude("");
@@ -176,6 +178,7 @@ function Arenas() {
 
   const openEdit = async (a: Arena) => {
     setEditing(a);
+    setViewMode(true);
     setName(a.nome);
     const edge = edges.find((e) => e.id === a.edge_device_id);
     setClientId(edge?.client_id ?? "");
@@ -251,6 +254,8 @@ function Arenas() {
   const removeSponsor = (positionIndex: number) => {
     setSponsors((prev) => prev.filter((s) => s.position_index !== positionIndex));
   };
+
+  const enterEditMode = () => setViewMode(false);
 
   const handleSubmit = async () => {
     if (!name.trim()) return toast.error("Informe o nome da arena");
@@ -328,8 +333,12 @@ function Arenas() {
     }
 
     setSubmitting(false);
-    setIsDialogOpen(false);
-    resetForm();
+    if (editing) {
+      setViewMode(true);
+    } else {
+      setIsDialogOpen(false);
+      resetForm();
+    }
     fetchAll();
   };
 
@@ -378,10 +387,107 @@ function Arenas() {
             <DialogContent className="rounded-2xl border-none shadow-2xl max-w-2xl max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle className="text-2xl font-black uppercase tracking-tight text-gray-900">
-                  {editing ? "Editar Arena" : "Adicionar Arena"}
+                  {viewMode && editing
+                    ? editing.nome
+                    : editing
+                      ? "Editar Arena"
+                      : "Adicionar Arena"}
                 </DialogTitle>
               </DialogHeader>
-              <div className="grid gap-5 py-6">
+              {viewMode && editing ? (
+                <div className="py-6 space-y-6">
+                  {/* Logo + Nome + Cliente + Edge */}
+                  <div className="flex flex-col sm:flex-row gap-5">
+                    <div className="h-24 w-24 rounded-2xl bg-gray-50 border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                      {logoUrl ? (
+                        <img src={logoUrl} alt={editing.nome} className="h-full w-full object-contain" />
+                      ) : (
+                        <MapPin className="h-8 w-8 text-gray-300" />
+                      )}
+                    </div>
+                    <div className="flex-1 min-w-0 space-y-2">
+                      <h3 className="text-xl font-black text-gray-900 truncate">{editing.nome}</h3>
+                      <div className="flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-600">
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Cliente</span>
+                          <span className="font-semibold">{clientName(editing.edge_device_id)}</span>
+                        </span>
+                        <span className="inline-flex items-center gap-1.5">
+                          <span className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Edge</span>
+                          <span className="font-semibold">{edgeName(editing.edge_device_id)}</span>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Endereço + Contato */}
+                  <div className="rounded-xl border border-gray-100 bg-gray-50 divide-y divide-gray-100">
+                    {editing.endereco && (
+                      <div className="flex items-center gap-3 px-4 py-3">
+                        <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
+                        <span className="text-sm text-gray-700">{editing.endereco}</span>
+                      </div>
+                    )}
+                    {(editing.cidade || editing.estado) && (
+                      <div className="flex items-center gap-3 px-4 py-3">
+                        <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
+                        <span className="text-sm text-gray-700">
+                          {[editing.cidade, editing.estado].filter(Boolean).join(" / ")}
+                          {editing.cep ? ` — ${editing.cep}` : ""}
+                        </span>
+                      </div>
+                    )}
+                    {editing.telefone && (
+                      <div className="flex items-center gap-3 px-4 py-3">
+                        <Phone className="h-4 w-4 text-gray-400 shrink-0" />
+                        <span className="text-sm text-gray-700">{editing.telefone}</span>
+                      </div>
+                    )}
+                    {editing.latitude != null && editing.longitude != null && (
+                      <div className="flex items-center gap-3 px-4 py-3">
+                        <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
+                        <a
+                          href={`https://www.google.com/maps?q=${editing.latitude},${editing.longitude}`}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-sm text-brand-orange font-bold hover:underline"
+                        >
+                          Ver no Google Maps
+                        </a>
+                        <span className="text-xs text-gray-400 font-mono">
+                          {editing.latitude.toFixed(6)}, {editing.longitude.toFixed(6)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Sponsor Grid (view only) */}
+                  <div className="space-y-3">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Patrocinadores</Label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[1, 2, 3, 4, 5, 6].map((pos) => {
+                        const sp = sponsors.find((s) => s.position_index === pos);
+                        return (
+                          <div
+                            key={pos}
+                            className="rounded-xl border border-gray-100 bg-gray-50 p-3 flex flex-col items-center justify-center gap-2 min-h-[100px]"
+                          >
+                            {sp ? (
+                              <img src={sp.logo_url} alt={`Patrocinador ${pos}`} className="max-h-16 max-w-full object-contain" />
+                            ) : (
+                              <Image className="h-6 w-6 text-gray-300" />
+                            )}
+                            <span className="text-[10px] font-black uppercase tracking-widest text-gray-400">
+                              Slot {pos}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="grid gap-5 py-6">
                 {/* Logo upload */}
                 <div className="grid gap-2">
                   <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Logo da Arena</Label>
@@ -647,11 +753,23 @@ function Arenas() {
                 </div>
 
               </div>
+              )}
               <DialogFooter>
-                <Button variant="ghost" onClick={() => setIsDialogOpen(false)} className="rounded-xl font-bold">Cancelar</Button>
-                <Button onClick={handleSubmit} disabled={submitting || uploadingLogo} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
-                  {submitting ? "Salvando..." : "Salvar"}
-                </Button>
+                {viewMode && editing ? (
+                  <>
+                    <Button variant="ghost" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="rounded-xl font-bold">Fechar</Button>
+                    <Button onClick={enterEditMode} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
+                      <Edit2 className="h-4 w-4 mr-2" /> Editar Arena
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Button variant="ghost" onClick={() => { setIsDialogOpen(false); resetForm(); }} className="rounded-xl font-bold">Cancelar</Button>
+                    <Button onClick={handleSubmit} disabled={submitting || uploadingLogo} className="brand-gradient text-white font-black uppercase tracking-widest px-8 rounded-xl h-12">
+                      {submitting ? "Salvando..." : "Salvar"}
+                    </Button>
+                  </>
+                )}
               </DialogFooter>
             </DialogContent>
           </Dialog>

@@ -20,6 +20,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+import os
 import signal
 import socket
 import subprocess
@@ -51,7 +52,8 @@ log = logging.getLogger("looplance.main")
 
 START_TIME = time.time()
 _shutdown = threading.Event()
-SPONSOR_CACHE_DIR = Path("/dev/shm/looplance/sponsors")
+SPONSOR_DIR = Path("/opt/looplance-edge/sponsors")
+SPONSOR_CACHE_DIR = SPONSOR_DIR
 
 
 def get_local_ip() -> str:
@@ -243,9 +245,10 @@ class EdgeAgent:
     # -- sponsor cache sync ------------------------------------------------
 
     def _sync_sponsors(self) -> None:
-        """Download das imagens dos patrocinadores para /dev/shm/looplance/sponsors/<arena_id>/.
+        """Download das imagens dos patrocinadores para /opt/looplance-edge/sponsors/<arena_id>/.
         Remove imagens órfãs se a lista de patrocinadores mudar.
         Usa a arena_id da primeira câmera (todas compartilham a mesma arena no device).
+        Cria o diretório automaticamente no SSD se for uma arena nova.
         """
         if not self.settings.sponsors:
             return
@@ -257,8 +260,17 @@ class EdgeAgent:
         if not arena_id:
             return
 
+        arena_path = SPONSOR_DIR / arena_id
+        if not arena_path.exists():
+            arena_path.mkdir(parents=True, exist_ok=True)
+            os.chmod(arena_path, 0o755)
+            log.info(
+                "Nova arena detectada de forma síncrona. "
+                "Diretório criado automaticamente no SSD: %s",
+                arena_path,
+            )
+
         arena_dir = SPONSOR_CACHE_DIR / arena_id
-        arena_dir.mkdir(parents=True, exist_ok=True)
 
         wanted = set()
         for s in self.settings.sponsors:
@@ -267,7 +279,7 @@ class EdgeAgent:
             if not pos or not url:
                 continue
             wanted.add(pos)
-            dest = arena_dir / f"{pos}.png"
+            dest = arena_dir / f"slot_{pos}.png"
             if dest.is_file():
                 continue
             try:
@@ -278,9 +290,13 @@ class EdgeAgent:
             except Exception:
                 log.exception("[sponsor] falha ao baixar %s", url)
 
-        # Remove órfãos
-        for f in arena_dir.glob("*.png"):
-            stem = int(f.stem)
+        # Remove órfãos (slot_*.png que não estão mais na lista desejada)
+        for f in arena_dir.glob("slot_*.png"):
+            try:
+                stem = int(f.stem.replace("slot_", ""))
+            except (ValueError, IndexError):
+                f.unlink(missing_ok=True)
+                continue
             if stem not in wanted:
                 f.unlink(missing_ok=True)
                 log.info("[sponsor] removido órfão: %s", f.name)
