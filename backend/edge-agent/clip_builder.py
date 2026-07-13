@@ -102,15 +102,23 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
         )
 
     # ── Montagem dinamica dos inputs ─────────────────────────────────
-    # Input 0: canvas preto | Input 1: video | Input 2+: patrocinadores
-    inputs = [
-        "-f", "lavfi", "-i", "color=c=black:s=1080x1920:r=30",
-        "-sseof", f"-{replay_seconds}",
-        "-f", "concat", "-safe", "0",
-        "-i", str(concat_list),
-    ]
-    for sf in sponsor_files:
-        inputs += ["-i", sf["path"]]
+    if vertical:
+        # Input 0: canvas preto | Input 1: video | Input 2+: patrocinadores
+        inputs = [
+            "-f", "lavfi", "-i", "color=c=black:s=1080x1920:r=30:d=30",
+            "-sseof", f"-{replay_seconds}",
+            "-f", "concat", "-safe", "0",
+            "-i", str(concat_list),
+        ]
+        for sf in sponsor_files:
+            inputs += ["-i", sf["path"]]
+    else:
+        # Input 0: video | Input 1+: overlay se configurado
+        inputs = [
+            "-sseof", f"-{replay_seconds}",
+            "-f", "concat", "-safe", "0",
+            "-i", str(concat_list),
+        ]
 
     # ── Filtro complexo dinâmico ─────────────────────────────────────
     filter_complex = None
@@ -119,11 +127,11 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     if vertical:
         parts = [
             "[1:v]scale=1080:1440[vid_scaled]",
-            "[0:v][vid_scaled]overlay=0:240[canvas]",
+            "[0:v][vid_scaled]overlay=0:240[bg_with_video]",
         ]
-        label = "[canvas]"
+        prev = "[bg_with_video]"
 
-        for sf in sponsor_files:
+        for i, sf in enumerate(sponsor_files):
             pos = sf["position_index"]
             idx = sf["input_idx"]
             parts.append(f"[{idx}:v]scale=-1:140[sp{idx}]")
@@ -135,11 +143,12 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
                 x_expr = str(slot_order * 300 + 20)
 
             y_val = 40 if pos % 2 == 1 else 1730
-            parts.append(f"{label}[sp{idx}]overlay={x_expr}:{y_val}[ov{idx}]")
-            label = f"[ov{idx}]"
+            out_label = "[v_final]" if i == n_sp - 1 else f"[v_tmp{i}]"
+            parts.append(f"{prev}[sp{idx}]overlay={x_expr}:{y_val}{out_label}")
+            prev = out_label
 
         filter_complex = ";".join(parts)
-        last_label = label
+        last_label = "[v_final]" if n_sp > 0 else "[bg_with_video]"
     else:
         overlay_url = camera.final_overlay_url or camera.overlay_url
         if overlay_url:
@@ -148,7 +157,7 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
             ov_h = camera.video_height or "ih"
             ov_x = camera.video_x or 0
             ov_y = camera.video_y or 0
-            filter_complex = f"[1:v]scale={ov_w}:{ov_h}[ov];[0:v][ov]overlay={ov_x}:{ov_y}"
+            filter_complex = f"[1:v]scale={ov_w}:{ov_h}[ov];[0:v][ov]overlay={ov_x}:{ov_y}[v_out]"
 
     # ── Montagem do comando final ────────────────────────────────────
     cmd = ["ffmpeg", "-y", "-nostdin", *inputs]
@@ -163,6 +172,7 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
         else:
             cmd += [
                 "-filter_complex", filter_complex,
+                "-map", "[v_out]",
                 "-map", "0:a?",
             ]
     else:
@@ -177,7 +187,12 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
         str(output_path),
     ]
 
-    log.info("Comando FFmpeg gerado: %s", " ".join(cmd))
+    cmd_str = " ".join(str(a) for a in cmd)
+    log.info("=== FFMPEG COMMAND ===")
+    log.info("%s", cmd_str)
+    log.info("=== FILTER COMPLEX ===")
+    log.info("%s", filter_complex)
+    log.info("======================")
     t0 = time.time()
 
     try:
