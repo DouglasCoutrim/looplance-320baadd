@@ -95,20 +95,21 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     log.info("Iniciando renderizacao de arena: %s | camera: %s", arena_id, camera.name)
 
     # ── Checagem de integridade ──────────────────────────────────────
-    sponsor_files = _validate_sponsor_files(arena_id) if vertical else []
+    sponsor_files = _validate_sponsor_files(arena_id)
     n_sp = len(sponsor_files)
-    if vertical:
-        for sf in sponsor_files:
-            p = Path(sf["path"])
-            size = p.stat().st_size if p.is_file() else 0
-            log.info(
-                "[sponsor] arena=%s file=%s size=%d bytes exists=%s input_idx=%d pos=%d",
-                arena_id, p.name, size, p.is_file(), sf["input_idx"], sf["position_index"],
-            )
+    for sf in sponsor_files:
+        p = Path(sf["path"])
+        size = p.stat().st_size if p.is_file() else 0
+        log.info(
+            "[sponsor] arena=%s file=%s size=%d bytes exists=%s input_idx=%d pos=%d",
+            arena_id, p.name, size, p.is_file(), sf["input_idx"], sf["position_index"],
+        )
 
-    # ── Montagem dinamica dos inputs ─────────────────────────────────
+    overlay_url = camera.final_overlay_url or camera.overlay_url
+    has_overlay = bool(overlay_url)
+
+    # ── Montagem dos inputs ──────────────────────────────────────────
     if vertical:
-        # Input 0: canvas preto | Input 1: video | Input 2+: patrocinadores
         inputs = [
             "-f", "lavfi", "-i", "color=c=black:s=1080x1920:r=30:d=30",
             "-sseof", f"-{replay_seconds}",
@@ -118,12 +119,15 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
         for sf in sponsor_files:
             inputs += ["-i", sf["path"]]
     else:
-        # Input 0: video | Input 1+: overlay se configurado
         inputs = [
             "-sseof", f"-{replay_seconds}",
             "-f", "concat", "-safe", "0",
             "-i", str(concat_list),
         ]
+        for sf in sponsor_files:
+            inputs += ["-i", sf["path"]]
+        if has_overlay:
+            inputs += ["-i", overlay_url]
 
     # ── Filtro complexo dinâmico ─────────────────────────────────────
     filter_complex = None
@@ -155,31 +159,49 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
         filter_complex = ";".join(parts)
         last_label = "[v_final]" if n_sp > 0 else "[bg_with_video]"
     else:
-        overlay_url = camera.final_overlay_url or camera.overlay_url
-        if overlay_url:
-            inputs += ["-i", overlay_url]
+        # --- HORIZONTAL (16:9) ---
+        # Inputs: [0] concat video, [1..n] sponsors, [n+1] overlay_url (if any)
+        sponsor_input_offset = 1  # video is input 0
+        overlay_input_idx = sponsor_input_offset + n_sp  # comes after sponsors
+
+        parts = []
+        cur_label = "[0:v]"
+
+        # Overlay sponsors at the bottom of the video
+        for i, sf in enumerate(sponsor_files):
+            idx = sponsor_input_offset + i
+            sp_h = 60
+            parts.append(f"[{idx}:v]scale=-1:{sp_h}[sp{idx}]")
+            x_pos = 20 + i * 200
+            y_pos = "H-80"
+            out_label = "[v_w_sp]" if i == n_sp - 1 and not has_overlay else f"[v_sp{i}]"
+            parts.append(f"{cur_label}[sp{idx}]overlay={x_pos}:{y_pos}{out_label}")
+            cur_label = out_label
+
+        # Apply overlay_url on top of everything (per-camera branding)
+        if has_overlay:
             ov_w = camera.video_width or "iw"
             ov_h = camera.video_height or "ih"
             ov_x = camera.video_x or 0
             ov_y = camera.video_y or 0
-            filter_complex = f"[1:v]scale={ov_w}:{ov_h}[ov];[0:v][ov]overlay={ov_x}:{ov_y}[v_out]"
+            parts.append(f"[{overlay_input_idx}:v]scale={ov_w}:{ov_h}[ov]")
+            parts.append(f"{cur_label}[ov]overlay={ov_x}:{ov_y}[v_out]")
+            cur_label = "[v_out]"
+
+        if parts:
+            filter_complex = ";".join(parts)
+            last_label = cur_label
 
     # ── Montagem do comando final ────────────────────────────────────
     cmd = ["ffmpeg", "-y", "-nostdin", *inputs]
 
     if filter_complex:
-        if vertical:
-            cmd += [
-                "-filter_complex", filter_complex,
-                "-map", last_label,
-                "-map", "1:a?",
-            ]
-        else:
-            cmd += [
-                "-filter_complex", filter_complex,
-                "-map", "[v_out]",
-                "-map", "0:a?",
-            ]
+        map_audio = "1:a?" if vertical else "0:a?"
+        cmd += [
+            "-filter_complex", filter_complex,
+            "-map", last_label,
+            "-map", map_audio,
+        ]
     else:
         cmd += ["-map", "0:v?", "-map", "0:a?"]
 
