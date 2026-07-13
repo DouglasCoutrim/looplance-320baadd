@@ -120,13 +120,9 @@ class EdgeAgent:
     # -- trigger -----------------------------------------------------------
 
     def _on_trigger(self, local_key: str) -> None:
-        mapping = self.settings.button_map.get(local_key)
-        if not mapping:
-            log.warning("botão %s pressionado mas sem câmera mapeada", local_key)
-            return
-        cam = next((c for c in self.settings.cameras if c.id == mapping.camera_id), None)
+        cam = next((c for c in self.settings.cameras if c.trigger_button == local_key), None)
         if not cam:
-            log.warning("câmera %s do mapeamento %s não encontrada/ativa", mapping.camera_id, local_key)
+            log.warning("botão %s pressionado mas nenhuma câmera configurada com ele", local_key)
             return
         self._executor.submit(self._handle_replay, cam)
 

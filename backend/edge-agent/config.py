@@ -29,7 +29,7 @@ class CameraConfig:
     name: str
     buffer_seconds: int
     replay_seconds: int
-    trigger_button: int
+    trigger_button: str = ""
 
     arena_id: str = "unknown-arena"
     rtsp_url: str = ""

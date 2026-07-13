@@ -28,18 +28,18 @@ export const Route = createFileRoute("/admin/cameras")({
 });
 
 const BUTTON_MAPPING = [
-  { label: "K1 - Button 0", value: 0 },
-  { label: "K2 - Button 1", value: 1 },
-  { label: "K3 - Button 2", value: 2 },
-  { label: "K4 - Button 3", value: 3 },
-  { label: "K5 - Button 4", value: 4 },
-  { label: "K6 - Button 5", value: 5 },
-  { label: "K7 - Button 6", value: 6 },
-  { label: "K8 - Button 7", value: 7 },
-  { label: "K9 - Button 8", value: 8 },
-  { label: "K10 - Button 9", value: 9 },
-  { label: "K11 - Button 10", value: 10 },
-  { label: "K12 - Button 11", value: 11 },
+  { label: "K1", value: "K1" },
+  { label: "K2", value: "K2" },
+  { label: "K3", value: "K3" },
+  { label: "K4", value: "K4" },
+  { label: "L2", value: "L2" },
+  { label: "R2", value: "R2" },
+  { label: "L1", value: "L1" },
+  { label: "R1", value: "R1" },
+  { label: "SE", value: "SE" },
+  { label: "ST", value: "ST" },
+  { label: "K11", value: "K11" },
+  { label: "K12", value: "K12" },
 ];
 
 const CAMERA_BRANDS = [
@@ -60,7 +60,7 @@ interface CameraType {
   quadra_id: string | null;
   edge_device_id: string | null;
   input_board_id: string | null;
-  trigger_button: number | null;
+  trigger_button: string | null;
   replay_seconds: number | null;
   active: boolean | null;
   stream_protocol: string;
@@ -281,7 +281,7 @@ function Cameras() {
     quadra_id: "",
     edge_device_id: "",
     input_board_id: "",
-    trigger_button: "0",
+    trigger_button: "",
     replay_seconds: "15",
     active: true,
     stream_protocol: "rtsp",
@@ -299,7 +299,7 @@ function Cameras() {
     quadra_id: "",
     edge_device_id: "",
     input_board_id: "",
-    trigger_button: "0",
+    trigger_button: "",
     replay_seconds: "15",
     active: true,
     stream_protocol: "rtsp",
@@ -369,7 +369,7 @@ function Cameras() {
       quadra_id: formData.quadra_id,
       edge_device_id: formData.edge_device_id || null,
       input_board_id: formData.input_board_id || null,
-      trigger_button: parseInt(formData.trigger_button),
+      trigger_button: formData.trigger_button || null,
       replay_seconds: parseInt(formData.replay_seconds),
       active: formData.active,
       stream_protocol: formData.stream_protocol,
@@ -416,7 +416,7 @@ function Cameras() {
       quadra_id: c.quadra_id ?? "",
       edge_device_id: c.edge_device_id ?? "",
       input_board_id: c.input_board_id ?? "",
-      trigger_button: String(c.trigger_button ?? 0),
+      trigger_button: c.trigger_button ?? "",
       replay_seconds: String(c.replay_seconds ?? 15),
       active: c.active ?? true,
       stream_protocol: c.stream_protocol ?? "rtsp",
@@ -474,6 +474,13 @@ function Cameras() {
   const filteredBoards = formData.edge_device_id
     ? boards.filter(b => b.edge_device_id === formData.edge_device_id)
     : boards;
+
+  const usedButtons = new Set(
+    cameras
+      .filter(c => c.trigger_button && (!editing || c.id !== editing.id))
+      .map(c => c.trigger_button)
+  );
+  const availableButtons = BUTTON_MAPPING.filter(b => !usedButtons.has(b.value));
 
   return (
     <div className="space-y-8 pb-10">
@@ -649,8 +656,8 @@ function Cameras() {
                           <SelectValue placeholder="Botão" />
                         </SelectTrigger>
                         <SelectContent className="rounded-xl shadow-xl border-gray-100">
-                          {BUTTON_MAPPING.map((b) => (
-                            <SelectItem key={b.value} value={b.value.toString()}>{b.label}</SelectItem>
+                          {availableButtons.map((b) => (
+                            <SelectItem key={b.value} value={b.value}>{b.label}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
@@ -731,7 +738,7 @@ function Cameras() {
                         {camera.stream_protocol === "rtmp" ? "RTMP" : "RTSP"}
                       </Badge>
                       <Badge variant="outline" className="rounded-lg font-black uppercase tracking-tighter text-[9px] border-gray-200 text-gray-600 bg-gray-50">
-                        BTN K{ (camera.trigger_button ?? 0) + 1 }
+                        BTN { camera.trigger_button ?? "—" }
                       </Badge>
                       <span className="text-[10px] font-bold text-brand-orange">{camera.replay_seconds}s Replay</span>
                     </div>

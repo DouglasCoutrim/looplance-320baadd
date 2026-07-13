@@ -177,7 +177,7 @@ export type Database = {
           stream_protocol: string
           streaming_error: string | null
           streaming_status: string | null
-          trigger_button: number | null
+          trigger_button: string | null
           video_height: number | null
           video_width: number | null
           video_x: number | null
