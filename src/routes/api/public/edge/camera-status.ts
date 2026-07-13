@@ -24,12 +24,12 @@ export const Route = createFileRoute("/api/public/edge/camera-status")({
 
           if (!body.camera_id || !body.streaming_status) {
             return Response.json(
-              { error: "campos obrigatÃ³rios: camera_id, streaming_status" },
+              { error: "campos obrigatórios: camera_id, streaming_status" },
               { status: 400 },
             );
           }
           if (!VALID_STATUSES.has(body.streaming_status)) {
-            return Response.json({ error: "streaming_status invÃ¡lido" }, { status: 400 });
+            return Response.json({ error: "streaming_status inválido" }, { status: 400 });
           }
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -41,10 +41,10 @@ export const Route = createFileRoute("/api/public/edge/camera-status")({
             .maybeSingle();
 
           if (camErr) throw new EdgeAuthError(`Erro lendo camera: ${camErr.message}`, 500);
-          if (!camera) return Response.json({ error: "camera_id nÃ£o encontrada" }, { status: 404 });
+          if (!camera) return Response.json({ error: "camera_id não encontrada" }, { status: 404 });
           if (camera.edge_device_id !== device.id) {
             return Response.json(
-              { error: "cÃ¢mera nÃ£o pertence a este edge device" },
+              { error: "câmera não pertence a este edge device" },
               { status: 403 },
             );
           }

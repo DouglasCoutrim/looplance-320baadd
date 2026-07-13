@@ -9,10 +9,10 @@ import { createFileRoute } from "@tanstack/react-router";
  * Uso no servidor Ubuntu:
  *   curl -fsSL https://looplance.app/install | sudo bash
  *
- * O script pergunta interativamente (via /dev/tty, pois stdin estÃ¡ ocupado
- * pelo pipe do curl) o Token do device e a palavra-chave de instalaÃ§Ã£o,
+ * O script pergunta interativamente (via /dev/tty, pois stdin está ocupado
+ * pelo pipe do curl) o Token do device e a palavra-chave de instalação,
  * valida ambos contra `/api/public/edge-setup/{token}` (que exige o header
- * X-Install-Passphrase) e entÃ£o executa o script real de provisionamento.
+ * X-Install-Passphrase) e então executa o script real de provisionamento.
  */
 export const Route = createFileRoute("/api/public/install")({
   server: {
@@ -31,9 +31,9 @@ if [ "$(id -u)" -ne 0 ]; then
   exit 1
 fi
 
-# Precisamos ler do terminal (stdin estÃ¡ sendo consumido pelo pipe do curl)
+# Precisamos ler do terminal (stdin está sendo consumido pelo pipe do curl)
 if [ ! -t 0 ] && [ ! -r /dev/tty ]; then
-  echo "[Looplance] Sem terminal interativo disponÃ­vel. Rode diretamente no console do servidor."
+  echo "[Looplance] Sem terminal interativo disponível. Rode diretamente no console do servidor."
   exit 1
 fi
 
@@ -41,7 +41,7 @@ API_BASE="${origin}"
 
 echo ""
 echo "============================================="
-echo "  LOOPLANCE EDGE - InstalaÃ§Ã£o"
+echo "  LOOPLANCE EDGE - Instalação"
 echo "============================================="
 echo ""
 echo "Informe os dados exibidos no painel Admin > Edge Devices."
@@ -50,11 +50,11 @@ echo ""
 # --- Coletar dados ---
 printf "Token do Edge Device: "
 read -r EDGE_ID </dev/tty
-printf "Palavra-chave de instalaÃ§Ã£o: "
+printf "Palavra-chave de instalação: "
 read -r INSTALL_PASS </dev/tty
 
 if [ -z "$EDGE_ID" ] || [ -z "$INSTALL_PASS" ]; then
-  echo "[Looplance] Token e palavra-chave sÃ£o obrigatÃ³rios. Abortando."
+  echo "[Looplance] Token e palavra-chave são obrigatórios. Abortando."
   exit 1
 fi
 
@@ -71,20 +71,20 @@ HTTP_CODE=$(curl -sS -o "$TMP_SCRIPT" -w "%{http_code}" \
 
 case "$HTTP_CODE" in
   200)
-    echo "[Looplance] Credenciais vÃ¡lidas. Iniciando provisionamento..."
+    echo "[Looplance] Credenciais válidas. Iniciando provisionamento..."
     echo ""
     bash "$TMP_SCRIPT"
     ;;
   401|403)
-    echo "[Looplance] âŒ Palavra-chave incorreta para este device. Abortando."
+    echo "[Looplance] ❌ Palavra-chave incorreta para este device. Abortando."
     exit 1
     ;;
   404)
-    echo "[Looplance] âŒ Edge device nÃ£o encontrado. Confira o token no painel."
+    echo "[Looplance] ❌ Edge device não encontrado. Confira o token no painel."
     exit 1
     ;;
   *)
-    echo "[Looplance] âŒ Erro inesperado (HTTP $HTTP_CODE). Tente novamente."
+    echo "[Looplance] ❌ Erro inesperado (HTTP $HTTP_CODE). Tente novamente."
     exit 1
     ;;
 esac

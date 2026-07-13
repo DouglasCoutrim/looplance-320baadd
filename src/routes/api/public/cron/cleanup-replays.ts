@@ -3,7 +3,7 @@
 
 // POST /api/public/cron/cleanup-replays  (spec 6.6)
 // Header: x-cron-secret.
-// LÃª arena_settings, expira replays alÃ©m da retenÃ§Ã£o, apaga do R2 e
+// Lê arena_settings, expira replays além da retenção, apaga do R2 e
 // registra em r2_deletion_logs antes de remover a linha em `replays`.
 import { createFileRoute } from "@tanstack/react-router";
 import { requireCronSecret, EdgeAuthError } from "@/lib/edge-auth.server";

@@ -2,7 +2,7 @@
 // Developed & Patented by Douglas Coutrim Silva.
 
 // PATCH /api/public/edge/replay-complete
-// Atualiza replay de 'processing' para 'ready' apÃ³s upload bem-sucedido.
+// Atualiza replay de 'processing' para 'ready' após upload bem-sucedido.
 import { createFileRoute } from "@tanstack/react-router";
 import { requireEdgeDevice, requireEdgeSignature, EdgeAuthError } from "@/lib/edge-auth.server";
 
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/public/edge/replay-complete")({
 
           if (!body.replay_id || !body.status) {
             return Response.json(
-              { error: "campos obrigatÃ³rios ausentes: replay_id, status" },
+              { error: "campos obrigatórios ausentes: replay_id, status" },
               { status: 400 },
             );
           }

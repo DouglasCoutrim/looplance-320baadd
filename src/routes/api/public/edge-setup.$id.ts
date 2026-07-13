@@ -28,12 +28,12 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
           });
         }
 
-        // Exige palavra-chave de instalaÃ§Ã£o (enviada pelo installer interativo)
+        // Exige palavra-chave de instalação (enviada pelo installer interativo)
         const providedPassphrase = (request.headers.get("x-install-passphrase") || "").trim().toLowerCase();
         const expected = ((device as any).install_passphrase || "").trim().toLowerCase();
         if (!providedPassphrase || providedPassphrase !== expected) {
           return new Response(
-            "# Palavra-chave de instalaÃ§Ã£o ausente ou incorreta.\n" +
+            "# Palavra-chave de instalação ausente ou incorreta.\n" +
               "# Use: curl -fsSL " + new URL(request.url).origin + "/install | sudo bash\n" +
               "exit 1\n",
             {
@@ -47,7 +47,7 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
         const deviceName = (device.name || "looplance-edge").replace(/[^a-zA-Z0-9-]/g, "-").toLowerCase();
         const token = device.edge_token || "";
 
-        // O env Ã© escrito no servidor como NAME_B64 para que nenhum caractere
+        // O env é escrito no servidor como NAME_B64 para que nenhum caractere
         // especial das chaves R2 seja interpretado/cortado por bash, systemd ou dotenv.
         const b64 = (v: string) => {
           const bytes = new TextEncoder().encode(String(v ?? ""));
@@ -84,7 +84,7 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
 
         const script = `#!/usr/bin/env bash
 # =====================================================================
-# Looplance Edge - Setup automÃ¡tico para Ubuntu Server
+# Looplance Edge - Setup automático para Ubuntu Server
 # Device: ${device.name}   (id: ${device.id})
 # Gerado em: ${new Date().toISOString()}
 # =====================================================================
@@ -99,7 +99,7 @@ DEVICE_ID="${device.id}"
 DEVICE_NAME="${deviceName}"
 LOOPLANCE_API="${origin}"
 
-fail() { echo ""; echo "[Looplance] âŒ ERRO: $*"; exit 1; }
+fail() { echo ""; echo "[Looplance] ❌ ERRO: $*"; exit 1; }
 
 echo ""
 echo "============================================="
@@ -108,35 +108,35 @@ echo "  Device: $DEVICE_NAME"
 echo "============================================="
 echo ""
 
-# --- 1. DependÃªncias ---
-echo "[1/7] Instalando dependÃªncias de sistema..."
+# --- 1. Dependências ---
+echo "[1/7] Instalando dependências de sistema..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
 apt-get install -y ffmpeg curl jq git ca-certificates python3 python3-venv python3-pip openssl ufw
 
-# --- 2. UsuÃ¡rio e diretÃ³rios ---
-echo "[2/7] Criando usuÃ¡rio e diretÃ³rios..."
+# --- 2. Usuário e diretórios ---
+echo "[2/7] Criando usuário e diretórios..."
 id -u looplance &>/dev/null || useradd --system --no-create-home --shell /usr/sbin/nologin looplance
 usermod -aG input,plugdev looplance || true
 mkdir -p /etc/looplance /var/log/looplance /var/lib/looplance /opt/looplance-edge /dev/shm/looplance
 chown -R looplance:looplance /opt/looplance-edge /dev/shm/looplance /var/lib/looplance
 
 # --- 3. Arquivo de ambiente ---
-# IMPORTANTE: nÃ£o usamos heredoc nem interpolaÃ§Ã£o de secrets aqui.
-# O backend jÃ¡ gerou este arquivo em base64 para evitar corrupÃ§Ã£o das chaves R2.
+# IMPORTANTE: não usamos heredoc nem interpolação de secrets aqui.
+# O backend já gerou este arquivo em base64 para evitar corrupção das chaves R2.
 echo "[3/7] Escrevendo /etc/looplance/edge.env ..."
 printf '%s' '${envFileB64}' | base64 -d > /etc/looplance/edge.env
 chmod 640 /etc/looplance/edge.env
 chown root:looplance /etc/looplance/edge.env
 
 
-# MantÃ©m uma cÃ³pia acessÃ­vel em /opt/looplance-edge/.env (mesmas credenciais)
+# Mantém uma cópia acessível em /opt/looplance-edge/.env (mesmas credenciais)
 cp /etc/looplance/edge.env /opt/looplance-edge/.env
 chown looplance:looplance /opt/looplance-edge/.env
 chmod 640 /opt/looplance-edge/.env
 
-# --- 4. Bootstrap do cÃ³digo do agent (inline, sem depender do timer) ---
-echo "[4/7] Baixando cÃ³digo do agent do backend..."
+# --- 4. Bootstrap do código do agent (inline, sem depender do timer) ---
+echo "[4/7] Baixando código do agent do backend..."
 MANIFEST_URL="$LOOPLANCE_API/api/public/edge-agent/manifest"
 FILE_URL="$LOOPLANCE_API/api/public/edge-agent/file"
 STATE_DIR="/var/lib/looplance"
@@ -144,12 +144,12 @@ mkdir -p "$STATE_DIR"
 MANIFEST_PATH="$STATE_DIR/agent.manifest.json"
 
 if ! curl -fsSL "$MANIFEST_URL" -o "$MANIFEST_PATH"; then
-  fail "NÃ£o foi possÃ­vel baixar o manifesto do agent em $MANIFEST_URL"
+  fail "Não foi possível baixar o manifesto do agent em $MANIFEST_URL"
 fi
 
 COUNT="$(jq '.files | length' "$MANIFEST_PATH")"
 if [ -z "$COUNT" ] || [ "$COUNT" = "0" ] || [ "$COUNT" = "null" ]; then
-  fail "Manifesto vazio ou invÃ¡lido - backend nÃ£o empacotou os arquivos do agent"
+  fail "Manifesto vazio ou inválido - backend não empacotou os arquivos do agent"
 fi
 
 echo "     -> $COUNT arquivos a instalar"
@@ -170,18 +170,18 @@ for i in $(seq 0 $((COUNT - 1))); do
   fi
   mv "$TMP" "$DEST"
   chown looplance:looplance "$DEST"
-  echo "     âœ“ $REL"
+  echo "     ✓ $REL"
 done
 
 REMOTE_VERSION="$(jq -r .version "$MANIFEST_PATH")"
 echo "$REMOTE_VERSION" > "$STATE_DIR/agent.version"
 
-# Verifica que os arquivos crÃ­ticos foram escritos
-[ -f /opt/looplance-edge/main.py ] || fail "main.py nÃ£o foi criado apÃ³s o download"
-[ -f /opt/looplance-edge/requirements.txt ] || fail "requirements.txt nÃ£o foi criado apÃ³s o download"
+# Verifica que os arquivos críticos foram escritos
+[ -f /opt/looplance-edge/main.py ] || fail "main.py não foi criado após o download"
+[ -f /opt/looplance-edge/requirements.txt ] || fail "requirements.txt não foi criado após o download"
 
-# --- 5. Virtualenv + dependÃªncias Python ---
-echo "[5/7] Instalando virtualenv Python e dependÃªncias..."
+# --- 5. Virtualenv + dependências Python ---
+echo "[5/7] Instalando virtualenv Python e dependências..."
 if [ ! -x /opt/looplance-edge/venv/bin/python ]; then
   python3 -m venv /opt/looplance-edge/venv
 fi
@@ -190,7 +190,7 @@ fi
   || fail "pip install -r requirements.txt falhou"
 chown -R looplance:looplance /opt/looplance-edge/venv
 
-# --- 6. Auto-updater (mantÃ©m o agent sincronizado apÃ³s o setup) ---
+# --- 6. Auto-updater (mantém o agent sincronizado após o setup) ---
 echo "[6/7] Instalando auto-updater..."
 curl -fsSL "$LOOPLANCE_API/api/public/edge-agent/updater" -o /usr/local/bin/looplance-update.sh
 chmod +x /usr/local/bin/looplance-update.sh
@@ -219,8 +219,8 @@ Unit=looplance-updater.service
 WantedBy=timers.target
 EOF
 
-# --- 7. ServiÃ§o principal (systemd) ---
-echo "[7/7] Instalando e iniciando serviÃ§o looplance-edge..."
+# --- 7. Serviço principal (systemd) ---
+echo "[7/7] Instalando e iniciando serviço looplance-edge..."
 if [ -f /opt/looplance-edge/systemd/looplance-edge.service ]; then
   cp /opt/looplance-edge/systemd/looplance-edge.service /etc/systemd/system/looplance-edge.service
 else
@@ -264,13 +264,13 @@ STATUS="$(systemctl is-active looplance-edge.service || echo inactive)"
 echo ""
 echo "============================================="
 if [ "$STATUS" = "active" ]; then
-  echo "  âœ… Looplance Edge provisionado com sucesso!"
+  echo "  ✅ Looplance Edge provisionado com sucesso!"
 else
-  echo "  âš ï¸  ServiÃ§o instalado mas status = $STATUS"
+  echo "  ⚠️  Serviço instalado mas status = $STATUS"
   echo "     Rode: journalctl -u looplance-edge -n 100"
 fi
 echo "  Device:      $DEVICE_NAME"
-echo "  VersÃ£o:      $REMOTE_VERSION"
+echo "  Versão:      $REMOTE_VERSION"
 echo "  Agent:       systemctl status looplance-edge"
 echo "  Updater:     systemctl list-timers looplance-updater.timer"
 echo "  Auto-update a cada 5 minutos."

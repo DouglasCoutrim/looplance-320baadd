@@ -7,9 +7,9 @@ import { createFileRoute } from "@tanstack/react-router";
  * GET /api/public/edge-agent/updater.sh
  *
  * Script executado periodicamente pelo systemd timer no edge.
- * Baixa o manifesto atual, compara com a versÃ£o instalada
+ * Baixa o manifesto atual, compara com a versão instalada
  * e substitui apenas os arquivos que mudaram. Reinicia o
- * serviÃ§o looplance-edge se algo foi atualizado.
+ * serviço looplance-edge se algo foi atualizado.
  */
 export const Route = createFileRoute("/api/public/edge-agent/updater")({
   server: {
@@ -34,7 +34,7 @@ TMP_MANIFEST="\$(mktemp)"
 trap 'rm -f "\$TMP_MANIFEST"' EXIT
 
 if ! curl -fsSL "\$API_BASE/api/public/edge-agent/manifest" -o "\$TMP_MANIFEST"; then
-  log "manifesto indisponÃ­vel, mantendo versÃ£o atual"
+  log "manifesto indisponível, mantendo versão atual"
   exit 0
 fi
 
@@ -103,7 +103,7 @@ if [ "\$CHANGED" = "1" ]; then
   systemctl restart looplance-edge.service || log "aviso: restart falhou"
 fi
 
-log "update concluÃ­do em \$REMOTE_VERSION"
+log "update concluído em \$REMOTE_VERSION"
 `;
         return new Response(script, {
           status: 200,

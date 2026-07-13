@@ -7,11 +7,11 @@
 //
 // A spec diz para MANTER o comportamento atual (o script bash do Edge faz
 // PATCH direto em /rest/v1/edge_devices com a anon key). O Edge Agent deste
-// projeto jÃ¡ faz isso em edge-agent/api_client.py::send_heartbeat().
+// projeto já faz isso em edge-agent/api_client.py::send_heartbeat().
 //
-// Esta rota existe como fallback/alternativa passando pelo backend (Ãºtil
+// Esta rota existe como fallback/alternativa passando pelo backend (útil
 // se algum dia quisermos tirar a anon key do Edge, ou logar heartbeats),
-// usando o mesmo esquema de autenticaÃ§Ã£o por edge_token dos outros
+// usando o mesmo esquema de autenticação por edge_token dos outros
 // endpoints /api/public/edge/*.
 
 import { createAPIFileRoute } from '@tanstack/start/api'

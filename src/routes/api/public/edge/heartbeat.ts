@@ -1,7 +1,7 @@
 // © 2026 Looplance. All Rights Reserved.
 // Developed & Patented by Douglas Coutrim Silva.
 
-// POST /api/public/edge/heartbeat  (spec 6.2 â€” rota roteada, alternativa ao PATCH direto).
+// POST /api/public/edge/heartbeat  (spec 6.2 — rota roteada, alternativa ao PATCH direto).
 import { createFileRoute } from "@tanstack/react-router";
 import { requireEdgeDevice, requireEdgeSignature, EdgeAuthError } from "@/lib/edge-auth.server";
 
