@@ -112,7 +112,7 @@ echo ""
 echo "[1/7] Instalando dependências de sistema..."
 export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get install -y ffmpeg curl jq git ca-certificates python3 python3-venv python3-pip openssl ufw
+apt-get install -y ffmpeg curl jq git ca-certificates python3 python3-venv python3-pip openssl ufw toilet
 
 # --- 2. Usuário e diretórios ---
 echo "[2/7] Criando usuário e diretórios..."
