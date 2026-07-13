@@ -79,6 +79,7 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     output_path = tmp_dir / f"{clip_id}.mp4"
 
     replay_seconds = camera.replay_seconds
+    vertical = camera.aspect_ratio == "9:16"
 
     inputs = [
         "-sseof", f"-{replay_seconds}",
@@ -87,11 +88,13 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     ]
 
     filter_complex = None
-    filter_out = None
-    vertical = camera.aspect_ratio == "9:16"
 
     if vertical:
         sponsor_paths = _cached_sponsor_paths(settings, camera.arena_id)
+        n_sp = len(sponsor_paths)
+        log.info("[%s] modo 9:16 vertical — %d patrocinador(es) em cache", camera.name, n_sp)
+
+        # Input 0: canvas preto | Input 1: vídeo original | Input 2+: patrocinadores
         inputs = [
             "-f", "lavfi", "-i", "color=c=black:s=1080x1920:r=30",
             *inputs,
@@ -100,35 +103,28 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
             inputs += ["-i", str(sp["path"])]
 
         parts = []
-        parts.append("[1:v]scale=1080:1440[video_scaled]")
-        parts.append("[0:v][video_scaled]overlay=0:240[ov0]")
+        parts.append("[1:v]scale=1080:1440[vid_scaled]")
+        parts.append("[0:v][vid_scaled]overlay=0:240[canvas]")
 
-        odd = [s for s in sponsor_paths if s["position_index"] % 2 == 1]
-        even = [s for s in sponsor_paths if s["position_index"] % 2 == 0]
-
-        ov_num = 1
-        for s in odd:
-            n_odd = len(odd)
-            slot_w = 1080 // n_odd
-            x_off = (s["position_index"] - 1) // 2 * slot_w + (slot_w - 140) // 2
-            idx = s["input_idx"]
+        label = "[canvas]"
+        for sp in sponsor_paths:
+            pos = sp["position_index"]
+            idx = sp["input_idx"]
             parts.append(f"[{idx}:v]scale=-1:140[sp{idx}]")
-            parts.append(f"[ov{ov_num-1}][sp{idx}]overlay={x_off}:40[ov{ov_num}]")
-            ov_num += 1
 
-        for s in even:
-            n_even = len(even)
-            slot_w = 1080 // n_even
-            x_off = (s["position_index"] // 2 - 1) * slot_w + (slot_w - 140) // 2
-            idx = s["input_idx"]
-            parts.append(f"[{idx}:v]scale=-1:140[sp{idx}]")
-            parts.append(f"[ov{ov_num-1}][sp{idx}]overlay={x_off}:1720[ov{ov_num}]")
-            ov_num += 1
+            if n_sp == 1:
+                x_expr = "(1080-iw)/2"
+            else:
+                slot_order = (pos - 1) // 2 if pos % 2 == 1 else (pos // 2 - 1)
+                x_expr = str(slot_order * 300 + 20)
+
+            y_val = 40 if pos % 2 == 1 else 1730
+            parts.append(f"{label}[sp{idx}]overlay={x_expr}:{y_val}[ov{idx}]")
+            label = f"[ov{idx}]"
 
         filter_complex = ";".join(parts)
-        filter_out = f"ov{max(ov_num-1, 0)}"
+        last_label = label
     else:
-        # Overlay tradicional (espelho/marca central) para 16:9
         overlay_url = camera.final_overlay_url or camera.overlay_url
         if overlay_url:
             inputs += ["-i", overlay_url]
@@ -142,7 +138,7 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
 
     if filter_complex:
         if vertical:
-            cmd += ["-filter_complex", filter_complex, "-map", f"[{filter_out}]", "-map", "1:a?"]
+            cmd += ["-filter_complex", filter_complex, "-map", last_label, "-map", "1:a?"]
         else:
             cmd += ["-filter_complex", filter_complex, "-map", "0:a?"]
     else:
