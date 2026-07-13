@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import base64
 import binascii
+import json
+import logging
 import os
 import socket
 import time
@@ -18,6 +20,8 @@ from urllib.parse import urlparse
 
 import httpx
 from dotenv import load_dotenv
+
+log = logging.getLogger("looplance.config")
 
 ENV_PATH = Path(os.environ.get("LOOPLANCE_ENV_FILE", "/etc/looplance/edge.env"))
 
@@ -164,12 +168,15 @@ def fetch_remote_config(settings: Settings, retries: int = 5) -> None:
     Repete com backoff caso o backend esteja indisponível no boot.
     """
     url = f"{settings.api_base_url}/api/public/edge/config"
+    log.info("Buscando config remota: %s (tentativa 1/%d)", url, retries)
     last_err = None
     for attempt in range(retries):
         try:
             resp = httpx.get(url, headers=settings.signed_headers(""), timeout=15)
             resp.raise_for_status()
             data = resp.json()
+            log.info("=== RESPOSTA COMPLETA /api/public/edge/config === status=%d body=%s",
+                     resp.status_code, json.dumps(data, ensure_ascii=False, default=str)[:5000])
             settings.cameras = [
                 CameraConfig(
                     id=c["id"],
@@ -201,6 +208,19 @@ def fetch_remote_config(settings: Settings, retries: int = 5) -> None:
                 for b in data.get("botoeiras", [])
             }
             settings.sponsors = data.get("sponsors", []) or []
+
+            log.info(
+                "Config remota carregada: %d cameras, %d botoeiras, %d sponsors",
+                len(settings.cameras), len(settings.button_map), len(settings.sponsors),
+            )
+            for c in settings.cameras:
+                log.info("  Camera: id=%s name=%s arena=%s replay=%ds buffer=%ds trigger=%s active=%s",
+                         c.id, c.name, c.arena_id, c.replay_seconds, c.buffer_seconds,
+                         c.trigger_button, c.active)
+            for b in settings.button_map.values():
+                log.info("  Botoeira: local_key=%s camera_id=%s", b.local_key, b.camera_id)
+            for s in settings.sponsors:
+                log.info("  Sponsor: pos=%s url=%s", s.get("position_index"), s.get("logo_url", "")[:80])
             return
         except Exception as e:  # noqa: BLE001
             last_err = e

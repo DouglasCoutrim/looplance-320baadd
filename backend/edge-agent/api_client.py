@@ -54,9 +54,27 @@ def fetch_pending_triggers(settings: Settings) -> list[dict]:
     """Retorna disparos manuais pendentes. Backend já marca como consumed."""
     try:
         resp = _get_signed(settings, "/api/public/edge/pending-triggers", timeout=10)
-        return resp.json().get("triggers", []) or []
+        data = resp.json()
+        log.info("=== RESPOSTA COMPLETA pending-triggers === status=%d body=%s", resp.status_code, json.dumps(data, ensure_ascii=False))
+        triggers = data.get("triggers", []) or []
+        if not triggers:
+            log.info("Nenhum replay pendente.")
+        else:
+            log.info("Replay encontrado. Total=%d", len(triggers))
+            for t in triggers:
+                log.info(
+                    "Trigger ID=%(id)s | Camera ID=%(camera_id)s | "
+                    "Arena ID=%(arena_id)s | Replay Seconds=%(replay_seconds)s",
+                    {
+                        "id": t.get("id", "?"),
+                        "camera_id": t.get("camera_id", "?"),
+                        "arena_id": t.get("arena_id", "?"),
+                        "replay_seconds": t.get("replay_seconds", "?"),
+                    },
+                )
+        return triggers
     except Exception:  # noqa: BLE001
-        log.exception("Falha ao consultar pending-triggers")
+        log.exception("Falha ao consultar pending-triggers — retornando lista vazia")
         return []
 
 

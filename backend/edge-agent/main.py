@@ -131,27 +131,40 @@ class EdgeAgent:
     # -- trigger -----------------------------------------------------------
 
     def _on_trigger(self, local_key: str) -> None:
+        log.info("[trigger] BOTAO FISICO pressionado: %s", local_key)
+        log.info("[trigger] cameras disponiveis: %s",
+                 [{"id": c.id, "name": c.name, "trigger_button": c.trigger_button} for c in self.settings.cameras])
         cam = next((c for c in self.settings.cameras if c.trigger_button == local_key), None)
         if not cam:
-            log.warning("botão %s pressionado mas nenhuma câmera configurada com ele", local_key)
+            log.warning("[trigger] botao %s — nenhuma camera com trigger_button=%s", local_key, local_key)
             return
+        log.info("[trigger] botao %s -> camera %s (%s) arena=%s", local_key, cam.name, cam.id, cam.arena_id)
         self._executor.submit(self._handle_replay, cam)
 
     def _trigger_by_camera_id(self, camera_id: str) -> None:
+        log.info("[trigger] _trigger_by_camera_id chamado com camera_id=%s", camera_id)
+        log.info("[trigger] cameras disponiveis: %s", [{"id": c.id, "name": c.name, "arena_id": c.arena_id} for c in self.settings.cameras])
+
         cam = next((c for c in self.settings.cameras if c.id == camera_id), None)
         if not cam:
-            log.info("manual trigger: camera %s desconhecida, recarregando config remota...", camera_id)
+            log.info("[trigger] camera %s desconhecida localmente, recarregando config remota...", camera_id)
             try:
                 cfg.fetch_remote_config(self.settings)
                 self._sync_buffers()
+                log.info("[trigger] config remota recarregada. cameras agora: %s", [{"id": c.id, "name": c.name} for c in self.settings.cameras])
             except Exception:  # noqa: BLE001
-                log.exception("falha ao recarregar config remota")
+                log.exception("[trigger] falha ao recarregar config remota")
                 return
             cam = next((c for c in self.settings.cameras if c.id == camera_id), None)
-        if not cam:
-            log.warning("manual trigger: camera %s continua indisponível após refresh", camera_id)
-            return
-        log.info("manual trigger recebido para camera %s (%s)", cam.name, camera_id)
+            if not cam:
+                log.warning("[trigger] camera %s continua indisponivel APOS refresh remoto", camera_id)
+                return
+            log.info("[trigger] camera %s (%s) encontrada apos refresh remoto", cam.name, camera_id)
+        else:
+            log.info("[trigger] camera encontrada localmente: %s (%s) arena=%s replay_seconds=%s",
+                     cam.name, cam.id, cam.arena_id, cam.replay_seconds)
+
+        log.info("[trigger] despachando _handle_replay para camera %s (%s)", cam.name, camera_id)
         self._executor.submit(self._handle_replay, cam)
 
     def _sync_buffers(self) -> None:
@@ -196,25 +209,48 @@ class EdgeAgent:
             self._camera_configs[cam.id] = new_hash
 
     def _handle_replay(self, cam: cfg.CameraConfig) -> None:
+        log.info("=" * 60)
+        log.info("=== HANDLE REPLAY ===")
+        log.info("Camera Name .......: %s", cam.name)
+        log.info("Camera ID .........: %s", cam.id)
+        log.info("Arena ID ..........: %s", cam.arena_id)
+        log.info("Quadra ID .........: %s", cam.quadra_id)
+        log.info("Replay Seconds ....: %s", cam.replay_seconds)
+        log.info("Buffer Seconds ....: %s", cam.buffer_seconds)
+        log.info("Trigger Button ....: %s", cam.trigger_button)
+        log.info("=" * 60)
+
         try:
             buf = self.buffers.get(cam.id)
             if not buf:
-                log.error("[%s] sem buffer ativo", cam.name)
+                log.error("[%s] SEM BUFFER ATIVO — buffers disponiveis: %s",
+                          cam.name, list(self.buffers.keys()))
                 return
 
             replay_id = str(uuid.uuid4())
-            log.info("[%s] gerando replay %s", cam.name, replay_id)
+            log.info("[%s] replay_id=%s | buscando segmentos (buffer_seconds=%s)...",
+                     cam.name, replay_id, cam.buffer_seconds)
 
             segments = buf.segments_for_window(cam.buffer_seconds)
+            log.info("[%s] segmentos obtidos: %d arquivos", cam.name, len(segments))
+            for s in segments[:5]:
+                log.info("[%s]   segmento: %s (exists=%s size=%s)",
+                         cam.name, s, s.exists(), s.stat().st_size if s.exists() else 0)
+            if len(segments) > 5:
+                log.info("[%s]   ... e mais %d segmentos", cam.name, len(segments) - 5)
+
+            log.info("[%s] chamando build_clip() ...", cam.name)
             clip_path, duration = build_clip(self.settings, cam, segments)
+            log.info("[%s] build_clip() OK — path=%s duration=%.2fs", cam.name, clip_path, duration)
         except ClipBuildError:
-            log.exception("[%s] falha ao montar clip", cam.name)
+            log.exception("[%s] FALHA no build_clip (ClipBuildError)", cam.name)
             return
         except Exception:
-            log.exception("[%s] erro inesperado ao montar clip", cam.name)
+            log.exception("[%s] FALHA no build_clip (erro inesperado)", cam.name)
             return
 
         clip_path_ref = clip_path
+        log.info("[%s] upload_clip() iniciado ...", cam.name)
         try:
             r2_key, video_url, size = upload_clip(
                 self.settings,
@@ -222,14 +258,14 @@ class EdgeAgent:
                 replay_id=replay_id,
                 file_path=clip_path_ref,
             )
+            log.info("[%s] upload_clip() OK — r2_key=%s video_url=%s size=%d",
+                     cam.name, r2_key, video_url, size)
         except Exception:
-            log.exception("[%s] falha ao enviar clip ao R2", cam.name)
+            log.exception("[%s] FALHA no upload_clip()", cam.name)
             clip_path_ref.unlink(missing_ok=True)
             return
 
-        log.info("[%s] replay %s enviado ao R2", cam.name, replay_id)
-
-        # INSERT no Supabase imediatamente após upload bem-sucedido
+        log.info("[%s] register_replay() iniciado ...", cam.name)
         try:
             api_client.register_replay(
                 self.settings,
@@ -239,11 +275,13 @@ class EdgeAgent:
                 duration_sec=duration,
                 file_size_bytes=size,
             )
-            log.info("[%s] replay %s registrado no banco com status ready", cam.name, replay_id)
+            log.info("[%s] register_replay() OK — replay registrado no banco", cam.name)
         except Exception:
-            log.exception("[%s] falha ao registrar replay no banco", cam.name)
+            log.exception("[%s] FALHA no register_replay()", cam.name)
 
         clip_path_ref.unlink(missing_ok=True)
+        log.info("[%s] FINALIZADO — replay %s concluido", cam.name, replay_id)
+        log.info("=" * 60)
 
     # -- sponsor cache sync ------------------------------------------------
 
@@ -358,10 +396,26 @@ class EdgeAgent:
         while not _shutdown.is_set():
             try:
                 triggers = api_client.fetch_pending_triggers(self.settings)
-                for t in triggers:
-                    cam_id = t.get("camera_id")
-                    if cam_id:
-                        self._trigger_by_camera_id(cam_id)
+                if not triggers:
+                    log.info("Nenhum replay pendente.")
+                else:
+                    for t in triggers:
+                        cam_id = t.get("camera_id")
+                        trigger_id = t.get("id", "?")
+                        arena_id = t.get("arena_id", "?")
+                        replay_sec = t.get("replay_seconds", "?")
+                        if cam_id:
+                            log.info(
+                                "Replay encontrado. Trigger ID=%s | Camera: %s | Arena: %s | "
+                                "Replay Seconds: %s | Iniciando processamento...",
+                                trigger_id, cam_id, arena_id, replay_sec,
+                            )
+                            self._trigger_by_camera_id(cam_id)
+                        else:
+                            log.warning(
+                                "Trigger ID=%s sem camera_id — ignorado. Conteudo: %s",
+                                trigger_id, t,
+                            )
             except Exception:  # noqa: BLE001
                 log.exception("erro no _manual_trigger_loop")
             _shutdown.wait(3)
