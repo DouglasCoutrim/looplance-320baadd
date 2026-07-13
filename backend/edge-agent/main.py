@@ -204,61 +204,35 @@ class EdgeAgent:
             return
 
         clip_path_ref = clip_path
-        draft = None
-        try:
-            draft = api_client.register_replay_draft(
-                self.settings,
-                quadra_id=cam.quadra_id,
-            )
-        except Exception:
-            log.exception("[%s] falha ao registrar draft do replay", cam.name)
-
-        r2_key = video_url = ""
-        size = 0
-        upload_ok = False
         try:
             r2_key, video_url, size = upload_clip(
                 self.settings,
-                arena_id=cam.arena_id,
-                quadra_id=cam.quadra_id,
+                camera_id=cam.id,
                 replay_id=replay_id,
                 file_path=clip_path_ref,
             )
-            upload_ok = True
-            log.info("[%s] replay %s enviado ao R2", cam.name, replay_id)
         except Exception:
             log.exception("[%s] falha ao enviar clip ao R2", cam.name)
-
-        if draft:
-            draft_id = draft.get("replay", {}).get("id", "")
-            if draft_id and upload_ok:
-                try:
-                    api_client.update_replay_status(
-                        self.settings,
-                        replay_id=draft_id,
-                        status="ready",
-                        r2_key=r2_key,
-                        video_url=video_url,
-                        duration_sec=duration,
-                        file_size_bytes=size,
-                    )
-                    log.info("[%s] replay %s publicado com sucesso", cam.name, replay_id)
-                except Exception:
-                    log.exception("[%s] falha ao atualizar status do replay", cam.name)
-            elif draft_id:
-                try:
-                    api_client.update_replay_status(
-                        self.settings,
-                        replay_id=draft_id,
-                        status="failed",
-                    )
-                except Exception:
-                    log.exception("[%s] falha ao marcar replay como failed", cam.name)
-
-        try:
             clip_path_ref.unlink(missing_ok=True)
+            return
+
+        log.info("[%s] replay %s enviado ao R2", cam.name, replay_id)
+
+        # INSERT no Supabase imediatamente após upload bem-sucedido
+        try:
+            api_client.register_replay(
+                self.settings,
+                quadra_id=cam.quadra_id,
+                r2_key=r2_key,
+                video_url=video_url,
+                duration_sec=duration,
+                file_size_bytes=size,
+            )
+            log.info("[%s] replay %s registrado no banco com status ready", cam.name, replay_id)
         except Exception:
-            pass
+            log.exception("[%s] falha ao registrar replay no banco", cam.name)
+
+        clip_path_ref.unlink(missing_ok=True)
 
     # -- background loops --------------------------------------------------
 

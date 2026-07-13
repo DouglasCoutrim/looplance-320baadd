@@ -33,14 +33,13 @@ def _client(settings: Settings):
 def upload_clip(
     settings: Settings,
     *,
-    arena_id: str,
-    quadra_id: str,
+    camera_id: str,
     replay_id: str,
     file_path: Path,
 ) -> tuple[str, str, int]:
     """
-    Convenção de chave (spec 4.2):
-      replays/<arena_id>/<quadra_id>/<yyyy-mm-dd>/<replay_id>.mp4
+    Sobe o .mp4 para o R2 no formato:
+      replays/<camera_id>/<replay_id>.mp4
     Retorna (r2_key, video_url, file_size_bytes).
 
     Usa put_object (single-request PUT) em vez de upload_file, porque o
@@ -48,8 +47,7 @@ def upload_clip(
     o Cloudflare R2 é estrito quanto à assinatura SigV4 dessas partes,
     causando SignatureDoesNotMatch de forma intermitente.
     """
-    date_part = dt.datetime.utcnow().strftime("%Y-%m-%d")
-    key = f"replays/{arena_id}/{quadra_id}/{date_part}/{replay_id}.mp4"
+    key = f"replays/{camera_id}/{replay_id}.mp4"
 
     size = file_path.stat().st_size
     client = _client(settings)
