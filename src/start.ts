@@ -6,7 +6,7 @@ import { createStart, createMiddleware } from "@tanstack/react-start";
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
 
-const DEV_HEADERS = {
+const DEV_HEADERS: Record<string, string> = {
   "X-Developer": "Douglas Coutrim Silva",
   "X-Patent-Notice": "Proprietary technology patented by the author. All rights reserved.",
 };
@@ -32,15 +32,11 @@ const errorMiddleware = createMiddleware().server(async ({ next, request }) => {
 
 const devHeadersMiddleware = createMiddleware().server(async ({ next }) => {
   const response = await next();
-  const newHeaders = new Headers(response.headers);
-  for (const [key, value] of Object.entries(DEV_HEADERS)) {
-    newHeaders.set(key, value);
+  if (response?.headers && typeof response.headers.set === "function") {
+    response.headers.set("X-Developer", DEV_HEADERS["X-Developer"]);
+    response.headers.set("X-Patent-Notice", DEV_HEADERS["X-Patent-Notice"]);
   }
-  return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
-    headers: newHeaders,
-  });
+  return response;
 });
 
 export const startInstance = createStart(() => ({
