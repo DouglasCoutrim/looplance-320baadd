@@ -17,24 +17,31 @@ export const Route = createAPIFileRoute('/api/public/edge/config')({
       await requireEdgeSignature(request, '') // GET não tem body
       const db = supabaseAdmin()
 
-      const [{ data: cameras, error: camErr }, { data: boards, error: boardErr }] =
+      const [{ data: cameras, error: camErr }, { data: boards, error: boardErr }, { data: sponsors, error: spoErr }] =
         await Promise.all([
           db
             .from('cameras')
             .select(
               'id, name, quadra_id, rtsp_url, buffer_seconds, replay_seconds, trigger_button, ' +
                 'overlay_url, final_overlay_url, video_x, video_y, video_width, video_height, active, ' +
-                'stream_protocol, rtmp_stream_key, protocol_settings',
+                'stream_protocol, rtmp_stream_key, protocol_settings, aspect_ratio',
             )
             .eq('edge_device_id', device.id),
           db
             .from('input_boards')
             .select('id, name, device_name, vendor_id, product_id')
             .eq('edge_device_id', device.id),
+          db
+            .from('arena_sponsors')
+            .select('logo_url, position_index')
+            .eq('arena_id', device.arena_id)
+            .eq('is_active', true)
+            .order('position_index'),
         ])
 
       if (camErr) throw new EdgeAuthError(`Erro lendo cameras: ${camErr.message}`, 500)
       if (boardErr) throw new EdgeAuthError(`Erro lendo input_boards: ${boardErr.message}`, 500)
+      if (spoErr) throw new EdgeAuthError(`Erro lendo arena_sponsors: ${spoErr.message}`, 500)
 
       const cameraIds = (cameras ?? []).map((c) => c.id)
       let botoeiras: any[] = []
@@ -52,6 +59,7 @@ export const Route = createAPIFileRoute('/api/public/edge/config')({
         cameras: (cameras ?? []).map((c) => ({ ...c, arena_id: device.arena_id })),
         input_boards: boards ?? [],
         botoeiras,
+        sponsors: sponsors ?? [],
       })
     } catch (err) {
       if (err instanceof EdgeAuthError) {

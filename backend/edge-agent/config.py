@@ -43,6 +43,7 @@ class CameraConfig:
     stream_protocol: str = "rtsp"
     rtmp_stream_key: str | None = None
     protocol_settings: dict | None = None
+    aspect_ratio: str = "16:9"
 
 
 @dataclass
@@ -77,6 +78,7 @@ class Settings:
 
     cameras: list[CameraConfig] = field(default_factory=list)
     button_map: dict[str, ButtonMapping] = field(default_factory=dict)  # local_key -> mapping
+    sponsors: list[dict] = field(default_factory=list)  # [{logo_url, position_index}]
 
     def signed_headers(self, raw_body: str = "") -> dict:
         """Headers Authorization + assinatura HMAC (ver signing.py)."""
@@ -188,6 +190,7 @@ def fetch_remote_config(settings: Settings, retries: int = 5) -> None:
                     stream_protocol=c.get("stream_protocol", "rtsp"),
                     rtmp_stream_key=c.get("rtmp_stream_key"),
                     protocol_settings=c.get("protocol_settings"),
+                    aspect_ratio=c.get("aspect_ratio", "16:9"),
                 )
 
                 for c in data["cameras"]
@@ -197,6 +200,7 @@ def fetch_remote_config(settings: Settings, retries: int = 5) -> None:
                 b["local_key"]: ButtonMapping(local_key=b["local_key"], camera_id=b["camera_id"])
                 for b in data.get("botoeiras", [])
             }
+            settings.sponsors = data.get("sponsors", []) or []
             return
         except Exception as e:  # noqa: BLE001
             last_err = e

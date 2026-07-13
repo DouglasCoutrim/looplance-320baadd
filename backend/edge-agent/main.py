@@ -31,6 +31,8 @@ from concurrent.futures import ThreadPoolExecutor
 
 import shutil
 
+import httpx
+
 import api_client
 import config as cfg
 from clip_builder import ClipBuildError, build_clip
@@ -48,6 +50,7 @@ log = logging.getLogger("looplance.main")
 
 START_TIME = time.time()
 _shutdown = threading.Event()
+SPONSOR_CACHE_DIR = Path("/dev/shm/looplance/sponsors")
 
 
 def get_local_ip() -> str:
@@ -97,6 +100,8 @@ class EdgeAgent:
             except Exception:  # noqa: BLE001
                 log.exception("[%s] falha ao iniciar live HLS", cam.name)
             self._camera_configs[cam.id] = self._camera_config_hash(cam)
+
+        self._sync_sponsors()
 
         start_trigger_listener(self._on_trigger, self._input_boards())
 
@@ -234,6 +239,51 @@ class EdgeAgent:
 
         clip_path_ref.unlink(missing_ok=True)
 
+    # -- sponsor cache sync ------------------------------------------------
+
+    def _sync_sponsors(self) -> None:
+        """Download das imagens dos patrocinadores para /dev/shm/looplance/sponsors/<arena_id>/.
+        Remove imagens órfãs se a lista de patrocinadores mudar.
+        Usa a arena_id da primeira câmera (todas compartilham a mesma arena no device).
+        """
+        if not self.settings.sponsors:
+            return
+        arena_id = None
+        for cam in self.settings.cameras:
+            if cam.arena_id and cam.arena_id != "unknown-arena":
+                arena_id = cam.arena_id
+                break
+        if not arena_id:
+            return
+
+        arena_dir = SPONSOR_CACHE_DIR / arena_id
+        arena_dir.mkdir(parents=True, exist_ok=True)
+
+        wanted = set()
+        for s in self.settings.sponsors:
+            pos = s.get("position_index")
+            url = s.get("logo_url")
+            if not pos or not url:
+                continue
+            wanted.add(pos)
+            dest = arena_dir / f"{pos}.png"
+            if dest.is_file():
+                continue
+            try:
+                resp = httpx.get(url, timeout=15)
+                resp.raise_for_status()
+                dest.write_bytes(resp.content)
+                log.info("[sponsor] cache salvo: %s -> %s", url, dest)
+            except Exception:
+                log.exception("[sponsor] falha ao baixar %s", url)
+
+        # Remove órfãos
+        for f in arena_dir.glob("*.png"):
+            stem = int(f.stem)
+            if stem not in wanted:
+                f.unlink(missing_ok=True)
+                log.info("[sponsor] removido órfão: %s", f.name)
+
     # -- background loops --------------------------------------------------
 
     def _heartbeat_loop(self) -> None:
@@ -296,6 +346,7 @@ class EdgeAgent:
             try:
                 cfg.fetch_remote_config(self.settings)
                 self._sync_buffers()
+                self._sync_sponsors()
             except Exception:  # noqa: BLE001
                 log.exception("erro no _config_refresh_loop")
 

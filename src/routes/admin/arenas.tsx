@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw, MapPin, Edit2, Trash2, Upload, X, Phone } from "lucide-react";
+import { Plus, RefreshCw, MapPin, Edit2, Trash2, Upload, X, Phone, Image } from "lucide-react";
 import { MapPickerDialog } from "@/components/MapPickerDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
@@ -81,6 +81,11 @@ function Arenas() {
   const logoInputRef = useRef<HTMLInputElement>(null);
   const [mapPickerOpen, setMapPickerOpen] = useState(false);
 
+  // Sponsor grid
+  const [sponsors, setSponsors] = useState<{ id?: string; logo_url: string; position_index: number }[]>([]);
+  const [uploadingSponsor, setUploadingSponsor] = useState<number | null>(null);
+  const sponsorInputsRef = useRef<{ [key: number]: HTMLInputElement | null }>({});
+
   // filter state (must pick a city to see arenas)
   const [filterEstado, setFilterEstado] = useState<string>("");
   const [cityFilter, setCityFilter] = useState<string>("");
@@ -149,6 +154,7 @@ function Arenas() {
     setEndereco(""); setCidade(""); setEstado(""); setCep(""); setTelefone("");
     setLatitude(""); setLongitude("");
     setLogoUrl(null);
+    setSponsors([]);
   };
 
   const openCreate = () => {
@@ -156,7 +162,7 @@ function Arenas() {
     setIsDialogOpen(true);
   };
 
-  const openEdit = (a: Arena) => {
+  const openEdit = async (a: Arena) => {
     setEditing(a);
     setName(a.nome);
     const edge = edges.find((e) => e.id === a.edge_device_id);
@@ -170,6 +176,14 @@ function Arenas() {
     setLatitude(a.latitude != null ? String(a.latitude) : "");
     setLongitude(a.longitude != null ? String(a.longitude) : "");
     setLogoUrl(a.logo_url ?? null);
+    // Load existing sponsors
+    const { data: spo } = await supabase
+      .from("arena_sponsors")
+      .select("id, logo_url, position_index")
+      .eq("arena_id", a.id)
+      .eq("is_active", true)
+      .order("position_index");
+    setSponsors(spo ?? []);
     setIsDialogOpen(true);
   };
 
@@ -201,6 +215,37 @@ function Arenas() {
     }
   };
 
+
+  const handleSponsorUpload = async (file: File, positionIndex: number) => {
+    if (!file.type.startsWith("image/")) { toast.error("Selecione um arquivo de imagem"); return; }
+    if (file.size > 5 * 1024 * 1024) { toast.error("Imagem deve ter no máximo 5MB"); return; }
+    setUploadingSponsor(positionIndex);
+    try {
+      const ext = file.name.split(".").pop() || "png";
+      const path = `sponsors/${crypto.randomUUID()}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from("arenas")
+        .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data: pub } = supabase.storage.from("arenas").getPublicUrl(path);
+      setSponsors((prev) => {
+        const next = prev.filter((s) => s.position_index !== positionIndex);
+        return [...next, { logo_url: pub.publicUrl, position_index: positionIndex }].sort(
+          (a, b) => a.position_index - b.position_index,
+        );
+      });
+      toast.success(`Patrocinador ${positionIndex} adicionado`);
+    } catch (err: any) {
+      toast.error(err.message || "Erro ao enviar logo do patrocinador");
+    } finally {
+      setUploadingSponsor(null);
+      if (sponsorInputsRef.current[positionIndex]) sponsorInputsRef.current[positionIndex]!.value = "";
+    }
+  };
+
+  const removeSponsor = (positionIndex: number) => {
+    setSponsors((prev) => prev.filter((s) => s.position_index !== positionIndex));
+  };
 
   const handleSubmit = async () => {
     if (!name.trim()) return toast.error("Informe o nome da arena");
@@ -237,17 +282,32 @@ function Arenas() {
     };
 
     setSubmitting(true);
+    let arenaId = editing?.id;
     if (editing) {
       const { error } = await supabase.from("arenas").update(payload).eq("id", editing.id);
-      setSubmitting(false);
-      if (error) return toast.error("Erro ao atualizar arena");
+      if (error) { setSubmitting(false); return toast.error("Erro ao atualizar arena"); }
       toast.success("Arena atualizada");
     } else {
-      const { error } = await supabase.from("arenas").insert([payload]);
-      setSubmitting(false);
-      if (error) return toast.error("Erro ao criar arena");
+      const { data: inserted, error } = await supabase.from("arenas").insert([payload]).select("id").single();
+      if (error || !inserted) { setSubmitting(false); return toast.error("Erro ao criar arena"); }
+      arenaId = inserted.id;
       toast.success("Arena criada");
     }
+
+    // Sync arena_sponsors: desativa todos os existentes, insere os atuais
+    if (arenaId) {
+      await supabase.from("arena_sponsors").update({ is_active: false }).eq("arena_id", arenaId);
+      for (const s of sponsors) {
+        await supabase.from("arena_sponsors").insert([{
+          arena_id: arenaId,
+          logo_url: s.logo_url,
+          position_index: s.position_index,
+          is_active: true,
+        }]);
+      }
+    }
+
+    setSubmitting(false);
     setIsDialogOpen(false);
     resetForm();
     fetchAll();
@@ -509,6 +569,60 @@ function Arenas() {
                       <MapPin className="h-4 w-4 mr-2" />
                       {latitude && longitude ? "Alterar no mapa" : "Selecionar no mapa"}
                     </Button>
+                  </div>
+                </div>
+
+                {/* Sponsor Grid */}
+                <div className="grid gap-3">
+                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Patrocinadores (até 6 logos)</Label>
+                  <p className="text-[11px] text-zinc-400 -mt-1">
+                    Logos .png transparentes — aparecem nas faixas superior/inferior do replay 9:16.
+                  </p>
+                  <div className="grid grid-cols-3 gap-3">
+                    {[1, 2, 3, 4, 5, 6].map((pos) => {
+                      const sp = sponsors.find((s) => s.position_index === pos);
+                      return (
+                        <div key={pos} className="relative rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 p-3 flex flex-col items-center gap-2 min-h-[140px]">
+                          {sp ? (
+                            <div className="relative w-full flex-1 flex items-center justify-center">
+                              <img src={sp.logo_url} alt={`Patrocinador ${pos}`} className="max-h-20 max-w-full object-contain" />
+                              <button
+                                type="button"
+                                onClick={() => removeSponsor(pos)}
+                                className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500/80 text-white grid place-items-center hover:bg-red-600 transition"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex-1 flex items-center justify-center">
+                              <Image className="h-8 w-8 text-zinc-600" />
+                            </div>
+                          )}
+                          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{pos === 1 ? "Ímpar (Topo)" : pos === 2 ? "Par (Base)" : pos % 2 ? "Ímpar" : "Par"}</span>
+                          <input
+                            ref={(el) => { sponsorInputsRef.current[pos] = el; }}
+                            type="file"
+                            accept="image/png,image/webp"
+                            className="hidden"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0];
+                              if (f) handleSponsorUpload(f, pos);
+                            }}
+                          />
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => sponsorInputsRef.current[pos]?.click()}
+                            disabled={uploadingSponsor === pos}
+                            className="rounded-lg text-[10px] font-bold uppercase tracking-widest h-8 border-zinc-600 text-zinc-300 hover:bg-zinc-700 w-full"
+                          >
+                            {uploadingSponsor === pos ? "..." : sp ? "Trocar" : "Upload"}
+                          </Button>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
 

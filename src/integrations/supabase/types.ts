@@ -49,6 +49,41 @@ export type Database = {
           },
         ]
       }
+      arena_sponsors: {
+        Row: {
+          arena_id: string
+          created_at: string
+          id: string
+          is_active: boolean
+          logo_url: string
+          position_index: number
+        }
+        Insert: {
+          arena_id: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url: string
+          position_index: number
+        }
+        Update: {
+          arena_id?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string
+          position_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "arena_sponsors_arena_id_fkey"
+            columns: ["arena_id"]
+            isOneToOne: false
+            referencedRelation: "arenas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       arenas: {
         Row: {
           cep: string | null
