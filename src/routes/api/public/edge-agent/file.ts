@@ -1,11 +1,14 @@
+// © 2026 Looplance. All Rights Reserved.
+// Developed & Patented by Douglas Coutrim Silva.
+
 import { createFileRoute } from "@tanstack/react-router";
 import { buildManifest, getRawFile } from "./manifest";
 
 /**
  * GET /api/public/edge-agent/file?path=main.py
  *
- * Devolve o conteúdo cru de um arquivo do backend/edge-agent/.
- * A whitelist é o próprio manifesto — se o path não estiver lá, 404.
+ * Devolve o conteÃºdo cru de um arquivo do backend/edge-agent/.
+ * A whitelist Ã© o prÃ³prio manifesto â€” se o path nÃ£o estiver lÃ¡, 404.
  */
 export const Route = createFileRoute("/api/public/edge-agent/file")({
   server: {

@@ -1,3 +1,6 @@
+// © 2026 Looplance. All Rights Reserved.
+// Developed & Patented by Douglas Coutrim Silva.
+
 // app/routes/api/public/edge/camera-status.ts
 //
 // POST /api/public/edge/camera-status   (spec 6.4)
@@ -5,7 +8,7 @@
 // Body: { camera_id, streaming_status, streaming_error? }
 //
 // Atualiza cameras.streaming_status/streaming_error. Realtime na tabela
-// `cameras` (seção 7) já propaga isso pro admin ao vivo.
+// `cameras` (seÃ§Ã£o 7) jÃ¡ propaga isso pro admin ao vivo.
 
 import { createAPIFileRoute } from '@tanstack/start/api'
 import { requireEdgeDevice, requireEdgeSignature, EdgeAuthError } from '../../../../_lib/edgeAuth.server'
@@ -27,17 +30,17 @@ export const Route = createAPIFileRoute('/api/public/edge/camera-status')({
 
       if (!body.camera_id || !body.streaming_status) {
         return Response.json(
-          { error: 'campos obrigatórios: camera_id, streaming_status' },
+          { error: 'campos obrigatÃ³rios: camera_id, streaming_status' },
           { status: 400 },
         )
       }
       if (!VALID_STATUSES.has(body.streaming_status)) {
-        return Response.json({ error: 'streaming_status inválido' }, { status: 400 })
+        return Response.json({ error: 'streaming_status invÃ¡lido' }, { status: 400 })
       }
 
       const db = supabaseAdmin()
 
-      // garante que a câmera pertence a este edge device antes de escrever
+      // garante que a cÃ¢mera pertence a este edge device antes de escrever
       const { data: camera, error: camErr } = await db
         .from('cameras')
         .select('id, edge_device_id')
@@ -45,9 +48,9 @@ export const Route = createAPIFileRoute('/api/public/edge/camera-status')({
         .maybeSingle()
 
       if (camErr) throw new EdgeAuthError(`Erro lendo camera: ${camErr.message}`, 500)
-      if (!camera) return Response.json({ error: 'camera_id não encontrada' }, { status: 404 })
+      if (!camera) return Response.json({ error: 'camera_id nÃ£o encontrada' }, { status: 404 })
       if (camera.edge_device_id !== device.id) {
-        return Response.json({ error: 'câmera não pertence a este edge device' }, { status: 403 })
+        return Response.json({ error: 'cÃ¢mera nÃ£o pertence a este edge device' }, { status: 403 })
       }
 
       const { error: updateErr } = await db

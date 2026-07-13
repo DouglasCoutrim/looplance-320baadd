@@ -1,10 +1,13 @@
+// © 2026 Looplance. All Rights Reserved.
+// Developed & Patented by Douglas Coutrim Silva.
+
 // app/routes/api/public/edge/config.ts
 //
 // GET /api/public/edge/config
 // Autenticado com edge_token. Devolve tudo que o Edge Agent precisa para
-// subir sozinho: câmeras ativas do device, mapeamento de botoeiras e
-// input_boards, para não precisar do Supabase Auth/anon key na leitura
-// desses dados (que não são públicos).
+// subir sozinho: cÃ¢meras ativas do device, mapeamento de botoeiras e
+// input_boards, para nÃ£o precisar do Supabase Auth/anon key na leitura
+// desses dados (que nÃ£o sÃ£o pÃºblicos).
 
 import { createAPIFileRoute } from '@tanstack/start/api'
 import { requireEdgeDevice, requireEdgeSignature, EdgeAuthError } from '../../../../_lib/edgeAuth.server'
@@ -14,7 +17,7 @@ export const Route = createAPIFileRoute('/api/public/edge/config')({
   GET: async ({ request }) => {
     try {
       const device = await requireEdgeDevice(request)
-      await requireEdgeSignature(request, '') // GET não tem body
+      await requireEdgeSignature(request, '') // GET nÃ£o tem body
       const db = supabaseAdmin()
 
       const [{ data: cameras, error: camErr }, { data: boards, error: boardErr }, { data: sponsors, error: spoErr }] =

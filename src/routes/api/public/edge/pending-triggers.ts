@@ -1,6 +1,9 @@
+// © 2026 Looplance. All Rights Reserved.
+// Developed & Patented by Douglas Coutrim Silva.
+
 // GET /api/public/edge/pending-triggers
-// Retorna disparos manuais pendentes das câmeras deste edge device e marca
-// como "consumed" atomicamente. Usado quando não há placa botoeira física.
+// Retorna disparos manuais pendentes das cÃ¢meras deste edge device e marca
+// como "consumed" atomicamente. Usado quando nÃ£o hÃ¡ placa botoeira fÃ­sica.
 import { createFileRoute } from "@tanstack/react-router";
 import { requireEdgeDevice, requireEdgeSignature, EdgeAuthError } from "@/lib/edge-auth.server";
 
@@ -14,7 +17,7 @@ export const Route = createFileRoute("/api/public/edge/pending-triggers")({
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-          // Câmeras deste device
+          // CÃ¢meras deste device
           const { data: cameras, error: camErr } = await supabaseAdmin
             .from("cameras")
             .select("id")

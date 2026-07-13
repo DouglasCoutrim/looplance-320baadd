@@ -1,3 +1,6 @@
+// © 2026 Looplance. All Rights Reserved.
+// Developed & Patented by Douglas Coutrim Silva.
+
 // POST /api/public/edge/replay
 // Registra replay finalizado (spec 6.3).
 // Body: { quadra_id, r2_key, video_url, duration_sec, file_size_bytes }
@@ -25,7 +28,7 @@ export const Route = createFileRoute("/api/public/edge/replay")({
 
           if (!body.quadra_id) {
             return Response.json(
-              { error: "campo obrigatório ausente: quadra_id" },
+              { error: "campo obrigatÃ³rio ausente: quadra_id" },
               { status: 400 },
             );
           }
@@ -39,10 +42,10 @@ export const Route = createFileRoute("/api/public/edge/replay")({
             .maybeSingle();
 
           if (quadraErr) throw new EdgeAuthError(`Erro lendo quadra: ${quadraErr.message}`, 500);
-          if (!quadra) return Response.json({ error: "quadra_id não encontrada" }, { status: 404 });
+          if (!quadra) return Response.json({ error: "quadra_id nÃ£o encontrada" }, { status: 404 });
           if (quadra.arena_id !== device.arena_id) {
             return Response.json(
-              { error: "quadra não pertence à arena deste edge device" },
+              { error: "quadra nÃ£o pertence Ã  arena deste edge device" },
               { status: 403 },
             );
           }

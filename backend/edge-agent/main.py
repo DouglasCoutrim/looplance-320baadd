@@ -1,19 +1,22 @@
 """
+© 2026 Looplance. All Rights Reserved.
+Developed & Patented by Douglas Coutrim Silva.
+
 Looplance Edge Agent
 =====================
 Roda como serviço systemd (looplance-edge.service). Ver systemd/ e install.sh.
 
 Responsabilidades:
-  1. Para cada câmera ativa do device: manter um buffer circular EM RAM
-     (tmpfs) dos últimos `buffer_seconds` via ffmpeg segment muxer.
-  2. Escutar a(s) botoeira(s) física(s); ao clique, montar o replay
-     (concat + trim + overlay), subir pro R2 e registrar no backend.
-  3. Enviar heartbeat periódico (status online, uptime, ip local, versão).
-  4. Reportar status de streaming de cada câmera (online/offline/erro).
-  5. Se qualquer câmera cair, reconectar automaticamente (o próprio ffmpeg
-     falha -> watchdog reinicia o processo); se o processo inteiro morrer,
-     o systemd (Restart=always) reinicia o serviço -- nada depende de
-     intervenção manual, inclusive após reboot da máquina (systemd enable).
+   1. Para cada câmera ativa do device: manter um buffer circular EM RAM
+      (tmpfs) dos últimos `buffer_seconds` via ffmpeg segment muxer.
+   2. Escutar a(s) botoeira(s) física(s); ao clique, montar o replay
+      (concat + trim + overlay), subir pro R2 e registrar no backend.
+   3. Enviar heartbeat periódico (status online, uptime, ip local, versão).
+   4. Reportar status de streaming de cada câmera (online/offline/erro).
+   5. Se qualquer câmera cair, reconectar automaticamente (o próprio ffmpeg
+      falha -> watchdog reinicia o processo); se o processo inteiro morrer,
+      o systemd (Restart=always) reinicia o serviço -- nada depende de
+      intervenção manual, inclusive após reboot da máquina (systemd enable).
 """
 from __future__ import annotations
 
@@ -290,6 +293,16 @@ class EdgeAgent:
             except Exception:
                 log.exception("[sponsor] falha ao baixar %s", url)
 
+        # Relatório de validação física de cada arquivo no SSD
+        for pos in sorted(wanted):
+            path = arena_dir / f"slot_{pos}.png"
+            exists = path.is_file()
+            size = path.stat().st_size if exists else 0
+            log.info(
+                "Verificando arquivo no SSD: %s/slot_%s.png -> Existe: %s (Tamanho: %s bytes)",
+                arena_dir, pos, exists, size,
+            )
+
         # Remove órfãos (slot_*.png que não estão mais na lista desejada)
         for f in arena_dir.glob("slot_*.png"):
             try:
@@ -396,6 +409,12 @@ def main() -> None:
 
     agent.start()
     log.info("looplance-edge no ar. device_id=%s", settings.edge_device_id)
+
+    monitor_script = Path("/opt/looplance-edge/monitor.sh")
+    if monitor_script.is_file() and os.access(monitor_script, os.X_OK):
+        log.info("Central de Comando disponivel: looplance-monitor")
+    else:
+        log.warning("monitor.sh ausente ou sem permissao de execucao — rode sudo ./install.sh")
     while not _shutdown.is_set():
         time.sleep(1)
 

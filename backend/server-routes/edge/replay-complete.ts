@@ -1,3 +1,6 @@
+// © 2026 Looplance. All Rights Reserved.
+// Developed & Patented by Douglas Coutrim Silva.
+
 // app/routes/api/public/edge/replay-complete.ts
 //
 // POST /api/public/edge/replay-complete

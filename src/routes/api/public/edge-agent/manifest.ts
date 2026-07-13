@@ -1,16 +1,19 @@
+// © 2026 Looplance. All Rights Reserved.
+// Developed & Patented by Douglas Coutrim Silva.
+
 import { createFileRoute } from "@tanstack/react-router";
 
 // Embute todos os arquivos do agent no bundle em build-time.
 // Ao alterar qualquer arquivo em backend/edge-agent/, o bundle novo
-// é publicado e o updater no edge sincroniza automaticamente.
+// Ã© publicado e o updater no edge sincroniza automaticamente.
 const rawFiles = import.meta.glob("/backend/edge-agent/**/*", {
   query: "?raw",
   import: "default",
   eager: true,
 }) as Record<string, string>;
 
-// Extensões binárias que não deveríamos servir como texto (nenhuma hoje,
-// mas guardamos a lista para não quebrar no futuro).
+// ExtensÃµes binÃ¡rias que nÃ£o deverÃ­amos servir como texto (nenhuma hoje,
+// mas guardamos a lista para nÃ£o quebrar no futuro).
 const EXCLUDED = new Set<string>([]);
 
 async function sha256Hex(input: string): Promise<string> {
@@ -36,9 +39,9 @@ export async function buildManifest(): Promise<EdgeAgentManifest> {
     if (!p.startsWith(prefix)) continue;
     const rel = p.slice(prefix.length);
     if (EXCLUDED.has(rel)) continue;
-    // Nunca servir install.sh via updater — o updater não deve se auto-instalar
+    // Nunca servir install.sh via updater â€” o updater nÃ£o deve se auto-instalar
     if (rel === "install.sh") continue;
-    // Nunca servir bytecode / caches — quebra sha256 (binário lido como texto)
+    // Nunca servir bytecode / caches â€” quebra sha256 (binÃ¡rio lido como texto)
     if (rel.includes("__pycache__") || rel.endsWith(".pyc")) continue;
     const content = rawFiles[p];
     if (typeof content !== "string") continue;

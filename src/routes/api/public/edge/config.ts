@@ -1,5 +1,8 @@
+// © 2026 Looplance. All Rights Reserved.
+// Developed & Patented by Douglas Coutrim Silva.
+
 // GET /api/public/edge/config
-// Bootstrap do Edge Agent: câmeras ativas, input_boards e botoeiras vinculadas
+// Bootstrap do Edge Agent: cÃ¢meras ativas, input_boards e botoeiras vinculadas
 // ao device autenticado. Baseado em backend/server-routes/edge/config.ts.
 import { createFileRoute } from "@tanstack/react-router";
 import { requireEdgeDevice, requireEdgeSignature, EdgeAuthError } from "@/lib/edge-auth.server";
@@ -10,7 +13,7 @@ export const Route = createFileRoute("/api/public/edge/config")({
       GET: async ({ request }) => {
         try {
           const device = await requireEdgeDevice(request);
-          await requireEdgeSignature(request, ""); // GET não tem body
+          await requireEdgeSignature(request, ""); // GET nÃ£o tem body
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
@@ -41,8 +44,8 @@ export const Route = createFileRoute("/api/public/edge/config")({
             botoeiras = data ?? [];
           }
 
-          // Resolve arena_id por câmera via quadra (fallback quando o edge
-          // device não tem arena_id gravado). Isso garante que o LiveStreamer
+          // Resolve arena_id por cÃ¢mera via quadra (fallback quando o edge
+          // device nÃ£o tem arena_id gravado). Isso garante que o LiveStreamer
           // gere a key correta em live/{arena_id}/{quadra_id}/...
           const quadraIds = Array.from(
             new Set((cameras ?? []).map((c) => c.quadra_id).filter(Boolean) as string[]),

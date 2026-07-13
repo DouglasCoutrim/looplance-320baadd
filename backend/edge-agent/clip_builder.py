@@ -1,10 +1,13 @@
 """
+© 2026 Looplance. All Rights Reserved.
+Developed & Patented by Douglas Coutrim Silva.
+
 Monta o replay final a partir dos segmentos em RAM:
-  1. concatena os segmentos relevantes (concat demuxer)
-  2. corta para exatamente `replay_seconds` (a partir do fim)
-  3. queima o overlay (sponsor/marca) se configurado, apenas se
-     os arquivos `slot_*.png` existirem fisicamente no SSD
-  4. grava o mp4 final tambem em tmpfs
+   1. concatena os segmentos relevantes (concat demuxer)
+   2. corta para exatamente `replay_seconds` (a partir do fim)
+   3. queima o overlay (sponsor/marca) se configurado, apenas se
+      os arquivos `slot_*.png` existirem fisicamente no SSD
+   4. grava o mp4 final tambem em tmpfs
 
 O caller eh responsavel por apagar o mp4 final depois do upload.
 """
@@ -95,11 +98,13 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     sponsor_files = _validate_sponsor_files(arena_id) if vertical else []
     n_sp = len(sponsor_files)
     if vertical:
-        filenames = [Path(s["path"]).name for s in sponsor_files]
-        log.info(
-            "Arquivos de patrocinadores encontrados: %s",
-            filenames if filenames else "(nenhum)",
-        )
+        for sf in sponsor_files:
+            p = Path(sf["path"])
+            size = p.stat().st_size if p.is_file() else 0
+            log.info(
+                "[sponsor] arena=%s file=%s size=%d bytes exists=%s input_idx=%d pos=%d",
+                arena_id, p.name, size, p.is_file(), sf["input_idx"], sf["position_index"],
+            )
 
     # ── Montagem dinamica dos inputs ─────────────────────────────────
     if vertical:
@@ -142,7 +147,7 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
                 slot_order = (pos - 1) // 2 if pos % 2 == 1 else (pos // 2) - 1
                 x_expr = str(slot_order * 300 + 20)
 
-            y_val = 40 if pos % 2 == 1 else 1730
+            y_val = 50 if pos % 2 == 1 else 1700
             out_label = "[v_final]" if i == n_sp - 1 else f"[v_tmp{i}]"
             parts.append(f"{prev}[sp{idx}]overlay={x_expr}:{y_val}{out_label}")
             prev = out_label
@@ -179,6 +184,9 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
         cmd += ["-map", "0:v?", "-map", "0:a?"]
 
     cmd += [
+        "-metadata", "title=Looplance Replay",
+        "-metadata", "artist=Douglas Coutrim Silva",
+        "-metadata", "copyright=Copyright © 2026 Douglas Coutrim Silva. Patented.",
         "-t", str(replay_seconds),
         "-shortest",
         "-c:v", "libx264", "-preset", "veryfast", "-crf", "23",

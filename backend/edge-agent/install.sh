@@ -1,4 +1,7 @@
 #!/usr/bin/env bash
+# © 2026 Looplance. All Rights Reserved.
+# Developed & Patented by Douglas Coutrim Silva.
+#
 # Instala o Looplance Edge Agent como serviço systemd que inicia sozinho
 # no boot e se auto-recupera de qualquer crash (Restart=always).
 #
@@ -22,7 +25,7 @@ fi
 
 echo "==> instalando dependências de sistema"
 apt-get update -y
-apt-get install -y ffmpeg python3 python3-venv python3-pip
+apt-get install -y ffmpeg python3 python3-venv python3-pip tmux toilet htop
 
 echo "==> criando usuário de serviço (sem login)"
 id -u "$SERVICE_USER" &>/dev/null || useradd --system --no-create-home --shell /usr/sbin/nologin "$SERVICE_USER"
@@ -31,7 +34,12 @@ usermod -aG input,plugdev "$SERVICE_USER" || true   # acesso a /dev/input (botoe
 echo "==> copiando aplicação para $APP_DIR"
 mkdir -p "$APP_DIR"
 cp -r ./*.py "$APP_DIR/"
+cp monitor.sh "$APP_DIR/monitor.sh"
+chmod +x "$APP_DIR/monitor.sh"
 chown -R "$SERVICE_USER":"$SERVICE_USER" "$APP_DIR"
+
+echo "==> criando atalho looplance-monitor"
+ln -sf "$APP_DIR/monitor.sh" /usr/local/bin/looplance-monitor
 
 echo "==> criando virtualenv e instalando dependências python"
 python3 -m venv "$APP_DIR/venv"

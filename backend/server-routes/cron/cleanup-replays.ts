@@ -1,13 +1,16 @@
+// © 2026 Looplance. All Rights Reserved.
+// Developed & Patented by Douglas Coutrim Silva.
+
 // app/routes/api/public/cron/cleanup-replays.ts
 //
 // POST /api/public/cron/cleanup-replays   (spec 6.6)
-// Header: x-cron-secret (comparação timing-safe contra CRON_SECRET)
+// Header: x-cron-secret (comparaÃ§Ã£o timing-safe contra CRON_SECRET)
 //
-// Para cada arena: lê arena_settings.replay_retention_days, encontra
-// replays mais antigos que a retenção, apaga do R2, registra em
-// r2_deletion_logs e só remove a linha de `replays` após sucesso no R2.
+// Para cada arena: lÃª arena_settings.replay_retention_days, encontra
+// replays mais antigos que a retenÃ§Ã£o, apaga do R2, registra em
+// r2_deletion_logs e sÃ³ remove a linha de `replays` apÃ³s sucesso no R2.
 //
-// Agende via cron do próprio host (crontab) ou scheduler externo
+// Agende via cron do prÃ³prio host (crontab) ou scheduler externo
 // (Cloudflare Cron Trigger / GitHub Actions schedule), ex:
 //   0 4 * * * curl -X POST https://looplance.app/api/public/cron/cleanup-replays \
 //     -H "x-cron-secret: $CRON_SECRET"
@@ -30,8 +33,8 @@ export const Route = createAPIFileRoute('/api/public/cron/cleanup-replays')({
 
       if (settingsErr) throw new EdgeAuthError(`Erro lendo arena_settings: ${settingsErr.message}`, 500)
 
-      // Fallback global caso alguma arena não tenha replay_retention_days
-      // configurado (não deveria acontecer, já que arena_settings tem
+      // Fallback global caso alguma arena nÃ£o tenha replay_retention_days
+      // configurado (nÃ£o deveria acontecer, jÃ¡ que arena_settings tem
       // default 30, mas defende contra null/0).
       const fallbackTtlDays = Number(process.env.REPLAY_TTL_HOURS ?? '72') / 24
 
