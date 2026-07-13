@@ -27,6 +27,7 @@ import sys
 import threading
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 
 import shutil
 
@@ -66,6 +67,7 @@ class EdgeAgent:
         self.buffers: dict[str, CameraBuffer] = {}
         self.livers: dict[str, LiveStreamer] = {}
         self._camera_configs: dict[str, str] = {}
+        self._executor = ThreadPoolExecutor(max_workers=2)
 
     @staticmethod
     def _camera_config_hash(camera: cfg.CameraConfig) -> str:
@@ -104,6 +106,7 @@ class EdgeAgent:
         threading.Thread(target=self._config_refresh_loop, daemon=True).start()
 
     def stop(self) -> None:
+        self._executor.shutdown(wait=False, cancel_futures=True)
         for buf in self.buffers.values():
             buf.stop()
         for live in self.livers.values():
@@ -125,13 +128,11 @@ class EdgeAgent:
         if not cam:
             log.warning("câmera %s do mapeamento %s não encontrada/ativa", mapping.camera_id, local_key)
             return
-        threading.Thread(target=self._handle_replay, args=(cam,), daemon=True).start()
+        self._executor.submit(self._handle_replay, cam)
 
     def _trigger_by_camera_id(self, camera_id: str) -> None:
         cam = next((c for c in self.settings.cameras if c.id == camera_id), None)
         if not cam:
-            # Provavelmente a câmera foi criada/editada depois do boot do
-            # agente. Recarrega config remota e sobe buffers novos.
             log.info("manual trigger: camera %s desconhecida, recarregando config remota...", camera_id)
             try:
                 cfg.fetch_remote_config(self.settings)
@@ -144,7 +145,7 @@ class EdgeAgent:
             log.warning("manual trigger: camera %s continua indisponível após refresh", camera_id)
             return
         log.info("manual trigger recebido para camera %s (%s)", cam.name, camera_id)
-        threading.Thread(target=self._handle_replay, args=(cam,), daemon=True).start()
+        self._executor.submit(self._handle_replay, cam)
 
     def _sync_buffers(self) -> None:
         """Garante buffer + live HLS para cada câmera ativa; encerra as removidas.
@@ -188,30 +189,32 @@ class EdgeAgent:
             self._camera_configs[cam.id] = new_hash
 
     def _handle_replay(self, cam: cfg.CameraConfig) -> None:
-        buf = self.buffers.get(cam.id)
-        if not buf:
-            log.error("[%s] sem buffer ativo", cam.name)
-            return
-
-        replay_id = str(uuid.uuid4())
-        log.info("[%s] gerando replay %s", cam.name, replay_id)
         try:
+            buf = self.buffers.get(cam.id)
+            if not buf:
+                log.error("[%s] sem buffer ativo", cam.name)
+                return
+
+            replay_id = str(uuid.uuid4())
+            log.info("[%s] gerando replay %s", cam.name, replay_id)
+
             segments = buf.segments_for_window(cam.buffer_seconds)
             clip_path, duration = build_clip(self.settings, cam, segments)
         except ClipBuildError:
             log.exception("[%s] falha ao montar clip", cam.name)
             return
+        except Exception:
+            log.exception("[%s] erro inesperado ao montar clip", cam.name)
+            return
 
-        # Registra o replay como 'processing' antes do upload para que,
-        # mesmo que o upload ou a atualização de status falhem, o registro
-        # exista no banco e possa ser recuperado posteriormente.
+        clip_path_ref = clip_path
         draft = None
         try:
             draft = api_client.register_replay_draft(
                 self.settings,
                 quadra_id=cam.quadra_id,
             )
-        except Exception:  # noqa: BLE001
+        except Exception:
             log.exception("[%s] falha ao registrar draft do replay", cam.name)
 
         r2_key = video_url = ""
@@ -223,14 +226,13 @@ class EdgeAgent:
                 arena_id=cam.arena_id,
                 quadra_id=cam.quadra_id,
                 replay_id=replay_id,
-                file_path=clip_path,
+                file_path=clip_path_ref,
             )
             upload_ok = True
             log.info("[%s] replay %s enviado ao R2", cam.name, replay_id)
-        except Exception:  # noqa: BLE001
+        except Exception:
             log.exception("[%s] falha ao enviar clip ao R2", cam.name)
 
-        # Atualiza o draft com o status final
         if draft:
             draft_id = draft.get("replay", {}).get("id", "")
             if draft_id and upload_ok:
@@ -245,7 +247,7 @@ class EdgeAgent:
                         file_size_bytes=size,
                     )
                     log.info("[%s] replay %s publicado com sucesso", cam.name, replay_id)
-                except Exception:  # noqa: BLE001
+                except Exception:
                     log.exception("[%s] falha ao atualizar status do replay", cam.name)
             elif draft_id:
                 try:
@@ -254,13 +256,12 @@ class EdgeAgent:
                         replay_id=draft_id,
                         status="failed",
                     )
-                except Exception:  # noqa: BLE001
+                except Exception:
                     log.exception("[%s] falha ao marcar replay como failed", cam.name)
 
-        # Cleanup: remove o MP4 temporário da RAM
         try:
-            clip_path.unlink(missing_ok=True)
-        except Exception:  # noqa: BLE001
+            clip_path_ref.unlink(missing_ok=True)
+        except Exception:
             pass
 
     # -- background loops --------------------------------------------------

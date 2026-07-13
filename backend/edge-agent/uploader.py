@@ -23,6 +23,8 @@ def _client(settings: Settings):
             signature_version="s3v4",
             retries={"max_attempts": 3},
             s3={"addressing_style": "path"},
+            read_timeout=45,
+            connect_timeout=10,
         ),
         region_name="auto",
     )
