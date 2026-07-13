@@ -17,9 +17,8 @@ export const Route = createFileRoute("/api/public/edge/config")({
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-          const arenaId = device.arena_id;
-
-          const [{ data: cameras, error: camErr }, { data: boards, error: boardErr }, { data: sponsors, error: spoErr }] =
+          // 1. Busca câmeras e input_boards em paralelo
+          const [{ data: cameras, error: camErr }, { data: boards, error: boardErr }] =
             await Promise.all([
               supabaseAdmin
                 .from("cameras")
@@ -29,21 +28,44 @@ export const Route = createFileRoute("/api/public/edge/config")({
                 .from("input_boards")
                 .select("id, name, device_name, vendor_id, product_id")
                 .eq("edge_device_id", device.id),
-              arenaId
-                ? supabaseAdmin
-                    .from("arena_sponsors")
-                    .select("logo_url, position_index")
-                    .eq("arena_id", arenaId)
-                    .eq("is_active", true)
-                    .order("position_index", { ascending: true })
-                : Promise.resolve({ data: [] }),
             ]);
-
 
           if (camErr) throw new EdgeAuthError(`Erro lendo cameras: ${camErr.message}`, 500);
           if (boardErr) throw new EdgeAuthError(`Erro lendo input_boards: ${boardErr.message}`, 500);
+
+          // 2. Resolve arena_id: device → quadra das câmeras
+          const quadraIds = Array.from(
+            new Set((cameras ?? []).map((c) => c.quadra_id).filter(Boolean) as string[]),
+          );
+          let resolvedArenaId = device.arena_id;
+          const arenaByQuadra = new Map<string, string>();
+          if (!resolvedArenaId && quadraIds.length > 0) {
+            const { data: quadras, error: qErr } = await supabaseAdmin
+              .from("quadras")
+              .select("id, arena_id")
+              .in("id", quadraIds);
+            if (qErr) throw new EdgeAuthError(`Erro lendo quadras: ${qErr.message}`, 500);
+            for (const q of quadras ?? []) {
+              if (q.arena_id) {
+                arenaByQuadra.set(q.id, q.arena_id);
+                if (!resolvedArenaId) resolvedArenaId = q.arena_id;
+              }
+            }
+          }
+
+          // 3. Busca patrocinadores com o arena_id resolvido
+          const { data: sponsors, error: spoErr } = resolvedArenaId
+            ? await supabaseAdmin
+                .from("arena_sponsors")
+                .select("logo_url, position_index")
+                .eq("arena_id", resolvedArenaId)
+                .eq("is_active", true)
+                .order("position_index", { ascending: true })
+            : { data: [], error: null };
+
           if (spoErr) throw new EdgeAuthError(`Erro lendo arena_sponsors: ${spoErr.message}`, 500);
 
+          // 4. Botoeiras
           const cameraIds = (cameras ?? []).map((c) => c.id);
           let botoeiras: unknown[] = [];
           if (cameraIds.length > 0) {
@@ -55,30 +77,12 @@ export const Route = createFileRoute("/api/public/edge/config")({
             botoeiras = data ?? [];
           }
 
-          // Resolve arena_id por câmera via quadra (fallback quando o edge
-          // device não tem arena_id gravado). Isso garante que o LiveStreamer
-          // gere a key correta em live/{arena_id}/{quadra_id}/...
-          const quadraIds = Array.from(
-            new Set((cameras ?? []).map((c) => c.quadra_id).filter(Boolean) as string[]),
-          );
-          const arenaByQuadra = new Map<string, string>();
-          if (quadraIds.length > 0) {
-            const { data: quadras, error: qErr } = await supabaseAdmin
-              .from("quadras")
-              .select("id, arena_id")
-              .in("id", quadraIds);
-            if (qErr) throw new EdgeAuthError(`Erro lendo quadras: ${qErr.message}`, 500);
-            (quadras ?? []).forEach((q) => {
-              if (q.arena_id) arenaByQuadra.set(q.id, q.arena_id);
-            });
-          }
-
           return Response.json({
-            device: { id: device.id, arena_id: device.arena_id, name: device.name },
+            device: { id: device.id, arena_id: resolvedArenaId, name: device.name },
             cameras: (cameras ?? []).map((c) => ({
               ...c,
               arena_id:
-                device.arena_id ?? (c.quadra_id ? arenaByQuadra.get(c.quadra_id) ?? null : null),
+                resolvedArenaId ?? (c.quadra_id ? arenaByQuadra.get(c.quadra_id) ?? null : null),
             })),
             input_boards: boards ?? [],
             botoeiras,
