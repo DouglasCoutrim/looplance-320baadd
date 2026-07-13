@@ -292,54 +292,65 @@ function Arenas() {
     };
 
     setSubmitting(true);
-    let arenaId = editing?.id;
-    if (editing) {
-      const { error } = await supabase.from("arenas").update(payload).eq("id", editing.id);
-      if (error) { setSubmitting(false); return toast.error("Erro ao atualizar arena"); }
-      toast.success("Arena atualizada");
-    } else {
-      const { data: inserted, error } = await supabase.from("arenas").insert([payload]).select("id").single();
-      if (error || !inserted) { setSubmitting(false); return toast.error("Erro ao criar arena"); }
-      arenaId = inserted.id;
-      toast.success("Arena criada");
-    }
-
-    // Sync arena_sponsors: upsert atuais, desativa os que foram removidos
-    if (arenaId) {
-      const currentPositions = sponsors.map((s) => s.position_index);
-      for (const s of sponsors) {
-        await supabase.from("arena_sponsors").upsert(
-          {
-            arena_id: arenaId,
-            logo_url: s.logo_url,
-            position_index: s.position_index,
-            is_active: true,
-          },
-          { onConflict: "arena_id,position_index" },
-        );
-      }
-      if (currentPositions.length > 0) {
-        await supabase
-          .from("arena_sponsors")
-          .update({ is_active: false })
-          .eq("arena_id", arenaId)
-          .not("position_index", "in", `(${currentPositions.join(",")})`);
+    try {
+      let arenaId = editing?.id;
+      if (editing) {
+        const { error } = await supabase.from("arenas").update(payload).eq("id", editing.id);
+        if (error) { setSubmitting(false); return toast.error("Erro ao atualizar arena"); }
+        toast.success("Arena atualizada");
       } else {
-        await supabase
-          .from("arena_sponsors")
-          .update({ is_active: false })
-          .eq("arena_id", arenaId);
+        const { data: inserted, error } = await supabase.from("arenas").insert([payload]).select("id").single();
+        if (error || !inserted) { setSubmitting(false); return toast.error("Erro ao criar arena"); }
+        arenaId = inserted.id;
+        toast.success("Arena criada");
       }
-    }
 
-    setSubmitting(false);
-    if (editing) {
-      setViewMode(true);
-    } else {
-      setIsDialogOpen(false);
-      resetForm();
+      // Sync arena_sponsors: upsert atuais, desativa os que foram removidos
+      if (arenaId) {
+        const currentPositions = sponsors.map((s) => s.position_index);
+        for (const s of sponsors) {
+          const { error: upsertError } = await supabase
+            .from("arena_sponsors")
+            .upsert(
+              {
+                arena_id: arenaId,
+                logo_url: s.logo_url,
+                position_index: s.position_index,
+                is_active: true,
+              },
+              { onConflict: "arena_id,position_index" },
+            );
+          if (upsertError) throw upsertError;
+        }
+        if (currentPositions.length > 0) {
+          const { error: deactivateError } = await supabase
+            .from("arena_sponsors")
+            .update({ is_active: false })
+            .eq("arena_id", arenaId)
+            .not("position_index", "in", `(${currentPositions.join(",")})`);
+          if (deactivateError) throw deactivateError;
+        } else {
+          const { error: deactivateError } = await supabase
+            .from("arena_sponsors")
+            .update({ is_active: false })
+            .eq("arena_id", arenaId);
+          if (deactivateError) throw deactivateError;
+        }
+      }
+
+      setSubmitting(false);
+      if (editing) {
+        setViewMode(true);
+      } else {
+        setIsDialogOpen(false);
+        resetForm();
+      }
+      fetchAll();
+    } catch (error) {
+      console.error("ERRO CRÍTICO AO SALVAR NO BANCO:", error);
+      setSubmitting(false);
+      toast.error("Erro ao salvar: " + (error instanceof Error ? error.message : String(error)));
     }
-    fetchAll();
   };
 
   const handleDelete = async () => {
