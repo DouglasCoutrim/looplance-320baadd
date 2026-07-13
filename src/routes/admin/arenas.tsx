@@ -110,6 +110,18 @@ function Arenas() {
 
   useEffect(() => { fetchAll(); }, []);
 
+  // Carrega patrocinadores quando abrir edição de uma arena
+  useEffect(() => {
+    if (!editing) { setSponsors([]); return; }
+    supabase
+      .from("arena_sponsors")
+      .select("id, logo_url, position_index")
+      .eq("arena_id", editing.id)
+      .eq("is_active", true)
+      .order("position_index")
+      .then(({ data }) => setSponsors(data ?? []));
+  }, [editing]);
+
   const filteredEdges = useMemo(
     () => (clientId ? edges.filter((e) => e.client_id === clientId) : []),
     [edges, clientId]
@@ -176,14 +188,6 @@ function Arenas() {
     setLatitude(a.latitude != null ? String(a.latitude) : "");
     setLongitude(a.longitude != null ? String(a.longitude) : "");
     setLogoUrl(a.logo_url ?? null);
-    // Load existing sponsors
-    const { data: spo } = await supabase
-      .from("arena_sponsors")
-      .select("id, logo_url, position_index")
-      .eq("arena_id", a.id)
-      .eq("is_active", true)
-      .order("position_index");
-    setSponsors(spo ?? []);
     setIsDialogOpen(true);
   };
 
@@ -227,10 +231,11 @@ function Arenas() {
         .from("arenas")
         .upload(path, file, { cacheControl: "3600", upsert: false, contentType: file.type });
       if (upErr) throw upErr;
-      const { data: pub } = supabase.storage.from("arenas").getPublicUrl(path);
+      const { data } = supabase.storage.from("arenas").getPublicUrl(path);
+      const publicUrl = data.publicUrl;
       setSponsors((prev) => {
         const next = prev.filter((s) => s.position_index !== positionIndex);
-        return [...next, { logo_url: pub.publicUrl, position_index: positionIndex }].sort(
+        return [...next, { logo_url: publicUrl, position_index: positionIndex }].sort(
           (a, b) => a.position_index - b.position_index,
         );
       });
@@ -294,16 +299,31 @@ function Arenas() {
       toast.success("Arena criada");
     }
 
-    // Sync arena_sponsors: desativa todos os existentes, insere os atuais
+    // Sync arena_sponsors: upsert atuais, desativa os que foram removidos
     if (arenaId) {
-      await supabase.from("arena_sponsors").update({ is_active: false }).eq("arena_id", arenaId);
+      const currentPositions = sponsors.map((s) => s.position_index);
       for (const s of sponsors) {
-        await supabase.from("arena_sponsors").insert([{
-          arena_id: arenaId,
-          logo_url: s.logo_url,
-          position_index: s.position_index,
-          is_active: true,
-        }]);
+        await supabase.from("arena_sponsors").upsert(
+          {
+            arena_id: arenaId,
+            logo_url: s.logo_url,
+            position_index: s.position_index,
+            is_active: true,
+          },
+          { onConflict: "arena_id,position_index" },
+        );
+      }
+      if (currentPositions.length > 0) {
+        await supabase
+          .from("arena_sponsors")
+          .update({ is_active: false })
+          .eq("arena_id", arenaId)
+          .not("position_index", "in", `(${currentPositions.join(",")})`);
+      } else {
+        await supabase
+          .from("arena_sponsors")
+          .update({ is_active: false })
+          .eq("arena_id", arenaId);
       }
     }
 
