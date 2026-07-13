@@ -91,7 +91,7 @@ def update_replay_status(
         "status": status,
         "r2_key": r2_key,
         "video_url": video_url,
-        "duration_sec": round(duration_sec, 2),
+        "duration_sec": int(round(duration_sec)),
         "file_size_bytes": file_size_bytes,
     }
     _post_signed(settings, "/api/public/edge/replay-complete", body, timeout=20)
@@ -110,7 +110,7 @@ def register_replay(
         "quadra_id": quadra_id,
         "r2_key": r2_key,
         "video_url": video_url,
-        "duration_sec": round(duration_sec, 2),
+        "duration_sec": int(round(duration_sec)),
         "file_size_bytes": file_size_bytes,
     }
     resp = _post_signed(settings, "/api/public/edge/replay", body, timeout=20)
