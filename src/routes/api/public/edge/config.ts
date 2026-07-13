@@ -17,7 +17,9 @@ export const Route = createFileRoute("/api/public/edge/config")({
 
           const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-          const [{ data: cameras, error: camErr }, { data: boards, error: boardErr }] =
+          const arenaId = device.arena_id;
+
+          const [{ data: cameras, error: camErr }, { data: boards, error: boardErr }, { data: sponsors, error: spoErr }] =
             await Promise.all([
               supabaseAdmin
                 .from("cameras")
@@ -27,11 +29,20 @@ export const Route = createFileRoute("/api/public/edge/config")({
                 .from("input_boards")
                 .select("id, name, device_name, vendor_id, product_id")
                 .eq("edge_device_id", device.id),
+              arenaId
+                ? supabaseAdmin
+                    .from("arena_sponsors")
+                    .select("logo_url, position_index")
+                    .eq("arena_id", arenaId)
+                    .eq("is_active", true)
+                    .order("position_index", { ascending: true })
+                : Promise.resolve({ data: [] }),
             ]);
 
 
           if (camErr) throw new EdgeAuthError(`Erro lendo cameras: ${camErr.message}`, 500);
           if (boardErr) throw new EdgeAuthError(`Erro lendo input_boards: ${boardErr.message}`, 500);
+          if (spoErr) throw new EdgeAuthError(`Erro lendo arena_sponsors: ${spoErr.message}`, 500);
 
           const cameraIds = (cameras ?? []).map((c) => c.id);
           let botoeiras: unknown[] = [];
@@ -71,6 +82,7 @@ export const Route = createFileRoute("/api/public/edge/config")({
             })),
             input_boards: boards ?? [],
             botoeiras,
+            sponsors: sponsors ?? [],
           });
 
         } catch (err) {
