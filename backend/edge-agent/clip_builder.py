@@ -296,6 +296,7 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     valid_segments = [s for s in segments if s.exists()]
 
     buffer_seconds = camera.buffer_seconds or 60
+    replay_seconds = camera.replay_seconds
     keep_count = max(1, int(len(valid_segments) * (replay_seconds / buffer_seconds)))
     segments_to_concat = valid_segments[-keep_count:]
 
