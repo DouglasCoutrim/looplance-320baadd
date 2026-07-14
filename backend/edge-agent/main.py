@@ -230,6 +230,9 @@ class EdgeAgent:
             replay_id = str(uuid.uuid4())
             log.info("[%s] replay_id=%s | buscando segmentos (buffer_seconds=%s)...",
                      cam.name, replay_id, cam.buffer_seconds)
+            log.info("[%s] buffer status=%s alive=%s segments=%d error=%s",
+                     cam.name, buf.last_status, buf.is_alive(), len(buf._segments),
+                     buf.last_error or "(none)")
 
             segments = buf.segments_for_window(cam.buffer_seconds)
             log.info("[%s] segmentos obtidos: %d arquivos", cam.name, len(segments))
