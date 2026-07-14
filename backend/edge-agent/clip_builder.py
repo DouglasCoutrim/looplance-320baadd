@@ -477,10 +477,10 @@ def _build_inputs(replay_seconds, concat_list, top_sponsors, bottom_sponsors, ha
         "-i", str(concat_list),
     ]
 
-    # Logos SEM -loop 1 — cada PNG é 1 frame; com eof_action=pass,
-    # o overlay termina quando o frame acaba e deixa o video passar.
+    # Logos com -loop 1 para que o frame único do PNG se repita
+    # durante todo o vídeo, em vez de encerrar após 1 frame.
     for sf in top_sponsors + bottom_sponsors:
-        inputs += ["-i", sf["path"]]
+        inputs += ["-loop", "1", "-i", sf["path"]]
 
     if has_overlay:
         inputs += ["-i", overlay_url]
