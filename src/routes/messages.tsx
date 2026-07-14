@@ -19,50 +19,149 @@ interface Contact {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
-  online?: boolean;
+}
+
+interface MessageRow {
+  id: string;
+  sender_id: string;
+  receiver_id: string;
+  content: string;
+  created_at: string;
+  read: boolean;
 }
 
 function MessagesPage() {
+  const [uid, setUid] = useState<string | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [openChat, setOpenChat] = useState<Contact | null>(null);
   const [msg, setMsg] = useState("");
-  const [thread, setThread] = useState<{ from: "me" | "them"; text: string; time: string }[]>([]);
+  const [messages, setMessages] = useState<MessageRow[]>([]);
+  const [sending, setSending] = useState(false);
+  const [unreadCounts, setUnreadCounts] = useState<Record<string, number>>({});
   const endRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
-      if (!data.user) return;
-      const { data: follows } = await supabase
-        .from("follows")
-        .select("following_id")
-        .eq("follower_id", data.user.id);
-      const ids = (follows ?? []).map((f: any) => f.following_id);
-      if (ids.length === 0) {
-        const { data: any } = await supabase
-          .from("profiles")
-          .select("id, full_name, avatar_url")
-          .neq("id", data.user.id)
-          .limit(8);
-        setContacts(((any ?? []) as Contact[]).map((c, i) => ({ ...c, online: i % 2 === 0 })));
-        return;
-      }
+      const user = data.user;
+      if (!user) return;
+      setUid(user.id);
+      loadContacts(user.id);
+    });
+  }, []);
+
+  const loadContacts = async (userId: string) => {
+    const { data: follows } = await supabase
+      .from("follows")
+      .select("following_id")
+      .eq("follower_id", userId);
+    const ids = (follows ?? []).map((f: any) => f.following_id);
+    const followed: Contact[] = [];
+    if (ids.length > 0) {
       const { data: profs } = await supabase
         .from("profiles")
         .select("id, full_name, avatar_url")
         .in("id", ids);
-      setContacts(((profs ?? []) as Contact[]).map((c, i) => ({ ...c, online: i % 2 === 0 })));
-    });
-  }, []);
+      for (const p of (profs ?? []) as any[]) {
+        followed.push({ id: p.id, full_name: p.full_name, avatar_url: p.avatar_url });
+      }
+    }
+
+    if (followed.length === 0) {
+      const { data: others } = await supabase
+        .from("profiles")
+        .select("id, full_name, avatar_url")
+        .neq("id", userId)
+        .limit(8);
+      setContacts((others ?? []) as Contact[]);
+      return;
+    }
+    setContacts(followed);
+
+    const { data: allUnread } = await supabase
+      .from("messages")
+      .select("sender_id")
+      .eq("receiver_id", userId)
+      .eq("read", false);
+    const counts: Record<string, number> = {};
+    if (allUnread) {
+      for (const row of allUnread) {
+        counts[row.sender_id] = (counts[row.sender_id] || 0) + 1;
+      }
+    }
+    setUnreadCounts(counts);
+  };
+
+  const openConversation = async (contact: Contact) => {
+    setOpenChat(contact);
+    if (!uid) return;
+    loadMessages(uid, contact.id);
+
+    supabase
+      .from("messages")
+      .update({ read: true })
+      .eq("receiver_id", uid)
+      .eq("sender_id", contact.id)
+      .eq("read", false)
+      .then(() => {
+        setUnreadCounts((prev) => ({ ...prev, [contact.id]: 0 }));
+      });
+  };
+
+  const loadMessages = async (userId: string, contactId: string) => {
+    const { data } = await supabase
+      .from("messages")
+      .select("*")
+      .or(`and(sender_id.eq.${userId},receiver_id.eq.${contactId}),and(sender_id.eq.${contactId},receiver_id.eq.${userId})`)
+      .order("created_at", { ascending: true });
+    setMessages((data ?? []) as MessageRow[]);
+  };
+
+  useEffect(() => {
+    if (!uid || !openChat) return;
+    const ch = supabase
+      .channel(`messages-${uid}-${openChat.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `receiver_id=eq.${uid}`,
+        },
+        (payload) => {
+          const row = payload.new as MessageRow;
+          if (row.sender_id !== openChat.id) return;
+          setMessages((prev) => [...prev, row]);
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [uid, openChat]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [thread, openChat]);
+  }, [messages]);
 
-  const send = () => {
-    if (!msg.trim() || !openChat) return;
-    setThread((t) => [...t, { from: "me", text: msg.trim(), time: "agora" }]);
+  const send = async () => {
+    const content = msg.trim();
+    if (!content || !uid || !openChat || sending) return;
+    setSending(true);
+    const { error } = await supabase.from("messages").insert({
+      sender_id: uid,
+      receiver_id: openChat.id,
+      content,
+    });
+    setSending(false);
+    if (error) { toast.error("Erro ao enviar mensagem"); return; }
+    setMessages((prev) => [...prev, {
+      id: "",
+      sender_id: uid,
+      receiver_id: openChat.id,
+      content,
+      created_at: new Date().toISOString(),
+      read: false,
+    }]);
     setMsg("");
-    toast("Mensagens em tempo real em breve 🚧");
   };
 
   return (
@@ -86,11 +185,8 @@ function MessagesPage() {
           {contacts.map((c) => (
             <button
               key={c.id}
-              onClick={() => {
-                setOpenChat(c);
-                setThread([]);
-              }}
-              className="w-full flex items-center gap-3.5 p-4 bg-card rounded-xl border border-border hover:border-orange-500/30 transition-all text-left group"
+              onClick={() => openConversation(c)}
+              className="w-full flex items-center gap-3.5 p-4 bg-card rounded-xl border border-border hover:border-orange-500/30 transition-all text-left group relative"
             >
               <div className="relative shrink-0">
                 <div className="w-12 h-12 rounded-full overflow-hidden bg-secondary grid place-items-center">
@@ -102,18 +198,22 @@ function MessagesPage() {
                     </span>
                   )}
                 </div>
-                {c.online && (
-                  <div className="absolute bottom-0 right-0 w-3 h-3 rounded-full bg-green-400 border-2 border-card" />
-                )}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between mb-1">
                   <span className="font-bold text-sm truncate">{c.full_name || "Atleta"}</span>
                 </div>
                 <p className="text-xs text-muted-foreground truncate">
-                  {c.online ? "Online agora" : "Toque para iniciar uma conversa"}
+                  {unreadCounts[c.id] && unreadCounts[c.id] > 0
+                    ? `${unreadCounts[c.id]} mensagem(ns) não lida(s)`
+                    : "Toque para conversar"}
                 </p>
               </div>
+              {unreadCounts[c.id] ? (
+                <span className="absolute top-3 right-3 bg-orange-500 text-black text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                  {unreadCounts[c.id]}
+                </span>
+              ) : null}
             </button>
           ))}
         </div>
@@ -137,7 +237,6 @@ function MessagesPage() {
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-sm truncate">{openChat.full_name || "Atleta"}</p>
-              <p className="text-xs text-green-400 font-medium">Online</p>
             </div>
             <button
               onClick={() => setOpenChat(null)}
@@ -148,19 +247,19 @@ function MessagesPage() {
           </div>
 
           <div className="flex-1 overflow-y-auto p-4 space-y-2.5">
-            {thread.length === 0 && (
+            {messages.length === 0 && (
               <p className="text-center text-xs text-muted-foreground py-8">Comece uma conversa!</p>
             )}
-            {thread.map((m, i) => (
-              <div key={i} className={`flex ${m.from === "me" ? "justify-end" : "justify-start"}`}>
+            {messages.map((m, i) => (
+              <div key={m.id || i} className={`flex ${m.sender_id === uid ? "justify-end" : "justify-start"}`}>
                 <div
                   className={`max-w-[80%] px-3.5 py-2 rounded-2xl text-sm ${
-                    m.from === "me"
+                    m.sender_id === uid
                       ? "text-black rounded-br-sm brand-gradient"
                       : "bg-secondary text-foreground rounded-bl-sm"
                   }`}
                 >
-                  {m.text}
+                  {m.content}
                 </div>
               </div>
             ))}
@@ -178,9 +277,10 @@ function MessagesPage() {
             />
             <button
               onClick={send}
-              className="w-9 h-9 rounded-xl flex items-center justify-center transition hover:opacity-85 active:scale-95 shrink-0 brand-gradient"
+              disabled={!msg.trim() || sending}
+              className={`w-9 h-9 rounded-xl flex items-center justify-center transition hover:opacity-85 active:scale-95 shrink-0 ${msg.trim() && !sending ? "brand-gradient" : "bg-zinc-800 text-zinc-600 cursor-not-allowed"}`}
             >
-              <Send className="w-4 h-4 text-black" />
+              <Send className={`w-4 h-4 ${msg.trim() && !sending ? "text-black" : "text-zinc-600"}`} />
             </button>
           </div>
         </div>

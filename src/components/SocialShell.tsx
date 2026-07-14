@@ -1,12 +1,13 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "@tanstack/react-router";
 import {
   Home, Compass, Play, MessageCircle, User, Bell, LogOut, LayoutDashboard,
-  Search, TrendingUp, Users,
+  Search, TrendingUp, Users, X, Heart, MessageSquare, UserPlus, ExternalLink,
 } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import logoSvg from "@/assets/looplance-logo.svg";
+import { useNotifications, AppNotification } from "@/hooks/useNotifications";
 
 interface Profile {
   id: string;
@@ -45,6 +46,17 @@ export function SocialShell({ children, active = "feed", hideRightPanel = false 
   const [email, setEmail] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [followed, setFollowed] = useState<Set<string>>(new Set());
+  const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
+  const [showNotif, setShowNotif] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (notifRef.current && !notifRef.current.contains(e.target as Node)) setShowNotif(false);
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
@@ -188,10 +200,20 @@ export function SocialShell({ children, active = "feed", hideRightPanel = false 
                 <LayoutDashboard className="w-4 h-4" />
               </Link>
             )}
-            <button className="relative grid place-items-center h-9 w-9 rounded-xl border border-border text-muted-foreground">
-              <Bell className="w-4 h-4" />
-              <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full brand-gradient" />
-            </button>
+            <div className="relative" ref={notifRef}>
+              <button
+                onClick={() => setShowNotif((v) => !v)}
+                className="relative grid place-items-center h-9 w-9 rounded-xl border border-border text-muted-foreground"
+              >
+                <Bell className="w-4 h-4" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-black text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </button>
+              {showNotif && <NotifDropdown notifications={notifications} unreadCount={unreadCount} onMarkRead={markRead} onMarkAllRead={markAllRead} onClose={() => setShowNotif(false)} />}
+            </div>
             <button
               onClick={handleLogout}
               className="grid place-items-center h-9 w-9 rounded-xl border border-border text-muted-foreground"
@@ -217,10 +239,19 @@ export function SocialShell({ children, active = "feed", hideRightPanel = false 
                 className="w-full bg-secondary rounded-xl pl-9 pr-3 py-2 text-sm focus:outline-none border border-transparent focus:border-primary/60 transition"
               />
             </div>
-            <button className="relative w-9 h-9 bg-secondary rounded-xl flex items-center justify-center hover:bg-secondary/80 transition shrink-0">
-              <Bell className="w-4 h-4 text-muted-foreground" />
-              <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full brand-gradient" />
-            </button>
+            <div className="relative">
+              <button
+                onClick={() => setShowNotif((v) => !v)}
+                className="relative w-9 h-9 bg-secondary rounded-xl flex items-center justify-center hover:bg-secondary/80 transition shrink-0"
+              >
+                <Bell className="w-4 h-4 text-muted-foreground" />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-orange-500 text-black text-[10px] font-bold rounded-full min-w-[18px] h-[18px] flex items-center justify-center px-1">
+                    {unreadCount > 99 ? "99+" : unreadCount}
+                  </span>
+                )}
+              </button>
+            </div>
           </div>
 
           <div>
@@ -324,6 +355,65 @@ export function SocialShell({ children, active = "feed", hideRightPanel = false 
           })}
         </div>
       </nav>
+    </div>
+  );
+}
+
+function timeAgo(iso: string) {
+  const diff = Math.max(0, (Date.now() - new Date(iso).getTime()) / 1000);
+  if (diff < 60) return `${Math.floor(diff)}s`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}min`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
+  if (diff < 604800) return `${Math.floor(diff / 86400)}d`;
+  return new Date(iso).toLocaleDateString("pt-BR");
+}
+
+function notifIcon(type: string) {
+  switch (type) {
+    case "like": return <Heart className="w-3.5 h-3.5 text-rose-400 shrink-0" />;
+    case "comment": return <MessageSquare className="w-3.5 h-3.5 text-sky-400 shrink-0" />;
+    case "follow": return <UserPlus className="w-3.5 h-3.5 text-emerald-400 shrink-0" />;
+    case "message": return <MessageCircle className="w-3.5 h-3.5 text-orange-400 shrink-0" />;
+    default: return <Bell className="w-3.5 h-3.5 text-zinc-400 shrink-0" />;
+  }
+}
+
+function NotifDropdown({ notifications, unreadCount, onMarkRead, onMarkAllRead, onClose }: {
+  notifications: AppNotification[];
+  unreadCount: number;
+  onMarkRead: (id: string) => void;
+  onMarkAllRead: () => void;
+  onClose: () => void;
+}) {
+  return (
+    <div className="absolute top-full right-0 mt-2 w-[360px] max-w-[90vw] bg-zinc-900 border border-zinc-800 rounded-2xl shadow-2xl z-[100] overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+        <span className="text-sm font-bold">Notificações</span>
+        {unreadCount > 0 && (
+          <button onClick={() => { onMarkAllRead(); }} className="text-xs text-orange-400 hover:text-orange-300 transition font-semibold">
+            Marcar todas como lidas
+          </button>
+        )}
+      </div>
+      <div className="max-h-80 overflow-y-auto">
+        {notifications.length === 0 ? (
+          <p className="text-xs text-zinc-500 text-center py-10">Nenhuma notificação</p>
+        ) : notifications.slice(0, 30).map((n) => (
+          <button
+            key={n.id}
+            onClick={() => { if (!n.read) onMarkRead(n.id); }}
+            className={`w-full flex items-start gap-3 px-4 py-3 text-left transition hover:bg-zinc-800/50 ${n.read ? "" : "bg-zinc-800/30"}`}
+          >
+            <div className="mt-0.5">{notifIcon(n.type)}</div>
+            <div className="flex-1 min-w-0">
+              <p className={`text-sm ${n.read ? "text-zinc-300" : "text-zinc-100 font-semibold"}`}>{n.title}</p>
+              {n.body && <p className="text-xs text-zinc-500 truncate mt-0.5">{n.body}</p>}
+              <p className="text-[10px] text-zinc-600 mt-1">{timeAgo(n.created_at)}</p>
+            </div>
+            {!n.read && <span className="w-2 h-2 rounded-full bg-orange-500 shrink-0 mt-2" />}
+          </button>
+        ))}
+      </div>
     </div>
   );
 }

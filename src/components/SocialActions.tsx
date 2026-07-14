@@ -89,6 +89,29 @@ export function SocialActions({ targetId, targetType, shareUrl, shareText }: Pro
     })();
   }, [targetId, targetType]);
 
+  // Realtime: novos comentários
+  useEffect(() => {
+    const ch = supabase
+      .channel(`comments-${targetId}`)
+      .on(
+        "postgres_changes",
+        { event: "INSERT", schema: "public", table: "comments", filter: `target_id=eq.${targetId}` },
+        async (payload) => {
+          const record = payload.new as any;
+          if (record.user_id === uid) return;
+          const { data: prof } = await supabase
+            .from("profiles")
+            .select("full_name, avatar_url")
+            .eq("id", record.user_id)
+            .maybeSingle();
+          setComments((c) => [{ ...record, profile: prof }, ...c]);
+          setCommentsCount((c) => c + 1);
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [targetId, uid]);
+
   const loadComments = async () => {
     const { data } = await supabase
       .from("comments")
@@ -126,7 +149,8 @@ export function SocialActions({ targetId, targetType, shareUrl, shareText }: Pro
 
   const submitComment = async () => {
     const content = input.trim();
-    if (!content || !uid) return;
+    if (!content) return;
+    if (!uid) { toast.error("Faça login para comentar"); return; }
     setSending(true);
     const { data, error } = await supabase
       .from("comments")

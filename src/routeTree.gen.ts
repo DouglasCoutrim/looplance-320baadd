@@ -34,6 +34,7 @@ import { Route as AdminCamerasRouteImport } from './routes/admin/cameras'
 import { Route as AdminArenasRouteImport } from './routes/admin/arenas'
 import { Route as ApiPublicInstallRouteImport } from './routes/api/public/install'
 import { Route as LovableEmailQueueProcessRouteImport } from './routes/lovable/email/queue/process'
+import { Route as ApiPublicEdgeReplayCompleteRouteImport } from './routes/api/public/edge/replay-complete'
 import { Route as ApiPublicEdgeReplayRouteImport } from './routes/api/public/edge/replay'
 import { Route as ApiPublicEdgePendingTriggersRouteImport } from './routes/api/public/edge/pending-triggers'
 import { Route as ApiPublicEdgeHeartbeatRouteImport } from './routes/api/public/edge/heartbeat'
@@ -171,6 +172,12 @@ const LovableEmailQueueProcessRoute =
     path: '/lovable/email/queue/process',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiPublicEdgeReplayCompleteRoute =
+  ApiPublicEdgeReplayCompleteRouteImport.update({
+    id: '/api/public/edge/replay-complete',
+    path: '/api/public/edge/replay-complete',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiPublicEdgeReplayRoute = ApiPublicEdgeReplayRouteImport.update({
   id: '/api/public/edge/replay',
   path: '/api/public/edge/replay',
@@ -262,6 +269,7 @@ export interface FileRoutesByFullPath {
   '/api/public/edge/heartbeat': typeof ApiPublicEdgeHeartbeatRoute
   '/api/public/edge/pending-triggers': typeof ApiPublicEdgePendingTriggersRoute
   '/api/public/edge/replay': typeof ApiPublicEdgeReplayRoute
+  '/api/public/edge/replay-complete': typeof ApiPublicEdgeReplayCompleteRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesByTo {
@@ -298,6 +306,7 @@ export interface FileRoutesByTo {
   '/api/public/edge/heartbeat': typeof ApiPublicEdgeHeartbeatRoute
   '/api/public/edge/pending-triggers': typeof ApiPublicEdgePendingTriggersRoute
   '/api/public/edge/replay': typeof ApiPublicEdgeReplayRoute
+  '/api/public/edge/replay-complete': typeof ApiPublicEdgeReplayCompleteRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRoutesById {
@@ -336,6 +345,7 @@ export interface FileRoutesById {
   '/api/public/edge/heartbeat': typeof ApiPublicEdgeHeartbeatRoute
   '/api/public/edge/pending-triggers': typeof ApiPublicEdgePendingTriggersRoute
   '/api/public/edge/replay': typeof ApiPublicEdgeReplayRoute
+  '/api/public/edge/replay-complete': typeof ApiPublicEdgeReplayCompleteRoute
   '/lovable/email/queue/process': typeof LovableEmailQueueProcessRoute
 }
 export interface FileRouteTypes {
@@ -375,6 +385,7 @@ export interface FileRouteTypes {
     | '/api/public/edge/heartbeat'
     | '/api/public/edge/pending-triggers'
     | '/api/public/edge/replay'
+    | '/api/public/edge/replay-complete'
     | '/lovable/email/queue/process'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -411,6 +422,7 @@ export interface FileRouteTypes {
     | '/api/public/edge/heartbeat'
     | '/api/public/edge/pending-triggers'
     | '/api/public/edge/replay'
+    | '/api/public/edge/replay-complete'
     | '/lovable/email/queue/process'
   id:
     | '__root__'
@@ -448,6 +460,7 @@ export interface FileRouteTypes {
     | '/api/public/edge/heartbeat'
     | '/api/public/edge/pending-triggers'
     | '/api/public/edge/replay'
+    | '/api/public/edge/replay-complete'
     | '/lovable/email/queue/process'
   fileRoutesById: FileRoutesById
 }
@@ -474,6 +487,7 @@ export interface RootRouteChildren {
   ApiPublicEdgeHeartbeatRoute: typeof ApiPublicEdgeHeartbeatRoute
   ApiPublicEdgePendingTriggersRoute: typeof ApiPublicEdgePendingTriggersRoute
   ApiPublicEdgeReplayRoute: typeof ApiPublicEdgeReplayRoute
+  ApiPublicEdgeReplayCompleteRoute: typeof ApiPublicEdgeReplayCompleteRoute
   LovableEmailQueueProcessRoute: typeof LovableEmailQueueProcessRoute
 }
 
@@ -654,6 +668,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LovableEmailQueueProcessRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/public/edge/replay-complete': {
+      id: '/api/public/edge/replay-complete'
+      path: '/api/public/edge/replay-complete'
+      fullPath: '/api/public/edge/replay-complete'
+      preLoaderRoute: typeof ApiPublicEdgeReplayCompleteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/public/edge/replay': {
       id: '/api/public/edge/replay'
       path: '/api/public/edge/replay'
@@ -782,8 +803,19 @@ const rootRouteChildren: RootRouteChildren = {
   ApiPublicEdgeHeartbeatRoute: ApiPublicEdgeHeartbeatRoute,
   ApiPublicEdgePendingTriggersRoute: ApiPublicEdgePendingTriggersRoute,
   ApiPublicEdgeReplayRoute: ApiPublicEdgeReplayRoute,
+  ApiPublicEdgeReplayCompleteRoute: ApiPublicEdgeReplayCompleteRoute,
   LovableEmailQueueProcessRoute: LovableEmailQueueProcessRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { startInstance } from './start.ts'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+    config: Awaited<ReturnType<typeof startInstance.getOptions>>
+  }
+}
