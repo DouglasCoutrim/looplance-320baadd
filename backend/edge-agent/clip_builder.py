@@ -309,7 +309,6 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     concat_list.write_text("".join(f"file '{s.resolve()}'\n" for s in segments_to_concat))
 
     output_path = tmp_dir / f"{clip_id}.mp4"
-    replay_seconds = camera.replay_seconds
     arena_id = camera.arena_id
 
     # ── Log estruturado inicial ───────────────────────────────────────
