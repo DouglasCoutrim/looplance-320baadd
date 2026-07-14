@@ -477,10 +477,8 @@ def _build_inputs(replay_seconds, concat_list, top_sponsors, bottom_sponsors, ha
         "-i", str(concat_list),
     ]
 
-    # Logos com -loop 1 para que o frame único do PNG se repita
-    # durante todo o vídeo, em vez de encerrar após 1 frame.
     for sf in top_sponsors + bottom_sponsors:
-        inputs += ["-loop", "1", "-i", sf["path"]]
+        inputs += ["-i", sf["path"]]
 
     if has_overlay:
         inputs += ["-i", overlay_url]
@@ -558,7 +556,7 @@ def _append_logo_overlays(
     for i, sf in enumerate(logos):
         idx = 2 + n_prev + i  # indice real no array de inputs
         label_in = f"[sp_{'t' if is_top else 'b'}{i}]"
-        parts.append(f"[{idx}:v]scale=-1:{LOGO_MAX_H}:force_original_aspect_ratio=decrease{label_in}")
+        parts.append(f"[{idx}:v]scale=-1:{LOGO_MAX_H}:force_original_aspect_ratio=decrease,tpad=stop_mode=clone:stop=-1{label_in}")
 
         # Posicao X: distribuicao uniforme na largura do canvas
         if n == 1:
