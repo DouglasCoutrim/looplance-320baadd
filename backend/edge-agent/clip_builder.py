@@ -294,7 +294,18 @@ def build_clip(settings: Settings, camera: CameraConfig, segments: list[Path]) -
     clip_id = uuid.uuid4().hex
     concat_list = tmp_dir / f"{clip_id}_list.txt"
     valid_segments = [s for s in segments if s.exists()]
-    concat_list.write_text("".join(f"file '{s.resolve()}'\n" for s in valid_segments))
+
+    buffer_seconds = camera.buffer_seconds or 60
+    keep_count = max(1, int(len(valid_segments) * (replay_seconds / buffer_seconds)))
+    segments_to_concat = valid_segments[-keep_count:]
+
+    log.info(
+        "[%s] slicing %d segmentos -> %d (replay=%ds buffer=%ds)",
+        camera.name, len(valid_segments), len(segments_to_concat),
+        replay_seconds, buffer_seconds,
+    )
+
+    concat_list.write_text("".join(f"file '{s.resolve()}'\n" for s in segments_to_concat))
 
     output_path = tmp_dir / f"{clip_id}.mp4"
     replay_seconds = camera.replay_seconds
@@ -462,7 +473,6 @@ def _build_inputs(replay_seconds, concat_list, top_sponsors, bottom_sponsors, ha
     inputs = [
         "-f", "lavfi", "-i",
         f"color=c=black:s={CANVAS_W}x{CANVAS_H}:r=30:d={replay_seconds}",
-        "-sseof", f"-{replay_seconds}",
         "-f", "concat", "-safe", "0",
         "-i", str(concat_list),
     ]
