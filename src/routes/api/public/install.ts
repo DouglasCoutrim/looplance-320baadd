@@ -27,7 +27,7 @@ export const Route = createFileRoute("/api/public/install")({
 set -euo pipefail
 
 if [ "$(id -u)" -ne 0 ]; then
-  echo "[Looplance] Execute como root: curl -fsSL ${origin}/install | sudo bash"
+  echo "[Looplance] Execute: sudo curl -fsSL ${origin}/install | sudo bash"
   exit 1
 fi
 

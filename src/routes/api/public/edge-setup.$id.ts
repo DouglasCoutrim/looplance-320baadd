@@ -34,7 +34,7 @@ export const Route = createFileRoute("/api/public/edge-setup/$id")({
         if (!providedPassphrase || providedPassphrase !== expected) {
           return new Response(
             "# Palavra-chave de instalação ausente ou incorreta.\n" +
-              "# Use: curl -fsSL " + new URL(request.url).origin + "/install | sudo bash\n" +
+              "# Use: sudo curl -fsSL " + new URL(request.url).origin + "/install | sudo bash\n" +
               "exit 1\n",
             {
               status: 401,
