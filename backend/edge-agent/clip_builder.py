@@ -576,7 +576,7 @@ def _append_logo_overlays(
             y_expr = f"({CANVAS_H}-{BANNER_H})+({BANNER_H}-h)/2"
 
         label_out = f"[v_{'t' if is_top else 'b'}{i}]"
-        parts.append(f"{cur}{label_in}overlay={x_expr}:{y_expr}:eof_action=pass{label_out}")
+        parts.append(f"{cur}{label_in}overlay={x_expr}:{y_expr}:eof_action=repeat{label_out}")
         cur = label_out
 
     return cur
