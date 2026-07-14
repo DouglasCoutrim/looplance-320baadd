@@ -571,9 +571,9 @@ def _append_logo_overlays(
 
         # Posicao Y: centralizado verticalmente na faixa
         if is_top:
-            y_expr = f"({BANNER_H}-ih)/2"
+            y_expr = f"({BANNER_H}-h)/2"
         else:
-            y_expr = f"({CANVAS_H}-{BANNER_H})+({BANNER_H}-ih)/2"
+            y_expr = f"({CANVAS_H}-{BANNER_H})+({BANNER_H}-h)/2"
 
         label_out = f"[v_{'t' if is_top else 'b'}{i}]"
         parts.append(f"{cur}{label_in}overlay={x_expr}:{y_expr}:eof_action=pass{label_out}")
