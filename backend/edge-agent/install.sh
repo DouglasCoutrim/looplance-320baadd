@@ -25,7 +25,22 @@ fi
 
 echo "==> instalando dependências de sistema"
 apt-get update -y
-apt-get install -y ffmpeg python3 python3-venv python3-pip tmux toilet htop
+apt-get install -y ffmpeg python3 python3-venv python3-pip tmux toilet htop systemd-timesyncd ntpdate
+
+echo "==> configurando sincronização de horário (NTP)"
+timedatectl set-timezone America/Sao_Paulo || true
+cat > /etc/systemd/timesyncd.conf.d/looplance.conf << 'EOF'
+[Time]
+NTP=a.st1.ntp.br b.st1.ntp.br c.st1.ntp.br pool.ntp.br
+FallbackNTP=pool.ntp.org a.ntp.br b.ntp.br
+RootDistanceMaxSec=5
+PollIntervalMinSec=64
+PollIntervalMaxSec=2048
+EOF
+systemctl enable systemd-timesyncd 2>/dev/null || true
+systemctl restart systemd-timesyncd 2>/dev/null || true
+echo "==> sincronização imediata via ntpdate (ignora erros se porta 123 bloqueada)"
+ntpdate -q a.st1.ntp.br b.st1.ntp.br pool.ntp.br 2>/dev/null || true
 
 echo "==> criando usuário de serviço (sem login)"
 id -u "$SERVICE_USER" &>/dev/null || useradd --system --no-create-home --shell /usr/sbin/nologin "$SERVICE_USER"

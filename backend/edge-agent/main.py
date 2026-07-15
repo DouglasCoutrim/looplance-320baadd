@@ -43,6 +43,7 @@ import config as cfg
 from clip_builder import ClipBuildError, build_clip
 from live_streamer import LiveStreamer
 from ram_buffer import CameraBuffer
+from timesync import start_time_sync_loop
 from trigger import start_trigger_listener
 from uploader import upload_clip
 
@@ -76,6 +77,8 @@ class EdgeAgent:
         self.buffers: dict[str, CameraBuffer] = {}
         self.livers: dict[str, LiveStreamer] = {}
         self._camera_configs: dict[str, str] = {}
+        self._rtsp_urls: dict[str, str] = {}
+        self._watchdog_cam_start: dict[str, float] = {}
         self._executor = ThreadPoolExecutor(max_workers=2)
 
     @staticmethod
@@ -107,14 +110,24 @@ class EdgeAgent:
                 log.exception("[%s] falha ao iniciar live HLS", cam.name)
             self._camera_configs[cam.id] = self._camera_config_hash(cam)
 
+        for cam in self.settings.cameras:
+            self._rtsp_urls[cam.id] = cam.rtsp_url
+            self._watchdog_cam_start[cam.id] = time.time()
+
         self._sync_sponsors()
 
         start_trigger_listener(self._on_trigger, self._input_boards())
 
         threading.Thread(target=self._heartbeat_loop, daemon=True).start()
         threading.Thread(target=self._health_loop, daemon=True).start()
+        threading.Thread(target=self._buffer_watchdog_loop, daemon=True).start()
         threading.Thread(target=self._manual_trigger_loop, daemon=True).start()
         threading.Thread(target=self._config_refresh_loop, daemon=True).start()
+        threading.Thread(
+            target=start_time_sync_loop,
+            args=(self.settings.api_base_url, _shutdown),
+            daemon=True,
+        ).start()
 
     def stop(self) -> None:
         self._executor.shutdown(wait=False, cancel_futures=True)
@@ -182,6 +195,26 @@ class EdgeAgent:
                     live.stop()
                 self._camera_configs.pop(cid, None)
         for cam in self.settings.cameras:
+            # -- Hot-Reload: RTSP URL tracking específico --------------------
+            old_url = self._rtsp_urls.get(cam.id)
+            if old_url is not None and old_url != cam.rtsp_url:
+                log.warning(
+                    "[%s] RTSP URL alterada: %s -> %s — reiniciando buffer e limpando segmentos...",
+                    cam.name, old_url, cam.rtsp_url,
+                )
+                if cam.id in self.buffers:
+                    self.buffers.pop(cam.id).stop()
+                live = self.livers.pop(cam.id, None)
+                if live:
+                    live.stop()
+                seg_dir = self.settings.ram_buffer_dir / cam.id
+                if seg_dir.exists():
+                    shutil.rmtree(seg_dir, ignore_errors=True)
+                    log.info("[%s] segmentos órfãos removidos: %s", cam.name, seg_dir)
+                self._camera_configs.pop(cam.id, None)
+                old_url = None  # força recriação abaixo
+
+            # -- Hot-Reload: outras mudanças de config (protocolo, etc.) ----
             new_hash = self._camera_config_hash(cam)
             old_hash = self._camera_configs.get(cam.id)
             if old_hash is not None and old_hash != new_hash:
@@ -195,17 +228,22 @@ class EdgeAgent:
                 if live:
                     live.stop()
                 old_hash = None
+
+            # -- Recria o buffer se necessário ------------------------------
             if cam.id not in self.buffers or old_hash is None:
                 log.info("iniciando buffer da câmera %s (%s)", cam.name, cam.id)
                 buf = CameraBuffer(self.settings, cam)
                 buf.start()
                 self.buffers[cam.id] = buf
+                self._watchdog_cam_start[cam.id] = time.time()
                 live = LiveStreamer(self.settings, cam)
                 try:
                     live.start()
                     self.livers[cam.id] = live
                 except Exception:  # noqa: BLE001
                     log.exception("[%s] falha ao iniciar live HLS", cam.name)
+
+            self._rtsp_urls[cam.id] = cam.rtsp_url
             self._camera_configs[cam.id] = new_hash
 
     def _handle_replay(self, cam: cfg.CameraConfig) -> None:
@@ -245,8 +283,17 @@ class EdgeAgent:
             log.info("[%s] chamando build_clip() ...", cam.name)
             clip_path, duration = build_clip(self.settings, cam, segments)
             log.info("[%s] build_clip() OK — path=%s duration=%.2fs", cam.name, clip_path, duration)
-        except ClipBuildError:
-            log.exception("[%s] FALHA no build_clip (ClipBuildError)", cam.name)
+        except ClipBuildError as exc:
+            log.exception("[%s] FALHA no build_clip (ClipBuildError): %s", cam.name, exc)
+            if "nenhum segmento disponivel no buffer" in str(exc):
+                api_client.report_camera_status(
+                    self.settings, camera_id=cam.id,
+                    streaming_status="offline",
+                    streaming_error="nenhum segmento disponivel no buffer no momento do replay",
+                )
+                log.warning(
+                    "[%s] falha temporária reportada — loop principal continua ativo", cam.name,
+                )
             return
         except Exception:
             log.exception("[%s] FALHA no build_clip (erro inesperado)", cam.name)
@@ -393,6 +440,63 @@ class EdgeAgent:
                     except Exception:  # noqa: BLE001
                         log.exception("[%s] falha ao reiniciar live HLS", cam.name)
             _shutdown.wait(15)
+
+    def _buffer_watchdog_loop(self) -> None:
+        """Watchdog ativo: verifica se o FFmpeg está gerando arquivos de fato.
+        Roda a cada 10s. Se o .ts mais recente estiver parado >15s ou a pasta
+        vazia >20s desde o início, executa auto-cura.
+        """
+        while not _shutdown.is_set():
+            for cam in self.settings.cameras:
+                buf = self.buffers.get(cam.id)
+                if not buf or not buf.is_alive():
+                    continue
+                seg_dir = self.settings.ram_buffer_dir / cam.id
+                if not seg_dir.is_dir():
+                    continue
+
+                ts_files = sorted(
+                    seg_dir.glob("seg_*.ts"),
+                    key=lambda f: f.stat().st_mtime, reverse=True,
+                )
+                now = time.time()
+                started_at = self._watchdog_cam_start.get(cam.id, now)
+
+                needs_healing = False
+                reason = ""
+
+                if not ts_files:
+                    if now - started_at > 20:
+                        needs_healing = True
+                        reason = "pasta vazia por >20s após início"
+                else:
+                    newest_mtime = ts_files[0].stat().st_mtime
+                    if now - newest_mtime > 15:
+                        needs_healing = True
+                        reason = (
+                            f"arquivo mais recente {ts_files[0].name} "
+                            f"parado há {now - newest_mtime:.0f}s (limite 15s)"
+                        )
+
+                if needs_healing:
+                    log.warning(
+                        "[%s] AUTO-RECUPERAÇÃO: %s — reiniciando buffer", cam.name, reason,
+                    )
+                    api_client.report_camera_status(
+                        self.settings, camera_id=cam.id,
+                        streaming_status="offline",
+                        streaming_error=reason,
+                    )
+                    if buf.is_alive():
+                        buf.stop()
+                    if seg_dir.exists():
+                        for f in seg_dir.glob("seg_*.ts"):
+                            f.unlink(missing_ok=True)
+                        log.info("[%s] segmentos removidos pelo watchdog", cam.name)
+                    self._watchdog_cam_start[cam.id] = time.time()
+                    buf.start()
+
+            _shutdown.wait(10)
 
     def _manual_trigger_loop(self) -> None:
         """Polling curto para disparos manuais via painel (sem botoeira física)."""
