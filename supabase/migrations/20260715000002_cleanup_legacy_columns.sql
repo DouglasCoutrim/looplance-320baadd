@@ -78,7 +78,8 @@ BEGIN
 END; $$;
 
 -- 4. Atualizar admin_list_users — remover is_super_admin, is_arena_owner do retorno
-CREATE OR REPLACE FUNCTION public.admin_list_users()
+DROP FUNCTION IF EXISTS public.admin_list_users();
+CREATE FUNCTION public.admin_list_users()
 RETURNS TABLE(
   id uuid, email text, full_name text, cpf text,
   arena_id uuid, arena_nome text, client_id uuid, client_nome text,
