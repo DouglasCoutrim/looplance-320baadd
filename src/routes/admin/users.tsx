@@ -2,10 +2,11 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useServerFn } from "@tanstack/react-start";
-import { inviteUser } from "@/lib/user-admin.functions";
+import { inviteUser, createArenaAdmin } from "@/lib/user-admin.functions";
 import { Toaster, toast } from "sonner";
 import {
   Users, Shield, Trash2, Search, Activity, UserPlus, Building2, Home, User as UserIcon, X,
+  Snowflake, Ban, CheckCircle,
 } from "lucide-react";
 import {
   AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent,
@@ -40,8 +41,8 @@ interface UserRow {
   client_id: string | null;
   client_nome: string | null;
   roles: RoleEntry[];
-  is_super_admin: boolean;
-  is_arena_owner: boolean;
+  frozen: boolean;
+  is_banned: boolean;
   created_at: string;
 }
 
@@ -82,7 +83,15 @@ function UsersAdmin() {
     email: string; full_name: string; role: AppRole; arena_id: string; client_id: string;
   }>({ email: "", full_name: "", role: "arena_user", arena_id: "", client_id: "" });
 
+  // create arena admin dialog
+  const [createAdminOpen, setCreateAdminOpen] = useState(false);
+  const [createAdminForm, setCreateAdminForm] = useState({
+    email: "", password: "", full_name: "", arena_id: "",
+  });
+  const [creatingAdmin, setCreatingAdmin] = useState(false);
+
   const invite = useServerFn(inviteUser);
+  const createAdmin = useServerFn(createArenaAdmin);
 
   const load = async () => {
     setLoading(true);
@@ -144,6 +153,50 @@ function UsersAdmin() {
     load();
   };
 
+  const freezeUser = async (u: UserRow) => {
+    const arenaId = u.arena_id;
+    if (!arenaId) return toast.error("Usuário sem arena vinculada");
+    const { error } = await supabase.rpc("admin_freeze_user", {
+      p_user_id: u.id, p_arena_id: arenaId,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Usuário congelado");
+    load();
+  };
+
+  const unfreezeUser = async (u: UserRow) => {
+    const arenaId = u.arena_id;
+    if (!arenaId) return toast.error("Usuário sem arena vinculada");
+    const { error } = await supabase.rpc("admin_unfreeze_user", {
+      p_user_id: u.id, p_arena_id: arenaId,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Usuário descongelado");
+    load();
+  };
+
+  const banUser = async (u: UserRow) => {
+    const arenaId = u.arena_id;
+    if (!arenaId) return toast.error("Usuário sem arena vinculada");
+    const { error } = await supabase.rpc("admin_ban_user", {
+      p_user_id: u.id, p_arena_id: arenaId,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Usuário banido");
+    load();
+  };
+
+  const unbanUser = async (u: UserRow) => {
+    const arenaId = u.arena_id;
+    if (!arenaId) return toast.error("Usuário sem arena vinculada");
+    const { error } = await supabase.rpc("admin_unban_user", {
+      p_user_id: u.id, p_arena_id: arenaId,
+    });
+    if (error) return toast.error(error.message);
+    toast.success("Banimento removido");
+    load();
+  };
+
   const handleInvite = async () => {
     if (!inviteForm.email || !inviteForm.full_name) {
       return toast.error("Preencha nome e email");
@@ -172,6 +225,34 @@ function UsersAdmin() {
       toast.error(e instanceof Error ? e.message : "Erro ao convidar");
     } finally {
       setInviting(false);
+    }
+  };
+
+  const handleCreateAdmin = async () => {
+    if (!createAdminForm.email || !createAdminForm.full_name || !createAdminForm.password) {
+      return toast.error("Preencha todos os campos");
+    }
+    if (!createAdminForm.arena_id) return toast.error("Selecione a arena");
+    if (createAdminForm.password.length < 6) return toast.error("Senha deve ter pelo menos 6 caracteres");
+
+    setCreatingAdmin(true);
+    try {
+      await createAdmin({
+        data: {
+          email: createAdminForm.email.trim().toLowerCase(),
+          password: createAdminForm.password,
+          full_name: createAdminForm.full_name.trim(),
+          arena_id: createAdminForm.arena_id,
+        },
+      });
+      toast.success("Admin de arena criado com sucesso!");
+      setCreateAdminOpen(false);
+      setCreateAdminForm({ email: "", password: "", full_name: "", arena_id: "" });
+      load();
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Erro ao criar admin");
+    } finally {
+      setCreatingAdmin(false);
     }
   };
 
@@ -213,84 +294,142 @@ function UsersAdmin() {
             <Users className="h-7 w-7 text-brand-orange" /> Usuários & Logs
           </h1>
           <p className="text-sm text-gray-500 mt-1">
-            Gerencie super admins, donos de cliente, donos de arena e usuários finais.
+            Gerencie super admins, donos de arena e usuários finais.
           </p>
         </div>
 
-        <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-gradient-to-r from-brand-orange to-brand-yellow text-white font-bold gap-2">
-              <UserPlus className="h-4 w-4" /> Convidar usuário
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-[480px]">
-            <DialogHeader>
-              <DialogTitle>Convidar novo usuário</DialogTitle>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label>Nome completo</Label>
-                <Input value={inviteForm.full_name}
-                  onChange={(e) => setInviteForm({ ...inviteForm, full_name: e.target.value })}
-                  placeholder="João Silva" />
-              </div>
-              <div>
-                <Label>Email</Label>
-                <Input type="email" value={inviteForm.email}
-                  onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
-                  placeholder="usuario@exemplo.com" />
-              </div>
-              <div>
-                <Label>Papel</Label>
-                <select
-                  value={inviteForm.role}
-                  onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value as AppRole })}
-                  className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                >
-                  {availableRoles.map((r) => (
-                    <option key={r} value={r}>{ROLE_META[r].label}</option>
-                  ))}
-                </select>
-              </div>
-              {(inviteForm.role === "arena_user" || inviteForm.role === "arena_owner") && (
-                <div>
-                  <Label>Arena</Label>
-                  <select
-                    value={inviteForm.arena_id}
-                    onChange={(e) => setInviteForm({ ...inviteForm, arena_id: e.target.value })}
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                  >
-                    <option value="">— Selecione —</option>
-                    {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
-                  </select>
+        <div className="flex gap-2">
+          {isSuperAdmin && (
+            <Dialog open={createAdminOpen} onOpenChange={setCreateAdminOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-gradient-to-r from-purple-600 to-purple-800 text-white font-bold gap-2">
+                  <Shield className="h-4 w-4" /> Criar Admin de Arena
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-[480px]">
+                <DialogHeader>
+                  <DialogTitle>Criar Admin de Arena</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <p className="text-sm text-gray-500">
+                    O usuário será criado com senha e já receberá o papel de <strong>Dono de Arena</strong>.
+                  </p>
+                  <div>
+                    <Label>Nome completo</Label>
+                    <Input value={createAdminForm.full_name}
+                      onChange={(e) => setCreateAdminForm({ ...createAdminForm, full_name: e.target.value })}
+                      placeholder="João Silva" />
+                  </div>
+                  <div>
+                    <Label>Email</Label>
+                    <Input type="email" value={createAdminForm.email}
+                      onChange={(e) => setCreateAdminForm({ ...createAdminForm, email: e.target.value })}
+                      placeholder="admin@arena.com" />
+                  </div>
+                  <div>
+                    <Label>Senha</Label>
+                    <Input type="password" value={createAdminForm.password}
+                      onChange={(e) => setCreateAdminForm({ ...createAdminForm, password: e.target.value })}
+                      placeholder="Mínimo 6 caracteres" />
+                  </div>
+                  <div>
+                    <Label>Arena</Label>
+                    <select
+                      value={createAdminForm.arena_id}
+                      onChange={(e) => setCreateAdminForm({ ...createAdminForm, arena_id: e.target.value })}
+                      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                    >
+                      <option value="">— Selecione —</option>
+                      {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+                    </select>
+                  </div>
                 </div>
-              )}
-              {inviteForm.role === "client_owner" && (
-                <div>
-                  <Label>Cliente</Label>
-                  <select
-                    value={inviteForm.client_id}
-                    onChange={(e) => setInviteForm({ ...inviteForm, client_id: e.target.value })}
-                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
-                  >
-                    <option value="">— Selecione —</option>
-                    {clients.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-                  </select>
-                </div>
-              )}
-              <p className="text-xs text-gray-500">
-                O usuário receberá um email para criar a senha e acessar a plataforma.
-              </p>
-            </div>
-            <DialogFooter>
-              <Button variant="ghost" onClick={() => setInviteOpen(false)}>Cancelar</Button>
-              <Button onClick={handleInvite} disabled={inviting}
-                className="bg-gradient-to-r from-brand-orange to-brand-yellow text-white">
-                {inviting ? "Enviando..." : "Enviar convite"}
+                <DialogFooter>
+                  <Button variant="ghost" onClick={() => setCreateAdminOpen(false)}>Cancelar</Button>
+                  <Button onClick={handleCreateAdmin} disabled={creatingAdmin}
+                    className="bg-gradient-to-r from-purple-600 to-purple-800 text-white">
+                    {creatingAdmin ? "Criando..." : "Criar Admin"}
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          )}
+
+          <Dialog open={inviteOpen} onOpenChange={setInviteOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-gradient-to-r from-brand-orange to-brand-yellow text-white font-bold gap-2">
+                <UserPlus className="h-4 w-4" /> Convidar usuário
               </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[480px]">
+              <DialogHeader>
+                <DialogTitle>Convidar novo usuário</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div>
+                  <Label>Nome completo</Label>
+                  <Input value={inviteForm.full_name}
+                    onChange={(e) => setInviteForm({ ...inviteForm, full_name: e.target.value })}
+                    placeholder="João Silva" />
+                </div>
+                <div>
+                  <Label>Email</Label>
+                  <Input type="email" value={inviteForm.email}
+                    onChange={(e) => setInviteForm({ ...inviteForm, email: e.target.value })}
+                    placeholder="usuario@exemplo.com" />
+                </div>
+                <div>
+                  <Label>Papel</Label>
+                  <select
+                    value={inviteForm.role}
+                    onChange={(e) => setInviteForm({ ...inviteForm, role: e.target.value as AppRole })}
+                    className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                  >
+                    {availableRoles.map((r) => (
+                      <option key={r} value={r}>{ROLE_META[r].label}</option>
+                    ))}
+                  </select>
+                </div>
+                {(inviteForm.role === "arena_user" || inviteForm.role === "arena_owner") && (
+                  <div>
+                    <Label>Arena</Label>
+                    <select
+                      value={inviteForm.arena_id}
+                      onChange={(e) => setInviteForm({ ...inviteForm, arena_id: e.target.value })}
+                      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                    >
+                      <option value="">— Selecione —</option>
+                      {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+                    </select>
+                  </div>
+                )}
+                {inviteForm.role === "client_owner" && (
+                  <div>
+                    <Label>Cliente</Label>
+                    <select
+                      value={inviteForm.client_id}
+                      onChange={(e) => setInviteForm({ ...inviteForm, client_id: e.target.value })}
+                      className="w-full h-10 px-3 rounded-md border border-input bg-background text-sm"
+                    >
+                      <option value="">— Selecione —</option>
+                      {clients.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+                    </select>
+                  </div>
+                )}
+                <p className="text-xs text-gray-500">
+                  O usuário receberá um email para criar a senha e acessar a plataforma.
+                </p>
+              </div>
+              <DialogFooter>
+                <Button variant="ghost" onClick={() => setInviteOpen(false)}>Cancelar</Button>
+                <Button onClick={handleInvite} disabled={inviting}
+                  className="bg-gradient-to-r from-brand-orange to-brand-yellow text-white">
+                  {inviting ? "Enviando..." : "Enviar convite"}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
 
       <div className="flex gap-2 border-b border-gray-200">
@@ -346,15 +485,16 @@ function UsersAdmin() {
                     <th className="text-left px-4 py-3">Usuário</th>
                     <th className="text-left px-4 py-3">Vínculos</th>
                     <th className="text-left px-4 py-3">Papéis</th>
-                    <th className="text-left px-4 py-3">Adicionar papel</th>
+                    <th className="text-left px-4 py-3">Status</th>
+                    {isSuperAdmin && <th className="text-left px-4 py-3">Adicionar papel</th>}
                     <th className="text-right px-4 py-3">Ações</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {loading ? (
-                    <tr><td colSpan={5} className="text-center py-10 text-gray-400">Carregando...</td></tr>
+                    <tr><td colSpan={6} className="text-center py-10 text-gray-400">Carregando...</td></tr>
                   ) : filtered.length === 0 ? (
-                    <tr><td colSpan={5} className="text-center py-10 text-gray-400">Nenhum usuário encontrado</td></tr>
+                    <tr><td colSpan={6} className="text-center py-10 text-gray-400">Nenhum usuário encontrado</td></tr>
                   ) : filtered.map((u) => (
                     <UserRowEditor
                       key={u.id}
@@ -366,6 +506,10 @@ function UsersAdmin() {
                       onAssign={assignRole}
                       onRevoke={revokeRole}
                       onDelete={deleteUser}
+                      onFreeze={freezeUser}
+                      onUnfreeze={unfreezeUser}
+                      onBan={banUser}
+                      onUnban={unbanUser}
                     />
                   ))}
                 </tbody>
@@ -424,6 +568,7 @@ function UsersAdmin() {
 
 function UserRowEditor({
   user, arenas, clients, isSuperAdmin, availableRoles, onAssign, onRevoke, onDelete,
+  onFreeze, onUnfreeze, onBan, onUnban,
 }: {
   user: UserRow;
   arenas: Arena[];
@@ -433,6 +578,10 @@ function UserRowEditor({
   onAssign: (u: UserRow, r: AppRole, a?: string | null, c?: string | null) => void;
   onRevoke: (u: UserRow, r: RoleEntry) => void;
   onDelete: (id: string) => void;
+  onFreeze: (u: UserRow) => void;
+  onUnfreeze: (u: UserRow) => void;
+  onBan: (u: UserRow) => void;
+  onUnban: (u: UserRow) => void;
 }) {
   const [newRole, setNewRole] = useState<AppRole>(availableRoles[0]);
   const [newArena, setNewArena] = useState("");
@@ -448,6 +597,16 @@ function UserRowEditor({
       (newRole === "arena_user" || newRole === "arena_owner") ? newArena : null,
       newRole === "client_owner" ? newClient : null);
     setNewArena(""); setNewClient("");
+  };
+
+  const statusBadge = () => {
+    if (user.is_banned) {
+      return <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-red-100 text-red-700 border border-red-200">Banido</span>;
+    }
+    if (user.frozen) {
+      return <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-blue-100 text-blue-700 border border-blue-200">Congelado</span>;
+    }
+    return <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-green-100 text-green-700 border border-green-200">Ativo</span>;
   };
 
   return (
@@ -486,55 +645,102 @@ function UserRowEditor({
         </div>
       </td>
       <td className="px-4 py-3">
-        <div className="flex flex-col gap-1.5 min-w-[220px]">
-          <select value={newRole} onChange={(e) => setNewRole(e.target.value as AppRole)}
-            className="text-xs bg-gray-100 rounded px-2 py-1 border-none outline-none">
-            {availableRoles.map((r) => <option key={r} value={r}>{ROLE_META[r].label}</option>)}
-          </select>
-          {(newRole === "arena_user" || newRole === "arena_owner") && (
-            <select value={newArena} onChange={(e) => setNewArena(e.target.value)}
-              className="text-xs bg-gray-100 rounded px-2 py-1 border-none outline-none">
-              <option value="">— Arena —</option>
-              {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
-            </select>
-          )}
-          {newRole === "client_owner" && (
-            <select value={newClient} onChange={(e) => setNewClient(e.target.value)}
-              className="text-xs bg-gray-100 rounded px-2 py-1 border-none outline-none">
-              <option value="">— Cliente —</option>
-              {clients.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
-            </select>
-          )}
-          <button onClick={submit}
-            className="text-xs font-bold px-2 py-1 rounded bg-gradient-to-r from-brand-orange to-brand-yellow text-white hover:opacity-90">
-            + Adicionar
-          </button>
+        <div className="flex flex-col gap-1">
+          {statusBadge()}
         </div>
       </td>
+      {isSuperAdmin && (
+        <td className="px-4 py-3">
+          <div className="flex flex-col gap-1.5 min-w-[220px]">
+            <select value={newRole} onChange={(e) => setNewRole(e.target.value as AppRole)}
+              className="text-xs bg-gray-100 rounded px-2 py-1 border-none outline-none">
+              {availableRoles.map((r) => <option key={r} value={r}>{ROLE_META[r].label}</option>)}
+            </select>
+            {(newRole === "arena_user" || newRole === "arena_owner") && (
+              <select value={newArena} onChange={(e) => setNewArena(e.target.value)}
+                className="text-xs bg-gray-100 rounded px-2 py-1 border-none outline-none">
+                <option value="">— Arena —</option>
+                {arenas.map((a) => <option key={a.id} value={a.id}>{a.nome}</option>)}
+              </select>
+            )}
+            {newRole === "client_owner" && (
+              <select value={newClient} onChange={(e) => setNewClient(e.target.value)}
+                className="text-xs bg-gray-100 rounded px-2 py-1 border-none outline-none">
+                <option value="">— Cliente —</option>
+                {clients.map((c) => <option key={c.id} value={c.id}>{c.nome}</option>)}
+              </select>
+            )}
+            <button onClick={submit}
+              className="text-xs font-bold px-2 py-1 rounded bg-gradient-to-r from-brand-orange to-brand-yellow text-white hover:opacity-90">
+              + Adicionar
+            </button>
+          </div>
+        </td>
+      )}
       <td className="px-4 py-3 text-right">
-        {isSuperAdmin && (
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <button className="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50">
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </AlertDialogTrigger>
-            <AlertDialogContent>
-              <AlertDialogHeader>
-                <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
-                <AlertDialogDescription>
-                  Esta ação vai remover permanentemente <strong>{user.email}</strong> da plataforma. Não pode ser desfeita.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                <AlertDialogAction onClick={() => onDelete(user.id)} className="bg-red-600 hover:bg-red-700">
-                  Excluir
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
-        )}
+        <div className="flex items-center justify-end gap-1">
+          {user.arena_id && (
+            <>
+              {user.frozen ? (
+                <button
+                  onClick={() => onUnfreeze(user)}
+                  className="text-blue-500 hover:text-blue-700 p-1.5 rounded hover:bg-blue-50"
+                  title="Descongelar"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => onFreeze(user)}
+                  className="text-blue-500 hover:text-blue-700 p-1.5 rounded hover:bg-blue-50"
+                  title="Congelar"
+                >
+                  <Snowflake className="h-4 w-4" />
+                </button>
+              )}
+              {user.is_banned ? (
+                <button
+                  onClick={() => onUnban(user)}
+                  className="text-green-500 hover:text-green-700 p-1.5 rounded hover:bg-green-50"
+                  title="Remover banimento"
+                >
+                  <CheckCircle className="h-4 w-4" />
+                </button>
+              ) : (
+                <button
+                  onClick={() => onBan(user)}
+                  className="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50"
+                  title="Banir"
+                >
+                  <Ban className="h-4 w-4" />
+                </button>
+              )}
+            </>
+          )}
+          {isSuperAdmin && (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <button className="text-red-500 hover:text-red-700 p-1.5 rounded hover:bg-red-50">
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Excluir usuário?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    Esta ação vai remover permanentemente <strong>{user.email}</strong> da plataforma. Não pode ser desfeita.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                  <AlertDialogAction onClick={() => onDelete(user.id)} className="bg-red-600 hover:bg-red-700">
+                    Excluir
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
+        </div>
       </td>
     </tr>
   );

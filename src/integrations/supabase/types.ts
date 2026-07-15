@@ -812,12 +812,11 @@ export type Database = {
           email: string | null
           favorite_arenas: string[]
           favorite_sports: string[]
+          frozen: boolean
           full_name: string | null
           gender: string | null
           id: string
-          is_arena_owner: boolean | null
-          is_super_admin: boolean | null
-          role: string | null
+          is_banned: boolean
           state: string | null
           updated_at: string
         }
@@ -834,12 +833,11 @@ export type Database = {
           email?: string | null
           favorite_arenas?: string[]
           favorite_sports?: string[]
+          frozen?: boolean
           full_name?: string | null
           gender?: string | null
           id: string
-          is_arena_owner?: boolean | null
-          is_super_admin?: boolean | null
-          role?: string | null
+          is_banned?: boolean
           state?: string | null
           updated_at?: string
         }
@@ -856,12 +854,11 @@ export type Database = {
           email?: string | null
           favorite_arenas?: string[]
           favorite_sports?: string[]
+          frozen?: boolean
           full_name?: string | null
           gender?: string | null
           id?: string
-          is_arena_owner?: boolean | null
-          is_super_admin?: boolean | null
-          role?: string | null
+          is_banned?: boolean
           state?: string | null
           updated_at?: string
         }
@@ -1237,10 +1234,10 @@ export type Database = {
           cpf: string
           created_at: string
           email: string
+          frozen: boolean
           full_name: string
           id: string
-          is_arena_owner: boolean
-          is_super_admin: boolean
+          is_banned: boolean
           roles: Json
         }[]
       }
@@ -1253,26 +1250,10 @@ export type Database = {
         }
         Returns: undefined
       }
-      admin_update_user_profile:
-        | {
-            Args: {
-              new_is_arena_owner: boolean
-              new_is_super_admin: boolean
-              new_role: string
-              user_id: string
-            }
-            Returns: undefined
-          }
-        | {
-            Args: {
-              new_arena_id?: string
-              new_is_arena_owner: boolean
-              new_is_super_admin: boolean
-              new_role: string
-              user_id: string
-            }
-            Returns: undefined
-          }
+      admin_update_user_profile: {
+        Args: { new_arena_id?: string; user_id: string }
+        Returns: undefined
+      }
       delete_email: {
         Args: { message_id: number; queue_name: string }
         Returns: boolean
@@ -1341,9 +1322,15 @@ export type Database = {
         }
         Returns: boolean
       }
+      admin_ban_user: { Args: { p_user_id: string; p_arena_id: string }; Returns: undefined }
+      admin_create_arena_admin: { Args: { p_arena_id: string; p_email: string; p_full_name: string; p_password: string }; Returns: string }
+      admin_freeze_user: { Args: { p_arena_id: string; p_user_id: string }; Returns: undefined }
+      admin_unban_user: { Args: { p_arena_id: string; p_user_id: string }; Returns: undefined }
+      admin_unfreeze_user: { Args: { p_arena_id: string; p_user_id: string }; Returns: undefined }
       is_admin: { Args: { _uid: string }; Returns: boolean }
       is_arena_manager: { Args: { _uid: string }; Returns: boolean }
-      is_super_admin: { Args: never; Returns: boolean }
+
+      register_arena_user: { Args: { p_arena_id: string; p_cpf: string; p_email: string; p_full_name: string; p_password: string }; Returns: string }
       log_user_action: {
         Args: {
           p_action: string

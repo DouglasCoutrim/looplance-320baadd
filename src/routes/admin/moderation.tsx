@@ -41,8 +41,8 @@ function ModerationPage() {
     (async () => {
       const { data: sess } = await supabase.auth.getSession();
       if (!sess.session) { navigate({ to: "/auth" }); return; }
-      const { data: p } = await supabase.from("profiles").select("is_super_admin").eq("id", sess.session.user.id).maybeSingle();
-      if (!p?.is_super_admin) { setAuthorized(false); navigate({ to: "/" }); return; }
+      const { data: isSuper } = await supabase.rpc("has_role", { _user_id: sess.session.user.id, _role: "super_admin" });
+      if (!isSuper) { setAuthorized(false); navigate({ to: "/" }); return; }
       setAuthorized(true);
     })();
   }, [navigate]);

@@ -30,33 +30,52 @@ function AdminLayout() {
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [authorized, setAuthorized] = useState<boolean | null>(null);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
 
   useEffect(() => {
     (async () => {
       const { data: session } = await supabase.auth.getSession();
       if (!session.session) { navigate({ to: "/auth" }); return; }
-      const { data: p } = await supabase
-        .from("profiles").select("is_super_admin, is_arena_owner")
-        .eq("id", session.session.user.id).maybeSingle();
-      if (p?.is_super_admin || p?.is_arena_owner) setAuthorized(true);
-      else { setAuthorized(false); navigate({ to: "/" }); }
+      const userId = session.session.user.id;
+
+      const { data: isSuper } = await supabase.rpc("has_role", {
+        _user_id: userId,
+        _role: "super_admin",
+      });
+      const { data: isArena } = await supabase.rpc("has_role", {
+        _user_id: userId,
+        _role: "arena_owner",
+      });
+
+      if (isSuper || isArena) {
+        setIsSuperAdmin(!!isSuper);
+        setAuthorized(true);
+      } else {
+        setAuthorized(false);
+        navigate({ to: "/" });
+      }
     })();
   }, [navigate]);
 
-  const navItems = [
-    { to: "/admin", label: "Visão Geral", icon: LayoutDashboard },
-    { to: "/admin/monitoring", label: "Monitoramento", icon: Activity },
-    { to: "/admin/replays", label: "Replays", icon: Play },
-    { to: "/admin/users", label: "Usuários", icon: Users },
-    { to: "/admin/clients", label: "Clientes", icon: Building2 },
-    { to: "/admin/edge-devices", label: "Edge Devices", icon: HardDrive },
-    { to: "/admin/input-boards", label: "Input Boards", icon: Usb },
-    { to: "/admin/cameras", label: "Cameras", icon: Camera },
-    { to: "/admin/arenas", label: "Arenas", icon: Tv },
-    { to: "/admin/quadras", label: "Quadras", icon: Tv },
-    { to: "/admin/terminal", label: "Terminal", icon: Terminal },
-    { to: "/admin/moderation", label: "Moderação", icon: Shield },
-  ];
+  const navItems = isSuperAdmin
+    ? [
+        { to: "/admin", label: "Visão Geral", icon: LayoutDashboard },
+        { to: "/admin/monitoring", label: "Monitoramento", icon: Activity },
+        { to: "/admin/replays", label: "Replays", icon: Play },
+        { to: "/admin/users", label: "Usuários", icon: Users },
+        { to: "/admin/clients", label: "Clientes", icon: Building2 },
+        { to: "/admin/edge-devices", label: "Edge Devices", icon: HardDrive },
+        { to: "/admin/input-boards", label: "Input Boards", icon: Usb },
+        { to: "/admin/cameras", label: "Cameras", icon: Camera },
+        { to: "/admin/arenas", label: "Arenas", icon: Tv },
+        { to: "/admin/quadras", label: "Quadras", icon: Tv },
+        { to: "/admin/terminal", label: "Terminal", icon: Terminal },
+        { to: "/admin/moderation", label: "Moderação", icon: Shield },
+      ]
+    : [
+        { to: "/admin/monitoring", label: "Monitoramento", icon: Activity },
+        { to: "/admin/users", label: "Usuários", icon: Users },
+      ];
 
   // Close mobile menu on route change
   useEffect(() => {

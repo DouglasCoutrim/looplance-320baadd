@@ -255,6 +255,7 @@ function MonitoringPage() {
   const [loading, setLoading] = useState(true);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [, forceRerender] = useState(0);
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
   const delReplay = useServerFn(deleteReplay);
 
   const handleDelete = async (id: string) => {
@@ -273,6 +274,12 @@ function MonitoringPage() {
   useEffect(() => {
     let mounted = true;
     (async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: isSuper } = await supabase.rpc("has_role", { _user_id: user.id, _role: "super_admin" });
+        if (mounted) setIsSuperAdmin(!!isSuper);
+      }
+
       const [d, r] = await Promise.all([
         supabase.from("edge_devices").select("*").order("last_seen", { ascending: false, nullsFirst: false }),
         supabase.from("replays").select("*").order("created_at", { ascending: false }).limit(20),
@@ -433,14 +440,16 @@ function MonitoringPage() {
                   Abrir
                 </a>
               )}
-              <button
-                onClick={() => handleDelete(r.id)}
-                disabled={deletingId === r.id}
-                title="Apagar replay (R2 + banco)"
-                className="shrink-0 grid h-8 w-8 place-items-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition disabled:opacity-40"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
+              {isSuperAdmin && (
+                <button
+                  onClick={() => handleDelete(r.id)}
+                  disabled={deletingId === r.id}
+                  title="Apagar replay (R2 + banco)"
+                  className="shrink-0 grid h-8 w-8 place-items-center rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition disabled:opacity-40"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              )}
             </div>
           ))}
         </div>

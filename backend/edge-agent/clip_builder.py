@@ -508,7 +508,13 @@ def _build_filter_complex(
     parts.append(
         f"[0:v][vid_padded]overlay=0:{VIDEO_OFFSET_Y}:eof_action=pass[base]"
     )
-    cur = "[base]"
+
+    # 2.5) Banners brancos no topo e rodapé (fundo para logos com transparência)
+    parts.append(
+        f"[base]drawbox=y=0:h={BANNER_H}:color=white:t=fill,"
+        f"drawbox=y={CANVAS_H-BANNER_H}:h={BANNER_H}:color=white:t=fill[banners]"
+    )
+    cur = "[banners]"
 
     # 3) Logos do topo
     cur = _append_logo_overlays(
@@ -559,13 +565,8 @@ def _append_logo_overlays(
         parts.append(f"[{idx}:v]scale=-1:{LOGO_MAX_H}:force_original_aspect_ratio=decrease,tpad=stop_mode=clone:stop=-1{label_in}")
 
         # Posicao X: distribuicao uniforme na largura do canvas
-        if n == 1:
-            x_expr = f"({CANVAS_W}-iw)/2"
-        else:
-            # Divide o canvas em N+1 espacos iguais, coloca cada logo
-            # no centro de cada fracao
-            slot_w = CANVAS_W // (n + 1)
-            x_expr = str(slot_w * (i + 1) - 50)  # ~centro do slot
+        center_x = int((CANVAS_W / n) * (i + 0.5))
+        x_expr = f"{center_x}-w/2"
 
         # Posicao Y: centralizado verticalmente na faixa
         if is_top:

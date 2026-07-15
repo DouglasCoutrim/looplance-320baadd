@@ -3,7 +3,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Plus, RefreshCw, MapPin, Edit2, Trash2, Upload, X, Phone, Image } from "lucide-react";
+import { Plus, RefreshCw, MapPin, Edit2, Trash2, Upload, X, Phone, Image, QrCode, Download } from "lucide-react";
 import { MapPickerDialog } from "@/components/MapPickerDialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter } from "@/components/ui/dialog";
 import {
@@ -20,6 +20,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
+import QRCode from "qrcode";
 
 export const Route = createFileRoute("/admin/arenas")({
   component: Arenas,
@@ -110,6 +111,19 @@ function Arenas() {
   };
 
   useEffect(() => { fetchAll(); }, []);
+
+  // Gera QR code para cadastro via scan
+  const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!editing?.id) { setQrCodeDataUrl(null); return; }
+    const registerUrl = `${window.location.origin}/register?arena=${editing.id}`;
+    QRCode.toDataURL(registerUrl, {
+      width: 300,
+      margin: 2,
+      color: { dark: "#1a1a2e", light: "#ffffff" },
+    }).then(setQrCodeDataUrl).catch(() => setQrCodeDataUrl(null));
+  }, [editing?.id]);
 
   // Carrega patrocinadores quando abrir edição de uma arena
   useEffect(() => {
@@ -496,6 +510,47 @@ function Arenas() {
                       })}
                     </div>
                   </div>
+
+                  {/* QR Code para cadastro */}
+                  {qrCodeDataUrl && (
+                    <div className="space-y-3">
+                      <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                        QR Code — Cadastro na Arena
+                      </Label>
+                      <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 flex flex-col items-center gap-3">
+                        <img
+                          src={qrCodeDataUrl}
+                          alt="QR Code da Arena"
+                          className="h-48 w-48 object-contain"
+                        />
+                        <p className="text-xs text-gray-500 text-center max-w-xs">
+                          Escaneie para se cadastrar e vincular automaticamente à {editing.nome}.
+                        </p>
+                        <a
+                          href={qrCodeDataUrl}
+                          download={`qrcode-${editing.nome.replace(/\s+/g, "-").toLowerCase()}.png`}
+                          className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gray-900 text-white text-xs font-bold hover:bg-gray-800 transition"
+                        >
+                          <Download className="h-4 w-4" /> Baixar QR Code
+                        </a>
+                        <button
+                          onClick={() => {
+                            const w = window.open();
+                            if (w) {
+                              w.document.write(
+                                `<html><body style="margin:0;display:flex;justify-content:center;align-items:center;min-height:100vh">`
+                                + `<img src="${qrCodeDataUrl}" style="max-width:90vw;max-height:90vh" /></body></html>`
+                              );
+                              w.document.close();
+                            }
+                          }}
+                          className="text-xs text-brand-orange font-bold hover:underline"
+                        >
+                          Abrir para impressão
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               ) : (
                 <div className="grid gap-5 py-6">

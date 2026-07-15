@@ -13,8 +13,6 @@ interface Profile {
   id: string;
   full_name?: string | null;
   avatar_url?: string | null;
-  is_super_admin?: boolean | null;
-  is_arena_owner?: boolean | null;
 }
 
 interface Suggestion {
@@ -58,16 +56,25 @@ export function SocialShell({ children, active = "feed", hideRightPanel = false 
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const [isAdmin, setIsAdmin] = useState(false);
+
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
       setEmail(data.user.email ?? null);
       const { data: p } = await supabase
         .from("profiles")
-        .select("id, full_name, avatar_url, is_super_admin, is_arena_owner")
+        .select("id, full_name, avatar_url")
         .eq("id", data.user.id)
         .maybeSingle();
       if (p) setProfile(p as Profile);
+
+      const [superRes, arenaRes] = await Promise.all([
+        supabase.rpc("has_role", { _user_id: data.user.id, _role: "super_admin" }),
+        supabase.rpc("has_role", { _user_id: data.user.id, _role: "arena_owner" }),
+      ]);
+      setIsAdmin(!!(superRes.data || arenaRes.data));
+
       const { data: sugg } = await supabase
         .from("profiles")
         .select("id, full_name, avatar_url")
@@ -81,8 +88,6 @@ export function SocialShell({ children, active = "feed", hideRightPanel = false 
     await supabase.auth.signOut();
     navigate({ to: "/auth" });
   };
-
-  const isAdmin = !!(profile?.is_super_admin || profile?.is_arena_owner);
   const soon = (label: string) => () => toast(`${label} em breve 🚧`);
 
   const nav = [

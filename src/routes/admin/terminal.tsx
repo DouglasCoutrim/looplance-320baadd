@@ -22,12 +22,8 @@ function TerminalPage() {
         navigate({ to: "/auth" });
         return;
       }
-      const { data: p } = await supabase
-        .from("profiles")
-        .select("is_super_admin")
-        .eq("id", session.session.user.id)
-        .maybeSingle();
-      if (p?.is_super_admin) setAuthorized(true);
+      const { data: isSuper } = await supabase.rpc("has_role", { _user_id: session.session.user.id, _role: "super_admin" });
+      if (isSuper) setAuthorized(true);
       else {
         setAuthorized(false);
         navigate({ to: "/admin" });
