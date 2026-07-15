@@ -152,14 +152,18 @@ export function SocialActions({ targetId, targetType, shareUrl, shareText }: Pro
     if (!content) return;
     if (!uid) { toast.error("Faça login para comentar"); return; }
     setSending(true);
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("comments")
-      .insert({ user_id: uid, target_id: targetId, target_type: targetType, content })
-      .select("id, user_id, content, created_at, profiles:user_id(full_name, avatar_url)")
-      .single();
+      .insert({ user_id: uid, target_id: targetId, target_type: targetType, content });
     setSending(false);
-    if (error || !data) { toast.error("Erro ao comentar"); return; }
-    const row: CommentRow = { ...(data as any), profile: (data as any).profiles };
+    if (error) { toast.error("Erro ao comentar"); return; }
+    const row: CommentRow = {
+      id: crypto.randomUUID(),
+      user_id: uid,
+      content,
+      created_at: new Date().toISOString(),
+      profile: { full_name: null, avatar_url: myAvatar },
+    };
     setComments((c) => [row, ...c]);
     setCommentsCount((c) => c + 1);
     setInput("");

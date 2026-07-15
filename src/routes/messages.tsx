@@ -116,6 +116,7 @@ function MessagesPage() {
     setMessages((data ?? []) as MessageRow[]);
   };
 
+  // Realtime: novas mensagens no chat aberto
   useEffect(() => {
     if (!uid || !openChat) return;
     const ch = supabase
@@ -137,6 +138,31 @@ function MessagesPage() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [uid, openChat]);
+
+  // Realtime: badge de não lidas (sempre ativo, mesmo sem chat aberto)
+  useEffect(() => {
+    if (!uid) return;
+    const ch = supabase
+      .channel(`messages-unread-${uid}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `receiver_id=eq.${uid}`,
+        },
+        (payload) => {
+          const row = payload.new as MessageRow;
+          setUnreadCounts((prev) => ({
+            ...prev,
+            [row.sender_id]: (prev[row.sender_id] || 0) + 1,
+          }));
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [uid]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ behavior: "smooth" });
