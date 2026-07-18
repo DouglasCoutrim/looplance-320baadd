@@ -257,8 +257,9 @@ function Home() {
 
   const handleClaim = async (id: string) => {
     if (!uid) return;
-    const { error } = await supabase.from("replays").update({ user_id: uid }).eq("id", id);
-    if (error) { toast.error("Erro ao reivindicar lance"); return; }
+    const { data, error } = await (supabase.rpc as any)("claim_replay", { p_replay_id: id });
+    if (error) { toast.error("Erro ao reivindicar lance: " + error.message); return; }
+    if (!data) { toast.error("Este lance já foi reivindicado por outro atleta"); return; }
     setReplays((prev) => prev.map((r) => (r.id === id ? { ...r, user_id: uid } : r)));
     toast.success("Lance reivindicado!");
   };
