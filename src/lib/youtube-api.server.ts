@@ -245,14 +245,22 @@ export async function getYouTubeClientForArenaWithName(
 
 const SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"];
 
+function base64UrlEncode(data: string): string {
+  return btoa(data).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function base64UrlDecode(data: string): string {
+  const padded = data + "=".repeat((4 - (data.length % 4)) % 4);
+  return atob(padded.replace(/-/g, "+").replace(/_/g, "/"));
+}
+
 function encodeOAuthState(arenaId: string, userId: string): string {
-  return Buffer.from(JSON.stringify({ arenaId, userId })).toString("base64url");
+  return base64UrlEncode(JSON.stringify({ arenaId, userId }));
 }
 
 export function decodeOAuthState(state: string): { arenaId: string; userId: string } | null {
   try {
-    const raw = Buffer.from(state, "base64url").toString("utf8");
-    return JSON.parse(raw);
+    return JSON.parse(base64UrlDecode(state));
   } catch {
     return null;
   }

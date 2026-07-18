@@ -4,4 +4,13 @@
   "compatibility_date": "2025-09-24",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/server.ts",
+  /*
+    Secrets necessários (definir com `wrangler secret put <NOME>`):
+
+    YOUTUBE_CLIENT_ID     — Google Cloud Console → OAuth 2.0 Client ID
+    YOUTUBE_CLIENT_SECRET — Google Cloud Console → OAuth 2.0 Client Secret
+    YOUTUBE_REDIRECT_URI  — URI de callback exata cadastrada no Google Console.
+                           Ex: "https://tanstack-start-app.seudominio.workers.dev/api/public/live/youtube-callback"
+                           Se omitido, o worker constrói a URL a partir do request (funciona em dev).
+  */
 }
