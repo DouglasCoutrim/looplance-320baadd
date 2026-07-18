@@ -71,7 +71,7 @@ function Home() {
       const { data: prof } = await supabase
         .from("profiles")
         .select("cpf, birth_date, gender, city")
-        .eq("id", uid)
+        .eq("id", currentUid)
         .maybeSingle();
       const missing = !prof || !prof.cpf || !prof.birth_date || !prof.gender || !prof.city;
       if (missing) return navigate({ to: "/complete-profile" });
