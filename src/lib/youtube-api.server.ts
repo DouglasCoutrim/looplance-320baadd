@@ -223,20 +223,16 @@ export async function getYouTubeClientForArenaWithName(
 
   if (credsResult.error) throw new YouTubeApiError(`Erro lendo credenciais: ${credsResult.error.message}`, 500);
   if (!credsResult.data) return null;
-  if (!credsResult.data.refresh_token) return null;
 
-  const clientId = credsResult.data.client_id || process.env.YOUTUBE_CLIENT_ID;
-  const clientSecret = credsResult.data.client_secret || process.env.YOUTUBE_CLIENT_SECRET;
-  if (!clientId || !clientSecret) {
-    throw new YouTubeApiError("YOUTUBE_CLIENT_ID e YOUTUBE_CLIENT_SECRET não configurados (nem no ambiente nem na arena)", 500);
-  }
+  const { client_id, client_secret, refresh_token, access_token, token_expires_at } = credsResult.data;
+  if (!client_id || !client_secret || !refresh_token) return null;
 
   const arenaName = arenaResult.data?.nome ?? "Arena";
 
-  const client = new YouTubeApiClient(clientId, clientSecret, {
-    accessToken: credsResult.data.access_token,
-    refreshToken: credsResult.data.refresh_token,
-    tokenExpiresAt: credsResult.data.token_expires_at,
+  const client = new YouTubeApiClient(client_id, client_secret, {
+    accessToken: access_token,
+    refreshToken: refresh_token,
+    tokenExpiresAt: token_expires_at,
   });
 
   return { client, arenaName };

@@ -52,7 +52,7 @@ export const Route = createFileRoute("/api/public/live/start")({
           const arenaClient = await getYouTubeClientForArenaWithName(body.arena_id);
           if (!arenaClient) {
             return Response.json(
-              { error: "Arena não possui credenciais YouTube configuradas. Configure em Admin > YouTube." },
+              { error: "Credenciais do YouTube não configuradas para esta arena" },
               { status: 400 },
             );
           }
