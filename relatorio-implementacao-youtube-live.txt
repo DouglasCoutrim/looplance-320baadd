@@ -1,0 +1,203 @@
+RELATÓRIO DE IMPLEMENTAÇÃO — TRANSMISSÃO AO VIVO NO YOUTUBE
+=============================================================
+Data: 18/07/2026
+Projeto: Looplance — Replays Automáticos para Arenas Esportivas
+
+----------------------------------------------------------------------
+1. DIAGNÓSTICO INICIAL
+----------------------------------------------------------------------
+
+Antes da implementação, o repositório foi varrido completamente:
+
+- Nenhuma integração com YouTube/Google API existia no código.
+- Nenhuma tabela de credenciais OAuth para YouTube no banco.
+- O backend de API é TypeScript (TanStack Start / Cloudflare Workers),
+  NÃO Python. O único Python é o Edge Agent (on-prem em cada arena).
+- A arquitetura de mensageria é baseada em polling (Edge Agent consulta
+  endpoints REST a cada N segundos — sem RabbitMQ, Kafka ou Redis).
+- A tabela cameras já possuía rtmp_stream_key, streaming_status e
+  edge_device_id — campos reutilizados para a lógica de YouTube.
+
+----------------------------------------------------------------------
+2. ARQUIVOS CRIADOS
+----------------------------------------------------------------------
+
+  2.1 supabase/migrations/20260718000001_youtube_live_streaming.sql
+
+  Migration SQL que cria:
+  - arena_youtube_credentials (access_token, refresh_token por arena)
+  - live_broadcasts (registro de cada transmissão: broadcast_id, stream_key,
+    video_id, status, privacy_status, timestamps)
+  - RLS policies (somente admin/owner da arena ou super_admin)
+  - Índices, triggers de updated_at, função fn_get_active_youtube_broadcast
+  - Realtime habilitado para live_broadcasts
+
+  2.2 src/lib/youtube-api.server.ts
+
+  Cliente HTTP puro (sem SDK) para YouTube Data API v3 + OAuth2:
+  - YouTubeApiClient: refreshAccessToken, createBroadcast, createStream,
+    bindBroadcast, transitionBroadcast
+  - getYouTubeClientForArenaWithName: factory que carrega credenciais do
+    banco + env vars YOUTUBE_CLIENT_ID / YOUTUBE_CLIENT_SECRET
+  - Sem dependências externas — usa fetch() nativo do Cloudflare Workers
+
+  2.3 src/routes/api/public/live/start.ts  — POST /api/public/live/start
+
+  Inicia uma transmissão pública no YouTube:
+  - Auth: Bearer <supabase_access_token> do usuário logado
+  - Permissão: has_role arena_owner ou is_super_admin
+  - Cria liveBroadcast (privacyStatus=public)
+  - Cria liveStream (RTMP, 720p, 30fps)
+  - Faz bind broadcast+stream
+  - Salva em live_broadcasts (broadcast_id, stream_key, video_id, etc.)
+  - Atualiza access_token no banco após refresh OAuth
+  - Retorna { broadcast_id, stream_id, stream_key, ingestion_address,
+    video_id, privacy }
+
+  2.4 src/routes/api/public/live/stop.ts  — POST /api/public/live/stop
+
+  Encerra a transmissão ativa:
+  - Auth: Bearer <supabase_access_token> do usuário logado
+  - Permissão: has_role arena_owner ou is_super_admin
+  - Localiza broadcast ativo (status = created/testing/active)
+  - Transiciona para "complete" no YouTube
+  - Atualiza status + actual_end_time no banco
+  - Retorna { broadcast_id, status }
+
+  2.5 src/routes/api/public/edge/pending-youtube-streams.ts — GET
+
+  Endpoint para o Edge Agent consultar broadcasts ativos:
+  - Auth: edge_token (Bearer) + HMAC signature
+  - Retorna lista de broadcasts com status created/testing/active
+  - Inclui stream_key, camera_id, youtube_broadcast_id
+  - Edge Agent usa para saber se deve iniciar/parar ffmpeg YouTube
+
+  2.6 backend/edge-agent/youtube_streamer.py
+
+  Gerencia processo ffmpeg que empurra RTSP da câmera para YouTube RTMP:
+  - ffmpeg com -c:v copy (zero CPU no vídeo H.264)
+  - -c:a aac -b:a 128k (conversão de áudio obrigatória para YouTube)
+  - -f flv para ingestão RTMP
+  - start(): subprocess.Popen com start_new_session=True
+  - stop(): SIGTERM → wait(5s) → SIGKILL (sem processos zumbis)
+  - watch_loop(): thread daemon monitora processo
+  - Drenagem de stderr para evitar pipe deadlock
+
+----------------------------------------------------------------------
+3. ARQUIVOS MODIFICADOS
+----------------------------------------------------------------------
+
+  3.1 backend/edge-agent/main.py
+
+  - Import do YouTubeStreamer
+  - youtube_streamers dict no EdgeAgent.__init__
+  - _youtube_loop() — polling a cada 10s, inicia/para YouTubeStreamers
+    conforme broadcasts ativos no banco
+  - stop() agora também encerra youtube_streamers
+
+  3.2 backend/edge-agent/api_client.py
+
+  - Nova função fetch_pending_youtube_streams(settings) → list[dict]
+  - GET /api/public/edge/pending-youtube-streams com assinatura HMAC
+
+  3.3 src/routes/api/public/live/start.ts (ajuste posterior)
+
+  - video_id: null → video_id: broadcast.id (o ID do broadcast YouTube
+    é o mesmo usado no embed iframe)
+
+  3.4 src/routes/arena.$id.tsx (frontend)
+
+  - Novos estados: youtubeVideoId, youtubeLiveActive, youtubeLoading,
+    userIsAdmin
+  - Fetch inicial: busca role do usuário + broadcast ativo do YouTube
+  - handleStartLive(): POST /api/public/live/start com session token
+  - handleStopLive(): POST /api/public/live/stop com session token
+  - LivePlayerDialog reformulado:
+    * Header com botão "🎥 INICIAR LIVE" (laranja) / "🔴 PARAR LIVE"
+      (vermelho com pulsante) — visível apenas para arena_owner
+    * Loading com spinner (Loader2) enquanto requisição processa
+    * Player mostra <iframe> YouTube embed quando videoId presente
+    * Fallback para <video> HLS player quando sem YouTube ativo
+
+----------------------------------------------------------------------
+4. FLUXO COMPLETO (END-TO-END)
+----------------------------------------------------------------------
+
+  Admin (frontend)        Backend (TS/CF)          YouTube API       Edge Agent (Python)
+       │                        │                       │                   │
+       │  POST /live/start      │                       │                   │
+       │───────────────────────>│                       │                   │
+       │                        │  Cria liveBroadcast   │                   │
+       │                        │  (privacy=public)────>│                   │
+       │                        │  Cria liveStream      │                   │
+       │                        │──────────────────────>│                   │
+       │                        │  Bind broadcast+stream│                   │
+       │                        │──────────────────────>│                   │
+       │  { video_id,           │                       │                   │
+       │    stream_key }        │                       │                   │
+       │<───────────────────────│                       │                   │
+       │                        │                       │                   │
+       │  Mostra iframe YouTube │                       │  Poll (10s)       │
+       │                        │                       │<──────────────────│
+       │                        │  Devolve stream_key   │                   │
+       │                        │──────────────────────────────────────────>│
+       │                        │                       │                   │ Inicia ffmpeg
+       │                        │                       │  RTMP push        │
+       │                        │                       │<──────────────────│
+       │                        │                       │                   │
+       │  POST /live/stop       │                       │                   │
+       │───────────────────────>│                       │                   │
+       │                        │  Transition "complete"│                   │
+       │                        │──────────────────────>│                   │
+       │  { ok }                │                       │                   │
+       │<───────────────────────│                       │                   │
+       │                        │                       │  Poll: sem ativos │
+       │                        │                       │<──────────────────│
+       │                        │                       │                   │ Para ffmpeg
+
+----------------------------------------------------------------------
+5. VARIÁVEIS DE AMBIENTE NECESSÁRIAS
+----------------------------------------------------------------------
+
+  Cloudflare Workers (backend):
+    YOUTUBE_CLIENT_ID      — Google Cloud OAuth Client ID
+    YOUTUBE_CLIENT_SECRET  — Google Cloud OAuth Client Secret
+
+  Banco (arena_youtube_credentials por arena):
+    refresh_token          — obtido via OAuth consent flow (uma vez por arena)
+
+----------------------------------------------------------------------
+6. SETUP PARA FUNCIONAR
+----------------------------------------------------------------------
+
+  1. Rodar migration no Supabase:
+     supabase/migrations/20260718000001_youtube_live_streaming.sql
+
+  2. Configurar YOUTUBE_CLIENT_ID e YOUTUBE_CLIENT_SECRET nas env vars
+     do Cloudflare Workers (dashboard ou wrangler secret put)
+
+  3. Para cada arena, obter refresh_token do YouTube:
+     - Fazer OAuth consent flow (uma vez)
+     - Inserir manualmente em arena_youtube_credentials:
+       INSERT INTO arena_youtube_credentials (arena_id, refresh_token)
+       VALUES ('<arena_uuid>', '<refresh_token>');
+
+  4. O Edge Agent existente já vai detectar os novos broadcasts pelo
+     polling de /api/public/edge/pending-youtube-streams e iniciar
+     o ffmpeg automaticamente.
+
+----------------------------------------------------------------------
+7. COMMITS REALIZADOS
+----------------------------------------------------------------------
+
+  789a09b  feat: youtube live streaming integration
+           (migration + endpoints + edge agent youtube_streamer)
+
+  d2fadbf  fix(youtube): audio AAC obrigatorio, sinais SIGTERM/SIGKILL,
+           pipe deadlock
+
+  b53199e  feat(arena): youtube live controls + iframe player no
+           LivePlayerDialog
+
+======================================================================
+FIM DO RELATÓRIO
