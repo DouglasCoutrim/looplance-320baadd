@@ -108,7 +108,7 @@ export const Route = createFileRoute("/api/public/live/start")({
             stream_id: stream.id,
             stream_key: stream.streamKey,
             ingestion_address: stream.ingestionAddress,
-            video_id: null,
+            video_id: broadcast.id,
             privacy: "public",
           });
         } catch (err: unknown) {

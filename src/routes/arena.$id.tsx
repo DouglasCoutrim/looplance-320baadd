@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
-import { MapPin, Radio, Sparkles, ArrowLeft, X, PlayCircle, WifiOff } from "lucide-react";
+import { MapPin, Radio, Sparkles, ArrowLeft, X, PlayCircle, WifiOff, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ReplayCard } from "@/components/ReplayCard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -66,6 +66,11 @@ function ArenaView() {
   const [liveQuadra, setLiveQuadra] = useState<Quadra | null>(null);
   const [defaultTab, setDefaultTab] = useState<string>(liveParam ? "live" : "replays");
 
+  const [youtubeVideoId, setYoutubeVideoId] = useState<string | null>(null);
+  const [youtubeLiveActive, setYoutubeLiveActive] = useState(false);
+  const [youtubeLoading, setYoutubeLoading] = useState(false);
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
+
 
   // Auth gate
   useEffect(() => {
@@ -78,21 +83,36 @@ function ArenaView() {
     });
   }, [arenaId]);
 
-  // Fetch arena data
+  // Fetch arena data, user role, and active YouTube broadcast
   useEffect(() => {
     if (!authChecked) return;
     (async () => {
-      const [arenaRes, quadrasRes, replaysRes, camerasRes] = await Promise.all([
+      const [arenaRes, quadrasRes, replaysRes, camerasRes, sessionRes] = await Promise.all([
         supabase.from("arenas").select("id, nome, cidade, endereco, foto_url").eq("id", arenaId).maybeSingle(),
         supabase.from("quadras").select("id, nome, arena_id").eq("arena_id", arenaId).order("nome"),
         supabase.from("replays").select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))").eq("arena_id", arenaId).eq("status", "ready").order("created_at", { ascending: false }).limit(60),
         supabase.from("cameras").select("quadra_id, streaming_status, stream_protocol, rtmp_stream_key"),
+        supabase.auth.getSession(),
       ]);
       setArena((arenaRes.data as Arena) ?? null);
       setQuadras((quadrasRes.data as Quadra[]) ?? []);
       setReplays((replaysRes.data as Replay[]) ?? []);
       setCameras((camerasRes.data as CameraStatus[]) ?? []);
       setLoading(false);
+
+      const session = sessionRes.data?.session;
+      if (session) {
+        const userId = session.user.id;
+        const [roleRes, broadcastRes] = await Promise.all([
+          supabase.rpc("has_role", { _user_id: userId, _role: "arena_owner" }),
+          supabase.from("live_broadcasts").select("video_id, status").eq("arena_id", arenaId).in("status", ["created", "testing", "active"]).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+        ]);
+        setUserIsAdmin(!!(roleRes.data));
+        if (broadcastRes.data?.video_id) {
+          setYoutubeVideoId(broadcastRes.data.video_id);
+          setYoutubeLiveActive(true);
+        }
+      }
     })();
   }, [authChecked, arenaId]);
 
@@ -138,6 +158,46 @@ function ArenaView() {
 
   const cameraFor = (quadraId: string) => cameras.find((c) => c.quadra_id === quadraId);
   const statusFor = (quadraId: string) => cameraFor(quadraId)?.streaming_status ?? "offline";
+
+  async function handleStartLive() {
+    setYoutubeLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) { toast.error("Sessão expirada."); return; }
+      const res = await fetch("/api/public/live/start", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ arena_id: arenaId }),
+      });
+      const json = await res.json();
+      if (!res.ok) { toast.error(json.error ?? "Erro ao iniciar live"); return; }
+      setYoutubeVideoId(json.video_id);
+      setYoutubeLiveActive(true);
+      toast.success("Live no YouTube iniciada!");
+    } catch { toast.error("Erro de conexão ao iniciar live"); }
+    finally { setYoutubeLoading(false); }
+  }
+
+  async function handleStopLive() {
+    setYoutubeLoading(true);
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+      if (!token) { toast.error("Sessão expirada."); return; }
+      const res = await fetch("/api/public/live/stop", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ arena_id: arenaId }),
+      });
+      const json = await res.json();
+      if (!res.ok) { toast.error(json.error ?? "Erro ao parar live"); return; }
+      setYoutubeVideoId(null);
+      setYoutubeLiveActive(false);
+      toast.success("Live no YouTube encerrada.");
+    } catch { toast.error("Erro de conexão ao parar live"); }
+    finally { setYoutubeLoading(false); }
+  }
 
   return (
     <div className="min-h-screen bg-black text-white">
@@ -289,6 +349,13 @@ function ArenaView() {
         quadra={liveQuadra}
         camera={liveQuadra ? cameraFor(liveQuadra.id) : undefined}
         status={liveQuadra ? statusFor(liveQuadra.id) : "offline"}
+        arenaId={arenaId}
+        userIsAdmin={userIsAdmin}
+        youtubeVideoId={youtubeVideoId}
+        youtubeLiveActive={youtubeLiveActive}
+        youtubeLoading={youtubeLoading}
+        onStartLive={handleStartLive}
+        onStopLive={handleStopLive}
         onClose={() => setLiveQuadra(null)}
       />
     </div>
@@ -299,11 +366,25 @@ function LivePlayerDialog({
   quadra,
   camera,
   status,
+  arenaId: _arenaId,
+  userIsAdmin,
+  youtubeVideoId,
+  youtubeLiveActive,
+  youtubeLoading,
+  onStartLive,
+  onStopLive,
   onClose,
 }: {
   quadra: Quadra | null;
   camera?: CameraStatus;
   status: string;
+  arenaId: string;
+  userIsAdmin: boolean;
+  youtubeVideoId: string | null;
+  youtubeLiveActive: boolean;
+  youtubeLoading: boolean;
+  onStartLive: () => Promise<void>;
+  onStopLive: () => Promise<void>;
   onClose: () => void;
 }) {
   const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
@@ -373,37 +454,82 @@ function LivePlayerDialog({
           className="fixed left-1/2 top-1/2 z-50 w-full max-w-[95vw] -translate-x-1/2 -translate-y-1/2 outline-none sm:max-w-2xl animate-in zoom-in-95 duration-300"
         >
           <div className="overflow-hidden rounded-3xl border border-white/10 bg-black shadow-2xl">
+            {/* Header */}
             <div className="flex items-center justify-between border-b border-white/10 p-4">
-              <div>
+              <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-widest text-brand-orange">Ao vivo</p>
-                <Dialog.Title className="text-lg font-black text-white">
+                <Dialog.Title className="truncate text-lg font-black text-white">
                   {quadra?.nome ?? "Transmissão ao vivo"}
                 </Dialog.Title>
               </div>
-              <Dialog.Close className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20">
-                <X className="h-5 w-5" />
-              </Dialog.Close>
+              <div className="flex shrink-0 items-center gap-2">
+                {userIsAdmin && (
+                  youtubeLiveActive ? (
+                    <button
+                      onClick={onStopLive}
+                      disabled={youtubeLoading}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-red-600 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-red-700 disabled:opacity-50"
+                    >
+                      {youtubeLoading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
+                      )}
+                      PARAR LIVE
+                    </button>
+                  ) : (
+                    <button
+                      onClick={onStartLive}
+                      disabled={youtubeLoading}
+                      className="inline-flex items-center gap-1.5 rounded-full bg-brand-orange px-3 py-1.5 text-xs font-bold text-black transition hover:brightness-110 disabled:opacity-50"
+                    >
+                      {youtubeLoading ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        "🎥"
+                      )}
+                      INICIAR LIVE
+                    </button>
+                  )
+                )}
+                <Dialog.Close className="grid h-10 w-10 place-items-center rounded-full bg-white/10 text-white transition hover:bg-white/20">
+                  <X className="h-5 w-5" />
+                </Dialog.Close>
+              </div>
             </div>
 
+            {/* Player area */}
             <div className="relative aspect-video w-full bg-black">
-              <video
-                ref={setVideoEl}
-                controls
-                autoPlay
-                playsInline
-                muted
-                className="h-full w-full object-contain"
-              />
-              {streamError && (
-                <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/90 p-8 text-center">
-                  <div className="grid h-16 w-16 place-items-center rounded-full bg-white/5">
-                    <WifiOff className="h-8 w-8 text-white/60" />
-                  </div>
-                  <p className="text-base font-bold text-white">{streamError}</p>
-                  <p className="text-sm text-white/60">
-                    {dbOnline ? "Tente novamente em instantes." : "O jogo começará em breve! 🎾"}
-                  </p>
-                </div>
+              {youtubeVideoId ? (
+                <iframe
+                  src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&rel=0&modestbranding=1`}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                  className="h-full w-full"
+                  title="YouTube Live"
+                />
+              ) : (
+                <>
+                  <video
+                    ref={setVideoEl}
+                    controls
+                    autoPlay
+                    playsInline
+                    muted
+                    className="h-full w-full object-contain"
+                  />
+                  {streamError && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/90 p-8 text-center">
+                      <div className="grid h-16 w-16 place-items-center rounded-full bg-white/5">
+                        <WifiOff className="h-8 w-8 text-white/60" />
+                      </div>
+                      <p className="text-base font-bold text-white">{streamError}</p>
+                      <p className="text-sm text-white/60">
+                        {dbOnline ? "Tente novamente em instantes." : "O jogo começará em breve! 🎾"}
+                      </p>
+                    </div>
+                  )}
+                </>
               )}
             </div>
           </div>
