@@ -115,6 +115,10 @@ function Arenas() {
   // YouTube integration
   const [youtubeConnected, setYoutubeConnected] = useState(false);
   const [youtubeConnecting, setYoutubeConnecting] = useState(false);
+  const [youtubeFormOpen, setYoutubeFormOpen] = useState(false);
+  const [youtubeClientId, setYoutubeClientId] = useState("");
+  const [youtubeClientSecret, setYoutubeClientSecret] = useState("");
+  const [youtubeRefreshToken, setYoutubeRefreshToken] = useState("");
   const [editTab, setEditTab] = useState("geral");
 
   // Gera QR code para cadastro via scan
@@ -142,15 +146,27 @@ function Arenas() {
       .then(({ data }) => setSponsors(data ?? []));
   }, [editing]);
 
-  // Carrega status da integração YouTube
+  // Carrega credenciais YouTube
   useEffect(() => {
-    if (!editing) { setYoutubeConnected(false); return; }
+    if (!editing) { setYoutubeConnected(false); setYoutubeFormOpen(false); return; }
     supabase
       .from("arena_youtube_credentials")
-      .select("id")
+      .select("client_id, client_secret, refresh_token")
       .eq("arena_id", editing.id)
       .maybeSingle()
-      .then(({ data }) => setYoutubeConnected(!!data));
+      .then(({ data }) => {
+        if (data) {
+          setYoutubeConnected(true);
+          setYoutubeClientId(data.client_id || "");
+          setYoutubeClientSecret(data.client_secret || "");
+          setYoutubeRefreshToken(data.refresh_token || "");
+        } else {
+          setYoutubeConnected(false);
+          setYoutubeClientId("");
+          setYoutubeClientSecret("");
+          setYoutubeRefreshToken("");
+        }
+      });
   }, [editing]);
 
   // Toast do retorno OAuth (youtube-callback redireciona com ?youtube=ok)
@@ -798,59 +814,115 @@ function Arenas() {
                   {/* Aba: Integrações */}
                   {editTab === "integrations" && (
                     <div className="grid gap-5 py-6">
-                      <div className="space-y-3">
-                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Integração YouTube</Label>
-                        <div className="rounded-xl border border-zinc-700 bg-zinc-800/50 p-4 flex items-center justify-between gap-4">
-                          <div className="flex items-center gap-3 min-w-0">
-                            {youtubeConnected ? (
-                              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-green-900/50"><span className="text-lg">✅</span></div>
-                            ) : (
-                              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-zinc-700"><span className="text-lg">🔗</span></div>
-                            )}
-                            <div className="min-w-0">
-                              <p className="text-sm font-bold text-zinc-100">{youtubeConnected ? "Canal Conectado" : "YouTube não conectado"}</p>
-                              <p className="text-xs text-zinc-400 truncate">
-                                {youtubeConnected ? "Transmissões ao vivo serão enviadas para este canal." : "Conecte para transmitir jogos ao vivo no YouTube."}
-                              </p>
-                            </div>
+                      <div className="space-y-4">
+                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Credenciais da API YouTube</Label>
+                        <p className="text-xs text-zinc-400 -mt-2">
+                          Preencha os dados do projeto Google Cloud para que a arena possa criar e gerenciar transmissões ao vivo.
+                        </p>
+
+                        <div className="grid gap-3">
+                          <div className="grid gap-1.5">
+                            <Label className="text-xs font-semibold text-zinc-300">Client ID</Label>
+                            <Input
+                              value={youtubeClientId}
+                              onChange={(e) => setYoutubeClientId(e.target.value)}
+                              placeholder="123456789-xxxxx.apps.googleusercontent.com"
+                              className="rounded-xl border-zinc-700 bg-zinc-800/60 h-11 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-brand-orange focus:ring-brand-orange"
+                            />
                           </div>
-                          {youtubeConnected ? (
-                            <button onClick={async () => {
+                          <div className="grid gap-1.5">
+                            <Label className="text-xs font-semibold text-zinc-300">Client Secret</Label>
+                            <Input
+                              value={youtubeClientSecret}
+                              onChange={(e) => setYoutubeClientSecret(e.target.value)}
+                              type="password"
+                              placeholder="GOCSPX-xxxxxxxxxxxxxxxxxxxx"
+                              className="rounded-xl border-zinc-700 bg-zinc-800/60 h-11 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-brand-orange focus:ring-brand-orange"
+                            />
+                          </div>
+                          <div className="grid gap-1.5">
+                            <Label className="text-xs font-semibold text-zinc-300">Refresh Token</Label>
+                            <Input
+                              value={youtubeRefreshToken}
+                              onChange={(e) => setYoutubeRefreshToken(e.target.value)}
+                              type="password"
+                              placeholder="1//0gxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+                              className="rounded-xl border-zinc-700 bg-zinc-800/60 h-11 text-sm text-zinc-100 placeholder:text-zinc-500 focus:border-brand-orange focus:ring-brand-orange"
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex gap-2 pt-2">
+                          <Button
+                            type="button"
+                            onClick={async () => {
+                              if (!youtubeClientId.trim() || !youtubeClientSecret.trim() || !youtubeRefreshToken.trim()) {
+                                toast.error("Preencha todos os campos obrigatórios.");
+                                return;
+                              }
+                              setYoutubeConnecting(true);
                               const { data: sessionData } = await supabase.auth.getSession();
                               const token = sessionData.session?.access_token;
-                              if (!token) { toast.error("Sessão expirada."); return; }
+                              if (!token) { toast.error("Sessão expirada."); setYoutubeConnecting(false); return; }
                               try {
                                 const res = await fetch("/api/public/live/youtube-disconnect", {
                                   method: "POST",
                                   headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                                   body: JSON.stringify({ arena_id: editing!.id }),
                                 });
-                                if (!res.ok) { toast.error("Erro ao desconectar"); return; }
-                                setYoutubeConnected(false);
-                                toast.success("Canal YouTube desconectado.");
+                                const { error: upsertError } = await supabase
+                                  .from("arena_youtube_credentials")
+                                  .upsert({
+                                    arena_id: editing!.id,
+                                    client_id: youtubeClientId.trim(),
+                                    client_secret: youtubeClientSecret.trim(),
+                                    refresh_token: youtubeRefreshToken.trim(),
+                                  }, { onConflict: "arena_id" });
+                                if (upsertError) { toast.error("Erro ao salvar: " + upsertError.message); setYoutubeConnecting(false); return; }
+                                setYoutubeConnected(true);
+                                toast.success("Credenciais YouTube salvas com sucesso!");
                               } catch { toast.error("Erro de conexão"); }
+                              setYoutubeConnecting(false);
                             }}
-                              className="shrink-0 rounded-full border border-red-700 px-3 py-1.5 text-xs font-bold text-red-400 transition hover:bg-red-900/30">Desconectar</button>
-                          ) : (
-                            <button onClick={async () => {
-                              setYoutubeConnecting(true);
-                              const { data: sessionData } = await supabase.auth.getSession();
-                              const token = sessionData.session?.access_token;
-                              if (!token) { toast.error("Sessão expirada."); setYoutubeConnecting(false); return; }
-                              try {
-                                const res = await fetch("/api/public/live/youtube-connect?arena_id=" + editing!.id,
-                                  { headers: { Authorization: "Bearer " + token } });
-                                const json = await res.json();
-                                if (!res.ok) { toast.error(json.error || "Erro"); setYoutubeConnecting(false); return; }
-                                window.location.href = json.url;
-                              } catch { toast.error("Erro de conexão"); setYoutubeConnecting(false); }
-                            }}
-                              disabled={youtubeConnecting}
-                              className="shrink-0 rounded-full bg-brand-orange px-3 py-1.5 text-xs font-bold text-black transition hover:brightness-110 disabled:opacity-50">
-                              {youtubeConnecting ? "Conectando..." : "Conectar Canal do YouTube"}
-                            </button>
+                            disabled={youtubeConnecting}
+                            className="rounded-xl bg-brand-orange px-5 py-2.5 text-xs font-black uppercase tracking-widest text-black transition hover:brightness-110 disabled:opacity-50"
+                          >
+                            {youtubeConnecting ? "Salvando..." : "Salvar credenciais"}
+                          </Button>
+                          {youtubeConnected && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              onClick={async () => {
+                                const { data: sessionData } = await supabase.auth.getSession();
+                                const token = sessionData.session?.access_token;
+                                if (!token) { toast.error("Sessão expirada."); return; }
+                                try {
+                                  const res = await fetch("/api/public/live/youtube-disconnect", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                                    body: JSON.stringify({ arena_id: editing!.id }),
+                                  });
+                                  if (!res.ok) { toast.error("Erro ao desconectar"); return; }
+                                  setYoutubeConnected(false);
+                                  setYoutubeClientId("");
+                                  setYoutubeClientSecret("");
+                                  setYoutubeRefreshToken("");
+                                  toast.success("Credenciais removidas.");
+                                } catch { toast.error("Erro de conexão"); }
+                              }}
+                              className="rounded-xl border-red-700 px-5 py-2.5 text-xs font-bold text-red-400 hover:bg-red-900/30"
+                            >
+                              Remover
+                            </Button>
                           )}
                         </div>
+
+                        {youtubeConnected && (
+                          <div className="rounded-xl border border-emerald-800/50 bg-emerald-950/20 p-3 text-xs text-emerald-300">
+                            ✅ YouTube configurado — transmissões ao vivo usarão estas credenciais.
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

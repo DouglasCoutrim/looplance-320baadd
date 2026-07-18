@@ -211,7 +211,7 @@ export async function getYouTubeClientForArenaWithName(
   const [credsResult, arenaResult] = await Promise.all([
     supabaseAdmin
       .from("arena_youtube_credentials")
-      .select("access_token, refresh_token, token_expires_at")
+      .select("access_token, refresh_token, token_expires_at, client_id, client_secret")
       .eq("arena_id", arenaId)
       .maybeSingle(),
     supabaseAdmin
@@ -223,11 +223,12 @@ export async function getYouTubeClientForArenaWithName(
 
   if (credsResult.error) throw new YouTubeApiError(`Erro lendo credenciais: ${credsResult.error.message}`, 500);
   if (!credsResult.data) return null;
+  if (!credsResult.data.refresh_token) return null;
 
-  const clientId = process.env.YOUTUBE_CLIENT_ID;
-  const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+  const clientId = credsResult.data.client_id || process.env.YOUTUBE_CLIENT_ID;
+  const clientSecret = credsResult.data.client_secret || process.env.YOUTUBE_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
-    throw new YouTubeApiError("YOUTUBE_CLIENT_ID e YOUTUBE_CLIENT_SECRET não configurados", 500);
+    throw new YouTubeApiError("YOUTUBE_CLIENT_ID e YOUTUBE_CLIENT_SECRET não configurados (nem no ambiente nem na arena)", 500);
   }
 
   const arenaName = arenaResult.data?.nome ?? "Arena";
