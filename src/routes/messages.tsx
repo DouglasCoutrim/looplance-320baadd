@@ -30,6 +30,17 @@ interface MessageRow {
   read: boolean;
 }
 
+function formatTime(iso: string) {
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = (now.getTime() - d.getTime()) / 1000;
+  if (diff < 60) return "agora";
+  const h = d.getHours().toString().padStart(2, "0");
+  const m = d.getMinutes().toString().padStart(2, "0");
+  if (diff < 86400) return `${h}:${m}`;
+  return `${d.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })} ${h}:${m}`;
+}
+
 function MessagesPage() {
   const [uid, setUid] = useState<string | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -138,6 +149,36 @@ function MessagesPage() {
       .subscribe();
     return () => { supabase.removeChannel(ch); };
   }, [uid, openChat]);
+
+  // Toast ao receber mensagem de alguém que não está no chat aberto
+  useEffect(() => {
+    if (!uid) return;
+    const ch = supabase
+      .channel(`messages-toast-${uid}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `receiver_id=eq.${uid}`,
+        },
+        (payload) => {
+          const row = payload.new as MessageRow;
+          if (openChat && row.sender_id === openChat.id) return;
+          const sender = contacts.find((c) => c.id === row.sender_id);
+          if (sender) {
+            toast(`${sender.full_name || "Alguém"} enviou uma mensagem`, {
+              description: row.content.slice(0, 80),
+              action: { label: "Abrir", onClick: () => openConversation(sender) },
+              duration: 5000,
+            });
+          }
+        }
+      )
+      .subscribe();
+    return () => { supabase.removeChannel(ch); };
+  }, [uid, openChat, contacts]);
 
   // Realtime: badge de não lidas (sempre ativo, mesmo sem chat aberto)
   useEffect(() => {
@@ -248,7 +289,7 @@ function MessagesPage() {
       {openChat && (
         <div
           className="fixed bottom-24 md:bottom-4 right-4 w-[92vw] max-w-sm bg-card border border-border rounded-2xl shadow-2xl flex flex-col overflow-hidden z-50"
-          style={{ height: 420 }}
+          style={{ height: "min(420px, 60vh)" }}
         >
           <div
             className="flex items-center gap-3 p-4 border-b border-border shrink-0"
@@ -278,14 +319,19 @@ function MessagesPage() {
             )}
             {messages.map((m, i) => (
               <div key={m.id || i} className={`flex ${m.sender_id === uid ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-[80%] px-3.5 py-2 rounded-2xl text-sm ${
-                    m.sender_id === uid
-                      ? "text-black rounded-br-sm brand-gradient"
-                      : "bg-secondary text-foreground rounded-bl-sm"
-                  }`}
-                >
-                  {m.content}
+                <div className="max-w-[80%]">
+                  <div
+                    className={`px-3.5 py-2 rounded-2xl text-sm ${
+                      m.sender_id === uid
+                        ? "text-black rounded-br-sm brand-gradient"
+                        : "bg-secondary text-foreground rounded-bl-sm"
+                    }`}
+                  >
+                    {m.content}
+                  </div>
+                  <p className={`text-[10px] text-zinc-500 mt-0.5 ${m.sender_id === uid ? "text-right" : "text-left"}`}>
+                    {formatTime(m.created_at)}
+                  </p>
                 </div>
               </div>
             ))}

@@ -43,7 +43,7 @@ export function SocialShell({ children, active = "feed", hideRightPanel = false 
   const [profile, setProfile] = useState<Profile | null>(null);
   const [email, setEmail] = useState<string | null>(null);
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
-  const [followed, setFollowed] = useState<Set<string>>(new Set());
+  const [followState, setFollowState] = useState<Record<string, boolean>>({});
   const { notifications, unreadCount, markRead, markAllRead } = useNotifications();
   const [showNotif, setShowNotif] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
@@ -56,31 +56,47 @@ export function SocialShell({ children, active = "feed", hideRightPanel = false 
     return () => document.removeEventListener("mousedown", handler);
   }, []);
 
+  const [uid, setUid] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     supabase.auth.getUser().then(async ({ data }) => {
       if (!data.user) return;
+      const userId = data.user.id;
+      setUid(userId);
       setEmail(data.user.email ?? null);
       const { data: p } = await supabase
         .from("profiles")
         .select("id, full_name, avatar_url")
-        .eq("id", data.user.id)
+        .eq("id", userId)
         .maybeSingle();
       if (p) setProfile(p as Profile);
 
       const [superRes, arenaRes] = await Promise.all([
-        supabase.rpc("has_role", { _user_id: data.user.id, _role: "super_admin" }),
-        supabase.rpc("has_role", { _user_id: data.user.id, _role: "arena_owner" }),
+        supabase.rpc("has_role", { _user_id: userId, _role: "super_admin" }),
+        supabase.rpc("has_role", { _user_id: userId, _role: "arena_owner" }),
       ]);
       setIsAdmin(!!(superRes.data || arenaRes.data));
 
       const { data: sugg } = await supabase
         .from("profiles")
         .select("id, full_name, avatar_url")
-        .neq("id", data.user.id)
+        .neq("id", userId)
         .limit(4);
-      setSuggestions((sugg ?? []) as Suggestion[]);
+      const suggestions = (sugg ?? []) as Suggestion[];
+      setSuggestions(suggestions);
+
+      const ids = suggestions.map((s) => s.id);
+      if (ids.length > 0) {
+        const { data: myFollows } = await supabase
+          .from("follows")
+          .select("following_id")
+          .eq("follower_id", userId)
+          .in("following_id", ids);
+        const state: Record<string, boolean> = {};
+        (myFollows ?? []).forEach((f: any) => { state[f.following_id] = true; });
+        setFollowState(state);
+      }
     });
   }, []);
 
@@ -112,12 +128,18 @@ export function SocialShell({ children, active = "feed", hideRightPanel = false 
     return id === active || location.pathname.startsWith(`/${id}`);
   };
 
-  const toggleFollow = (id: string) =>
-    setFollowed((prev) => {
-      const n = new Set(prev);
-      n.has(id) ? n.delete(id) : n.add(id);
-      return n;
-    });
+  const toggleFollow = async (targetId: string) => {
+    if (!uid) return;
+    const wasFollowing = !!followState[targetId];
+    setFollowState((prev) => ({ ...prev, [targetId]: !wasFollowing }));
+    if (wasFollowing) {
+      const { error } = await supabase.from("follows").delete().eq("follower_id", uid).eq("following_id", targetId);
+      if (error) { setFollowState((prev) => ({ ...prev, [targetId]: true })); toast.error("Erro ao deixar de seguir"); }
+    } else {
+      const { error } = await supabase.from("follows").insert({ follower_id: uid, following_id: targetId });
+      if (error) { setFollowState((prev) => ({ ...prev, [targetId]: false })); toast.error("Erro ao seguir"); }
+    }
+  };
 
   return (
     <div className="min-h-screen bg-background text-foreground flex relative">
@@ -324,10 +346,10 @@ export function SocialShell({ children, active = "feed", hideRightPanel = false 
                     <button
                       onClick={() => toggleFollow(s.id)}
                       className={`text-xs font-bold px-3.5 py-1.5 rounded-full transition-all shrink-0 ${
-                        followed.has(s.id) ? "bg-secondary text-muted-foreground" : "text-black brand-gradient"
+                        followState[s.id] ? "bg-secondary text-muted-foreground" : "text-black brand-gradient"
                       }`}
                     >
-                      {followed.has(s.id) ? "Seguindo" : "Seguir"}
+                      {followState[s.id] ? "Seguindo" : "Seguir"}
                     </button>
                   </div>
                 ))}

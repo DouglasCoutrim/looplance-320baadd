@@ -12,6 +12,22 @@ export interface AppNotification {
   created_at: string;
 }
 
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = "sine";
+    osc.frequency.value = 660;
+    gain.gain.setValueAtTime(0.15, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.2);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + 0.2);
+  } catch {}
+}
+
 function getNotifSoundUrl(): string {
   try {
     const { data } = supabase.storage.from("som").getPublicUrl("notifica.mp3");
@@ -31,12 +47,13 @@ export function useNotifications() {
     try {
       if (!audioRef.current) {
         const url = getNotifSoundUrl();
-        if (!url) return;
+        if (!url) { playBeep(); return; }
         audioRef.current = new Audio(url);
+        audioRef.current.onerror = () => playBeep();
       }
       audioRef.current.currentTime = 0;
-      audioRef.current.play().catch(() => {});
-    } catch {}
+      audioRef.current.play().catch(() => playBeep());
+    } catch { playBeep(); }
   }, []);
 
   useEffect(() => {

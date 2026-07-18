@@ -2,7 +2,8 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
 import {
-  Search, Sparkles, Play, Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Radio, Download,
+  Search, Sparkles, Play, Heart, MessageCircle, Share2, UserPlus, UserCheck, MoreHorizontal, Radio, Download,
+  MapPin, Loader2, X, Video, Camera,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SocialShell } from "@/components/SocialShell";
@@ -22,6 +23,7 @@ interface Replay {
   video_url: string;
   created_at: string;
   quadra_id: string;
+  user_id: string | null;
   quadras?: { nome: string; arenas?: { nome: string } | null } | null;
 }
 
@@ -48,15 +50,24 @@ function Home() {
     Array<{ quadra_id: string; quadra_nome: string; arena_id: string; arena_nome: string }>
   >([]);
   const [search, setSearch] = useState("");
+  const [uid, setUid] = useState<string | null>(null);
   const [points, setPoints] = useState(0);
-  const [liked, setLiked] = useState<Set<string>>(new Set());
-  const [saved, setSaved] = useState<Set<string>>(new Set());
+  const [likesMap, setLikesMap] = useState<Record<string, { liked: boolean; count: number }>>({});
   const [playing, setPlaying] = useState<string | null>(null);
+  const [checkin, setCheckin] = useState<{ arena_id: string; arena_nome: string; quadra_id: string; quadra_nome: string } | null>(null);
+  const [showCheckinDialog, setShowCheckinDialog] = useState(false);
+  const [searchArena, setSearchArena] = useState("");
+  const [arenas, setArenas] = useState<Array<{ id: string; nome: string; endereco: string | null }>>([]);
+  const [selectedArena, setSelectedArena] = useState<string | null>(null);
+  const [arenaQuadras, setArenaQuadras] = useState<Array<{ id: string; nome: string }>>([]);
+  const [loadingCheckin, setLoadingCheckin] = useState(false);
+  const [liveStarting, setLiveStarting] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(async ({ data }) => {
       if (!data.session) return navigate({ to: "/auth" });
-      const uid = data.session.user.id;
+      const currentUid = data.session.user.id;
+      setUid(currentUid);
       const { data: prof } = await supabase
         .from("profiles")
         .select("cpf, birth_date, gender, city")
@@ -65,6 +76,7 @@ function Home() {
       const missing = !prof || !prof.cpf || !prof.birth_date || !prof.gender || !prof.city;
       if (missing) return navigate({ to: "/complete-profile" });
       setAuthChecked(true);
+      loadCheckin(currentUid);
     });
     const { data: sub } = supabase.auth.onAuthStateChange((_e, session) => {
       if (!session) navigate({ to: "/auth" });
@@ -95,11 +107,14 @@ function Home() {
   const fetchReplays = async () => {
     const { data } = await supabase
       .from("replays")
-      .select("id, video_url, created_at, quadra_id, quadras(nome, arenas(nome))")
+      .select("id, video_url, created_at, quadra_id, user_id, quadras(nome, arenas(nome))")
       .eq("status", "ready")
       .order("created_at", { ascending: false })
       .limit(30);
-    setReplays((data ?? []) as Replay[]);
+    const list = (data ?? []) as Replay[];
+    setReplays(list);
+    const ids = list.map((r) => r.id);
+    if (ids.length > 0) loadLikes(ids);
   };
 
   const fetchStories = async () => {
@@ -128,27 +143,139 @@ function Home() {
     setLiveList(list.filter((x) => (seen.has(x.quadra_id) ? false : seen.add(x.quadra_id))));
   };
 
-  const toggleLike = (id: string) => {
-    setLiked((prev) => {
-      const n = new Set(prev);
-      n.has(id) ? n.delete(id) : n.add(id);
-      return n;
-    });
-    setPoints((p) => p + 5);
+  const loadLikes = async (ids: string[]) => {
+    if (!uid || ids.length === 0) return;
+    const [{ data: myLikes }, { data: allLikes }] = await Promise.all([
+      supabase.from("likes").select("target_id").eq("user_id", uid).in("target_id", ids).eq("target_type", "replay"),
+      supabase.from("likes").select("target_id").in("target_id", ids).eq("target_type", "replay"),
+    ]);
+    const likedSet = new Set((myLikes ?? []).map((l) => l.target_id));
+    const counts: Record<string, number> = {};
+    (allLikes ?? []).forEach((l) => { counts[l.target_id] = (counts[l.target_id] || 0) + 1; });
+    const map: Record<string, { liked: boolean; count: number }> = {};
+    ids.forEach((id) => { map[id] = { liked: likedSet.has(id), count: counts[id] || 0 }; });
+    setLikesMap(map);
   };
-  const toggleSave = (id: string) =>
-    setSaved((prev) => {
-      const n = new Set(prev);
-      n.has(id) ? n.delete(id) : n.add(id);
-      return n;
-    });
 
-  const filtered = search
-    ? replays.filter((r) =>
+  const toggleLike = async (id: string) => {
+    if (!uid) return;
+    const entry = likesMap[id] || { liked: false, count: 0 };
+    const newLiked = !entry.liked;
+    setLikesMap((prev) => ({ ...prev, [id]: { liked: newLiked, count: entry.count + (newLiked ? 1 : -1) } }));
+    if (newLiked) {
+      const { error } = await supabase.from("likes").insert({ user_id: uid, target_id: id, target_type: "replay" });
+      if (error) { setLikesMap((prev) => ({ ...prev, [id]: { liked: false, count: entry.count } })); return; }
+      setPoints((p) => p + 5);
+    } else {
+      const { error } = await supabase.from("likes").delete().eq("user_id", uid).eq("target_id", id).eq("target_type", "replay");
+      if (error) { setLikesMap((prev) => ({ ...prev, [id]: { liked: true, count: entry.count } })); }
+    }
+  };
+
+  const loadCheckin = async (userId: string) => {
+    const { data } = await supabase
+      .from("check_ins")
+      .select("arena_id, quadra_id, arenas!inner(nome), quadras!inner(nome)")
+      .eq("user_id", userId)
+      .eq("active", true)
+      .maybeSingle();
+    if (data) {
+      const d = data as any;
+      setCheckin({ arena_id: d.arena_id, arena_nome: d.arenas?.nome ?? "", quadra_id: d.quadra_id, quadra_nome: d.quadras?.nome ?? "" });
+    }
+  };
+
+  const searchArenasFn = async (q: string) => {
+    if (!q.trim()) { setArenas([]); return; }
+    const { data } = await supabase
+      .from("arenas")
+      .select("id, nome, endereco")
+      .ilike("nome", `%${q}%`)
+      .limit(10);
+    setArenas((data ?? []) as Array<{ id: string; nome: string; endereco: string | null }>);
+  };
+
+  const selectArena = async (arenaId: string) => {
+    setSelectedArena(arenaId);
+    const { data } = await supabase
+      .from("quadras")
+      .select("id, nome")
+      .eq("arena_id", arenaId)
+      .order("nome");
+    setArenaQuadras((data ?? []) as Array<{ id: string; nome: string }>);
+  };
+
+  const handleCheckin = async (qId: string) => {
+    if (!uid || !selectedArena) return;
+    setLoadingCheckin(true);
+    const arena = arenas.find((a) => a.id === selectedArena);
+    const quadra = arenaQuadras.find((q) => q.id === qId);
+    const { error } = await supabase.from("check_ins").insert({
+      user_id: uid,
+      arena_id: selectedArena,
+      quadra_id: qId,
+    });
+    setLoadingCheckin(false);
+    if (error) { toast.error("Erro ao fazer check-in"); return; }
+    setCheckin({ arena_id: selectedArena, arena_nome: arena?.nome ?? "", quadra_id: qId, quadra_nome: quadra?.nome ?? "" });
+    setShowCheckinDialog(false);
+    setSearchArena("");
+    setArenas([]);
+    setSelectedArena(null);
+    setArenaQuadras([]);
+    toast.success(`Check-in realizado em ${quadra?.nome ?? "quadra"}`);
+  };
+
+  const handleCheckout = async () => {
+    if (!uid) return;
+    const { error } = await supabase
+      .from("check_ins")
+      .update({ active: false })
+      .eq("user_id", uid)
+      .eq("active", true);
+    if (error) { toast.error("Erro ao sair"); return; }
+    setCheckin(null);
+    toast.success("Check-out realizado");
+  };
+
+  const handleStartLive = async () => {
+    if (!checkin) return;
+    setLiveStarting(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { toast.error("Sessão expirada"); setLiveStarting(false); return; }
+    try {
+      const res = await fetch("/api/public/check-in/start-live", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${session.access_token}`, "Content-Type": "application/json" },
+      });
+      const json = await res.json();
+      if (!res.ok) { toast.error(json.error || "Erro ao iniciar live"); setLiveStarting(false); return; }
+      toast.success("Live iniciada! Transmitindo para o YouTube.");
+    } catch { toast.error("Erro de conexão"); }
+    setLiveStarting(false);
+  };
+
+  const handleClaim = async (id: string) => {
+    if (!uid) return;
+    const { error } = await supabase.from("replays").update({ user_id: uid }).eq("id", id);
+    if (error) { toast.error("Erro ao reivindicar lance"); return; }
+    setReplays((prev) => prev.map((r) => (r.id === id ? { ...r, user_id: uid } : r)));
+    toast.success("Lance reivindicado!");
+  };
+
+  const filtered = (() => {
+    let list = replays;
+    if (checkin) {
+      list = list.filter((r) => r.quadra_id === checkin.quadra_id);
+    }
+    if (search) {
+      list = list.filter((r) =>
         (r.quadras?.nome || "").toLowerCase().includes(search.toLowerCase()) ||
         (r.quadras?.arenas?.nome || "").toLowerCase().includes(search.toLowerCase())
-      )
-    : replays;
+      );
+    }
+    return list;
+  })();
 
   return (
     <SocialShell active="feed">
@@ -191,6 +318,46 @@ function Home() {
               className="w-full bg-secondary border border-border rounded-2xl pl-11 pr-4 py-3 text-sm focus:outline-none focus:border-primary/60 transition"
             />
           </div>
+
+          {/* Check-in banner */}
+          {checkin ? (
+            <div className="flex items-center gap-3 rounded-2xl border border-brand-orange/30 bg-brand-orange/5 px-4 py-3">
+              <MapPin className="w-5 h-5 text-brand-orange shrink-0" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold truncate">{checkin.arena_nome}</p>
+                <p className="text-xs text-muted-foreground">Quadra {checkin.quadra_nome}</p>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleStartLive}
+                  disabled={liveStarting}
+                  className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-full bg-brand-orange text-black hover:opacity-85 transition disabled:opacity-50"
+                >
+                  {liveStarting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Video className="w-3.5 h-3.5" />}
+                  {liveStarting ? "Iniciando..." : "Iniciar Live"}
+                </button>
+                <button
+                  onClick={handleCheckout}
+                  className="text-xs text-muted-foreground hover:text-foreground transition px-2 py-1"
+                >
+                  Sair
+                </button>
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => setShowCheckinDialog(true)}
+              className="flex w-full items-center gap-3 rounded-2xl border border-border bg-card px-4 py-3.5 text-left transition hover:border-brand-orange/30 hover:bg-brand-orange/5 group"
+            >
+              <div className="w-9 h-9 rounded-full bg-secondary grid place-items-center shrink-0 group-hover:bg-brand-orange/20 transition">
+                <MapPin className="w-4 h-4 text-brand-orange" />
+              </div>
+              <div className="flex-1">
+                <p className="text-sm font-bold">Fazer check-in na arena</p>
+                <p className="text-xs text-muted-foreground">Toque para selecionar onde você está</p>
+              </div>
+            </button>
+          )}
 
           {/* Avatar row — perfil logado + comunidade */}
           <div className="flex gap-3.5 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
@@ -265,9 +432,11 @@ function Home() {
             </div>
           ) : (
             filtered.map((post) => {
-              const isLiked = liked.has(post.id);
-              const isSaved = saved.has(post.id);
+              const likeEntry = likesMap[post.id] || { liked: false, count: 0 };
+              const isLiked = likeEntry.liked;
+              const isClaimed = post.user_id === uid;
               const isPlaying = playing === post.id;
+              const claimDisabled = post.user_id !== null && post.user_id !== uid;
               return (
                 <article
                   key={post.id}
@@ -336,7 +505,7 @@ function Home() {
                       >
                         <Heart className={`w-5 h-5 ${isLiked ? "fill-current scale-110" : ""}`} />
                         <span style={{ fontFamily: "'JetBrains Mono', monospace" }}>
-                          {isLiked ? 1 : 0}
+                          {likeEntry.count}
                         </span>
                       </button>
                       <button className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition">
@@ -379,12 +548,14 @@ function Home() {
                         <Download className="w-4 h-4" /> Baixar
                       </button>
                       <button
-                        onClick={() => toggleSave(post.id)}
+                        onClick={claimDisabled ? undefined : () => handleClaim(post.id)}
+                        disabled={claimDisabled}
                         className={`ml-auto transition-all ${
-                          isSaved ? "text-yellow-400" : "text-muted-foreground hover:text-yellow-400"
+                          isClaimed ? "text-green-400" : claimDisabled ? "text-zinc-600 cursor-not-allowed" : "text-muted-foreground hover:text-green-400"
                         }`}
+                        title={isClaimed ? "Seu lance" : claimDisabled ? "Já reivindicado" : "Reivindicar lance"}
                       >
-                        <Bookmark className={`w-5 h-5 ${isSaved ? "fill-current" : ""}`} />
+                        {isClaimed ? <UserCheck className="w-5 h-5" /> : <UserPlus className="w-5 h-5" />}
                       </button>
                     </div>
                     <p className="text-sm leading-relaxed text-foreground/90">
@@ -409,6 +580,91 @@ function Home() {
               );
             })
           )}
+        </div>
+      )}
+
+      {/* Check-in dialog */}
+      {showCheckinDialog && (
+        <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowCheckinDialog(false)}>
+          <div
+            className="w-full md:max-w-md bg-card border border-border rounded-t-2xl md:rounded-2xl p-5 max-h-[85vh] overflow-y-auto"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-black uppercase tracking-wide" style={{ fontFamily: "'Barlow Condensed', sans-serif" }}>
+                Fazer check-in
+              </h2>
+              <button onClick={() => setShowCheckinDialog(false)} className="text-muted-foreground hover:text-foreground p-1">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Buscar arena */}
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <input
+                type="text"
+                value={searchArena}
+                onChange={(e) => { setSearchArena(e.target.value); searchArenasFn(e.target.value); }}
+                placeholder="Buscar arena pelo nome..."
+                className="w-full bg-secondary rounded-xl pl-10 pr-4 py-3 text-sm focus:outline-none border border-transparent focus:border-primary/60 transition"
+              />
+            </div>
+
+            {/* Lista de arenas */}
+            {!selectedArena && arenas.length > 0 && (
+              <div className="space-y-1 mb-4">
+                {arenas.map((a) => (
+                  <button
+                    key={a.id}
+                    onClick={() => selectArena(a.id)}
+                    className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary transition text-left"
+                  >
+                    <MapPin className="w-4 h-4 text-brand-orange shrink-0" />
+                    <div>
+                      <p className="text-sm font-semibold">{a.nome}</p>
+                      {a.endereco && <p className="text-xs text-muted-foreground">{a.endereco}</p>}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Quadras da arena selecionada */}
+            {selectedArena && (
+              <div>
+                <button
+                  onClick={() => { setSelectedArena(null); setArenaQuadras([]); }}
+                  className="text-xs text-brand-orange hover:underline mb-3 inline-block"
+                >
+                  ← Voltar para arenas
+                </button>
+                <p className="text-sm text-muted-foreground mb-3">Selecione a quadra onde você está:</p>
+                <div className="space-y-1">
+                  {arenaQuadras.map((q) => (
+                    <button
+                      key={q.id}
+                      onClick={() => handleCheckin(q.id)}
+                      disabled={loadingCheckin}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-secondary transition text-left disabled:opacity-50"
+                    >
+                      <div className="w-8 h-8 rounded-full bg-secondary grid place-items-center shrink-0">
+                        <span className="text-xs font-bold text-brand-orange">{q.nome.slice(0, 1)}</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-sm font-semibold">{q.nome}</p>
+                      </div>
+                      {loadingCheckin && <Loader2 className="w-4 h-4 animate-spin text-brand-orange" />}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {!searchArena && !selectedArena && (
+              <p className="text-xs text-center text-muted-foreground py-6">Digite o nome da arena para começar</p>
+            )}
+          </div>
         </div>
       )}
     </SocialShell>
