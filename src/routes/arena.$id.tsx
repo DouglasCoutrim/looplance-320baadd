@@ -1,7 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useRef, useState } from "react";
-import Hls from "hls.js";
-import { MapPin, Radio, Sparkles, ArrowLeft, X, PlayCircle, WifiOff, Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
+import { MapPin, Radio, Sparkles, ArrowLeft, X, PlayCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { ReplayCard } from "@/components/ReplayCard";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -347,9 +346,6 @@ function ArenaView() {
       {/* Live player dialog */}
       <LivePlayerDialog
         quadra={liveQuadra}
-        camera={liveQuadra ? cameraFor(liveQuadra.id) : undefined}
-        status={liveQuadra ? statusFor(liveQuadra.id) : "offline"}
-        arenaId={arenaId}
         userIsAdmin={userIsAdmin}
         youtubeVideoId={youtubeVideoId}
         youtubeLiveActive={youtubeLiveActive}
@@ -364,9 +360,6 @@ function ArenaView() {
 
 function LivePlayerDialog({
   quadra,
-  camera,
-  status,
-  arenaId: _arenaId,
   userIsAdmin,
   youtubeVideoId,
   youtubeLiveActive,
@@ -376,9 +369,6 @@ function LivePlayerDialog({
   onClose,
 }: {
   quadra: Quadra | null;
-  camera?: CameraStatus;
-  status: string;
-  arenaId: string;
   userIsAdmin: boolean;
   youtubeVideoId: string | null;
   youtubeLiveActive: boolean;
@@ -387,63 +377,6 @@ function LivePlayerDialog({
   onStopLive: () => Promise<void>;
   onClose: () => void;
 }) {
-  const [videoEl, setVideoEl] = useState<HTMLVideoElement | null>(null);
-  const hlsRef = useRef<Hls | null>(null);
-  const [streamError, setStreamError] = useState<string | null>(null);
-  const dbOnline = status === "online" || status === "streaming" || status === "live";
-
-  // The Nginx media server exposes the HLS playlist keyed by the camera's
-  // rtmp_stream_key. This is the ground truth — DB `streaming_status` can
-  // lag, so we never gate playback on it.
-  useEffect(() => {
-    if (!quadra) return;
-    if (!videoEl) return;
-
-    setStreamError(null);
-    const streamKey = camera?.rtmp_stream_key;
-    if (!streamKey) {
-      setStreamError("Câmera sem chave de transmissão configurada.");
-      return;
-    }
-    const base = `https://live.izyia.com.br/live/${streamKey}.m3u8`;
-    const src = `${base}?t=${Date.now()}`;
-
-    let hls: Hls | null = null;
-    if (Hls.isSupported()) {
-      hls = new Hls({
-        lowLatencyMode: true,
-        enableWorker: true,
-        liveSyncDurationCount: 3,
-        // Disable hls.js internal caching of the playlist — the m3u8 is a
-        // sliding window that must be refreshed each cycle. R2 already
-        // returns `cache-control: no-store` for the playlist, and segments
-        // have unique names, so no custom headers are needed. We intentionally
-        // do NOT set Cache-Control / Pragma via xhrSetup because those are
-        // non-simple headers and would trigger a CORS preflight that R2
-        // (with its wildcard CORS) does not support.
-      });
-      hls.loadSource(src);
-      hls.attachMedia(videoEl);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        videoEl.play().catch(() => {});
-      });
-      hls.on(Hls.Events.ERROR, (_e, data) => {
-        if (data.fatal) {
-          setStreamError("Transmissão indisponível no momento.");
-        }
-      });
-      hlsRef.current = hls;
-    } else if (videoEl.canPlayType("application/vnd.apple.mpegurl")) {
-      videoEl.src = src;
-      videoEl.addEventListener("error", () => setStreamError("Transmissão indisponível no momento."));
-      videoEl.play().catch(() => {});
-    }
-
-    return () => {
-      hls?.destroy();
-      hlsRef.current = null;
-    };
-  }, [quadra, camera?.rtmp_stream_key, videoEl]);
 
   return (
     <Dialog.Root open={!!quadra} onOpenChange={(o) => !o && onClose()}>
@@ -498,7 +431,7 @@ function LivePlayerDialog({
               </div>
             </div>
 
-            {/* Player area */}
+            {/* Player area — apenas YouTube Live; sem vídeo pela infra Cloudflare */}
             <div className="relative aspect-video w-full bg-black">
               {youtubeVideoId ? (
                 <iframe
@@ -509,27 +442,15 @@ function LivePlayerDialog({
                   title="YouTube Live"
                 />
               ) : (
-                <>
-                  <video
-                    ref={setVideoEl}
-                    controls
-                    autoPlay
-                    playsInline
-                    muted
-                    className="h-full w-full object-contain"
-                  />
-                  {streamError && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-black/90 p-8 text-center">
-                      <div className="grid h-16 w-16 place-items-center rounded-full bg-white/5">
-                        <WifiOff className="h-8 w-8 text-white/60" />
-                      </div>
-                      <p className="text-base font-bold text-white">{streamError}</p>
-                      <p className="text-sm text-white/60">
-                        {dbOnline ? "Tente novamente em instantes." : "O jogo começará em breve! 🎾"}
-                      </p>
-                    </div>
-                  )}
-                </>
+                <div className="flex h-full w-full flex-col items-center justify-center gap-4 bg-black p-8 text-center">
+                  <div className="grid h-20 w-20 place-items-center rounded-full bg-white/5">
+                    <Radio className="h-10 w-10 text-white/30" />
+                  </div>
+                  <p className="text-xl font-black text-white/80">Transmissão offline</p>
+                  <p className="max-w-xs text-sm text-white/40">
+                    Ative a transmissão ao vivo pelo YouTube para assistir à partida em tempo real.
+                  </p>
+                </div>
               )}
             </div>
           </div>
