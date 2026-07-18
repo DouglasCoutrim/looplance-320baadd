@@ -46,6 +46,7 @@ from ram_buffer import CameraBuffer
 from timesync import start_time_sync_loop
 from trigger import start_trigger_listener
 from uploader import upload_clip
+from youtube_streamer import YouTubeStreamer
 
 
 logging.basicConfig(
@@ -76,6 +77,8 @@ class EdgeAgent:
         self.settings = settings
         self.buffers: dict[str, CameraBuffer] = {}
         self.livers: dict[str, LiveStreamer] = {}
+        self.youtube_streamers: dict[str, YouTubeStreamer] = {}  # camera_id -> streamer
+        self._active_youtube_streams: set[str] = set()  # broadcast_ids já processados
         self._camera_configs: dict[str, str] = {}
         self._rtsp_urls: dict[str, str] = {}
         self._watchdog_cam_start: dict[str, float] = {}
@@ -128,6 +131,7 @@ class EdgeAgent:
             args=(self.settings.api_base_url, _shutdown),
             daemon=True,
         ).start()
+        threading.Thread(target=self._youtube_loop, daemon=True).start()
 
     def stop(self) -> None:
         self._executor.shutdown(wait=False, cancel_futures=True)
@@ -135,6 +139,8 @@ class EdgeAgent:
             buf.stop()
         for live in self.livers.values():
             live.stop()
+        for yt in self.youtube_streamers.values():
+            yt.stop()
 
     def _input_boards(self) -> list[dict]:
         # A config remota pode trazer input_boards; se não vier explicitamente
@@ -526,6 +532,53 @@ class EdgeAgent:
             except Exception:  # noqa: BLE001
                 log.exception("erro no _manual_trigger_loop")
             _shutdown.wait(3)
+
+    def _youtube_loop(self) -> None:
+        """Polling de transmissões YouTube pendentes para esta arena.
+        Inicia/para ffmpeg que empurra RTMP para o YouTube conforme necessário.
+        """
+        while not _shutdown.is_set():
+            _shutdown.wait(10)
+            try:
+                streams = api_client.fetch_pending_youtube_streams(self.settings)
+                active_ids = set()
+                for s in streams:
+                    bid = s.get("id")
+                    stream_key = s.get("stream_key")
+                    camera_id = s.get("camera_id")
+                    status = s.get("status")
+                    if not bid or not stream_key or not camera_id:
+                        continue
+                    active_ids.add(bid)
+
+                    if bid in self._active_youtube_streams and status in ("created", "testing", "active"):
+                        continue
+
+                    if status in ("created", "testing", "active") and bid not in self._active_youtube_streams:
+                        cam = next((c for c in self.settings.cameras if c.id == camera_id), None)
+                        if not cam:
+                            log.warning("[youtube] camera %s nao encontrada na config local", camera_id)
+                            continue
+                        log.info(
+                            "[youtube] iniciando YouTube Live para camera %s (%s) stream_key=%s",
+                            cam.name, camera_id, stream_key,
+                        )
+                        yt = YouTubeStreamer(self.settings, cam, stream_key)
+                        yt.start()
+                        self.youtube_streamers[bid] = yt
+                        self._active_youtube_streams.add(bid)
+
+                # Para streamers cujo broadcast nao esta mais ativo
+                for bid in list(self.youtube_streamers.keys()):
+                    if bid not in active_ids:
+                        log.info("[youtube] encerrando YouTube Live broadcast %s", bid)
+                        yt = self.youtube_streamers.pop(bid, None)
+                        if yt:
+                            yt.stop()
+                        self._active_youtube_streams.discard(bid)
+
+            except Exception:  # noqa: BLE001
+                log.exception("erro no _youtube_loop")
 
     def _config_refresh_loop(self) -> None:
         """Recarrega config remota periodicamente e sincroniza buffers.

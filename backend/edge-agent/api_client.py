@@ -174,5 +174,24 @@ def send_heartbeat(settings: Settings, *, local_ip: str, uptime_seconds: int) ->
 
 
 
+def fetch_pending_youtube_streams(settings: Settings) -> list[dict]:
+    """Retorna transmissões YouTube pendentes/ativas para este edge device."""
+    try:
+        resp = _get_signed(settings, "/api/public/edge/pending-youtube-streams", timeout=10)
+        data = resp.json()
+        streams = data.get("streams", []) or []
+        if streams:
+            for s in streams:
+                log.info(
+                    "YouTube stream pendente: id=%s broadcast=%s camera=%s status=%s",
+                    s.get("id"), s.get("youtube_broadcast_id"),
+                    s.get("camera_id"), s.get("status"),
+                )
+        return streams
+    except Exception:  # noqa: BLE001
+        log.exception("Falha ao consultar pending-youtube-streams — retornando lista vazia")
+        return []
+
+
 def _iso_now() -> str:
     return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
