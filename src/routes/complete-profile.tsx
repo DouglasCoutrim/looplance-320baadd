@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Loader2, CheckCircle2 } from "lucide-react";
+import { Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import logoUrl from "@/assets/looplance-logo.png";
 
 export const Route = createFileRoute("/complete-profile")({
@@ -69,6 +69,7 @@ function CompleteProfile() {
   const [state, setState] = useState("");
   const [city, setCity] = useState("");
   const [arenas, setArenas] = useState<Arena[]>([]);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
     (async () => {
@@ -112,19 +113,23 @@ function CompleteProfile() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setSubmitError(null);
     if (!userId) return;
-    if (!fullName.trim()) return toast.error("Informe seu nome completo");
-    if (!isValidCpf(cpf)) return toast.error("CPF inválido");
-    if (!birthDate) return toast.error("Informe sua data de nascimento");
-    if (!gender) return toast.error("Selecione o sexo");
-    if (!city.trim()) return toast.error("Informe sua cidade");
+
+    const cpfClean = cpf.replace(/\D/g, "");
+
+    if (!fullName.trim()) { setSubmitError("Informe seu nome completo"); return; }
+    if (!isValidCpf(cpfClean)) { setSubmitError("CPF inválido"); return; }
+    if (!birthDate) { setSubmitError("Informe sua data de nascimento"); return; }
+    if (!gender) { setSubmitError("Selecione o sexo"); return; }
+    if (!city.trim()) { setSubmitError("Informe sua cidade"); return; }
 
     setSaving(true);
     const { error } = await supabase
       .from("profiles")
       .update({
         full_name: fullName.trim(),
-        cpf: cpf.replace(/\D/g, ""),
+        cpf: cpfClean,
         birth_date: birthDate,
         gender,
         city: city.trim(),
@@ -135,11 +140,13 @@ function CompleteProfile() {
       .eq("id", userId);
     setSaving(false);
     if (error) {
-      toast.error("Erro ao salvar: " + error.message);
+      const msg = "Erro ao salvar: " + error.message;
+      setSubmitError(msg);
+      toast.error(msg);
       return;
     }
     toast.success("Cadastro completo!");
-    navigate({ to: "/" });
+    window.location.href = "/";
   };
 
   if (loading) {
@@ -228,8 +235,14 @@ function CompleteProfile() {
           </div>
         </div>
 
+        {submitError && (
+          <div className="flex items-start gap-2 rounded-lg bg-red-50 border border-red-200 px-3 py-2.5 text-sm text-red-700">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-500" />
+            <span>{submitError}</span>
+          </div>
+        )}
         <Button type="submit" disabled={saving} className="w-full">
-          {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Concluir cadastro"}
+          {saving ? <><Loader2 className="h-4 w-4 animate-spin mr-2" />Salvando...</> : "Concluir cadastro"}
         </Button>
       </form>
     </div>
