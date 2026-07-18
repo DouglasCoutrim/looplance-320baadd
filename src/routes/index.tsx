@@ -115,7 +115,7 @@ function Home() {
     const { data } = await supabase
       .from("cameras")
       .select("quadra_id, streaming_status, active, quadras(id, nome, arena_id, arenas(id, nome))")
-      .or("streaming_status.in.(online,streaming,live),and(streaming_status.is.null,active.eq.true)");
+      .eq("streaming_status", "live");
     const list = (data ?? [])
       .map((c: any) => {
         const q = c.quadras;
