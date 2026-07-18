@@ -144,14 +144,6 @@ function ClientsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between flex-wrap gap-3">
-        <div>
-          <h1 className="text-3xl font-black uppercase tracking-tight text-gray-900 flex items-center gap-2">
-            <Building2 className="h-7 w-7 text-brand-orange" /> Clientes
-          </h1>
-          <p className="text-sm text-muted-foreground font-medium mt-1">
-            Gerencie os clientes que possuem edges no sistema
-          </p>
-        </div>
         <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
           <DialogTrigger asChild>
             <Button onClick={openCreate} className="brand-gradient text-white font-black uppercase tracking-widest rounded-xl h-12 px-6">
@@ -308,8 +300,8 @@ function ClientsPage() {
           </ul>
 
           {/* Desktop table */}
-          <div className="hidden md:block rounded-2xl border border-zinc-800/60 bg-zinc-900 overflow-hidden">
-            <Table>
+          <div className="hidden md:block rounded-2xl border border-zinc-800/60 bg-zinc-900 overflow-x-auto">
+          <Table className="w-full min-w-[640px]">
               <TableHeader>
                 <TableRow className="border-zinc-800 hover:bg-transparent">
                   <TableHead className="text-zinc-400">Cliente</TableHead>

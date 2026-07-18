@@ -25,6 +25,43 @@ export const Route = createFileRoute("/admin")({
   component: AdminLayout,
 });
 
+const GESTAO_ROUTES = [
+  { to: "/admin/arenas", label: "🏢 Arenas" },
+  { to: "/admin/quadras", label: "🎾 Quadras & Pistas" },
+  { to: "/admin/clients", label: "👥 Clientes" },
+  { to: "/admin/users", label: "🔐 Usuários & Logs" },
+  { to: "/admin/moderation", label: "🛡️ Moderação" },
+] as const;
+
+type GestaoPath = (typeof GESTAO_ROUTES)[number]["to"];
+const gestaoPaths: GestaoPath[] = GESTAO_ROUTES.map((r) => r.to);
+
+function GestaoTabs({ currentPath, onNavigate }: { currentPath: string; onNavigate: (to: GestaoPath) => void }) {
+  if (!(gestaoPaths as readonly string[]).includes(currentPath)) return null;
+  return (
+    <div className="mb-6 -mx-1 overflow-x-auto scrollbar-none">
+      <div className="flex gap-1 min-w-max px-1">
+        {GESTAO_ROUTES.map((tab) => {
+          const isActive = currentPath === tab.to;
+          return (
+            <button
+              key={tab.to}
+              onClick={() => onNavigate(tab.to)}
+              className={`whitespace-nowrap rounded-xl px-4 py-2.5 text-xs font-black uppercase tracking-widest transition-all duration-200 ${
+                isActive
+                  ? "brand-gradient text-white shadow-lg shadow-brand-orange/20 scale-[1.02]"
+                  : "bg-zinc-800/40 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+              }`}
+            >
+              {tab.label}
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
 function AdminLayout() {
   const location = useLocation();
   const navigate = useNavigate();
@@ -193,6 +230,8 @@ function AdminLayout() {
 
         {/* Main Content Area */}
         <main className="flex-1 min-w-0">
+          {/* Tab bar de gestão — visível apenas nas 5 rotinas administrativas */}
+          <GestaoTabs currentPath={location.pathname} onNavigate={(to) => navigate({ to })} />
           <div className="animate-in fade-in slide-in-from-bottom-4 duration-500">
             <Outlet />
           </div>

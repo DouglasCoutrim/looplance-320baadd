@@ -289,15 +289,6 @@ function UsersAdmin() {
       <Toaster theme="light" position="top-center" />
 
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-3xl font-black text-gray-900 flex items-center gap-2">
-            <Users className="h-7 w-7 text-brand-orange" /> Usuários & Logs
-          </h1>
-          <p className="text-sm text-gray-500 mt-1">
-            Gerencie super admins, donos de arena e usuários finais.
-          </p>
-        </div>
-
         <div className="flex gap-2">
           {isSuperAdmin && (
             <Dialog open={createAdminOpen} onOpenChange={setCreateAdminOpen}>

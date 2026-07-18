@@ -120,10 +120,7 @@ function ModerationPage() {
           <div className="grid h-10 w-10 place-items-center rounded-2xl bg-orange-500/10 text-orange-400 ring-1 ring-orange-500/30">
             <Shield className="h-5 w-5" />
           </div>
-          <div>
-            <h1 className="text-xl font-semibold">Moderação</h1>
-            <p className="text-xs text-zinc-500">Denúncias pendentes</p>
-          </div>
+          <p className="text-xs text-zinc-500">Denúncias pendentes</p>
         </div>
 
         {loading ? (

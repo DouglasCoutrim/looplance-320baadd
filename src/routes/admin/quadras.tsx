@@ -211,14 +211,6 @@ function Quadras() {
   return (
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 uppercase">
-            Quadras <span className="brand-text">Pistas</span>
-          </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-base sm:text-lg">
-            Selecione cidade e arena para visualizar as quadras.
-          </p>
-        </div>
         <div className="flex gap-3">
           <Button variant="outline" size="icon" onClick={fetchData} disabled={loading} className="rounded-xl border-gray-200 h-10 sm:h-12 w-10 sm:w-12 shadow-sm bg-white hover:bg-gray-50 shrink-0">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
@@ -416,20 +408,20 @@ function Quadras() {
           </p>
         </div>
       ) : (
-        <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-hidden">
+        <div className="glass-card bg-white shadow-xl border border-gray-100 overflow-x-auto">
           <div className="px-4 sm:px-6 py-3 border-b border-gray-100 bg-gray-50/50 flex items-center gap-2 text-xs font-bold text-gray-600">
             <MapPin className="h-3.5 w-3.5 text-brand-orange" />
             <span>{cityFilter}</span>
-            <span className="text-gray-300">/</span>
+            <span className="text-gray-400">/</span>
             <Building2 className="h-3.5 w-3.5 text-brand-orange" />
             <span>{selectedArena?.nome}</span>
           </div>
-          <Table>
+          <Table className="w-full min-w-[480px]">
             <TableHeader className="bg-gray-50/50 border-b border-gray-100">
               <TableRow className="hover:bg-transparent">
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Quadra / Court</TableHead>
-                <TableHead className="text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Arena Vinculada</TableHead>
-                <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-muted-foreground py-4 px-6">Ações</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-500 py-4 px-6">Quadra / Court</TableHead>
+                <TableHead className="text-[10px] font-black uppercase tracking-widest text-gray-500 py-4 px-6">Arena Vinculada</TableHead>
+                <TableHead className="text-right text-[10px] font-black uppercase tracking-widest text-gray-500 py-4 px-6">Ações</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>

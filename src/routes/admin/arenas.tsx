@@ -115,6 +115,7 @@ function Arenas() {
   // YouTube integration
   const [youtubeConnected, setYoutubeConnected] = useState(false);
   const [youtubeConnecting, setYoutubeConnecting] = useState(false);
+  const [editTab, setEditTab] = useState("geral");
 
   // Gera QR code para cadastro via scan
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
@@ -420,14 +421,6 @@ function Arenas() {
   return (
     <div className="space-y-8 pb-10">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-        <div>
-          <h1 className="text-3xl sm:text-4xl font-black tracking-tight text-gray-900 uppercase">
-            Arenas <span className="brand-text">Complexos</span>
-          </h1>
-          <p className="text-muted-foreground mt-1 font-medium text-base sm:text-lg">
-            Cada arena pertence a um Edge Device de um cliente.
-          </p>
-        </div>
         <div className="flex gap-3">
           <Button variant="outline" size="icon" onClick={fetchAll} disabled={loading} className="rounded-xl border-gray-200 h-10 sm:h-12 w-10 sm:w-12 shadow-sm bg-white hover:bg-gray-50 shrink-0">
             <RefreshCw className={`h-5 w-5 text-gray-400 ${loading ? "animate-spin" : ""}`} />
@@ -582,346 +575,327 @@ function Arenas() {
                   )}
                 </div>
               ) : (
-                <div className="grid gap-5 py-6">
-                {/* Logo upload */}
-                <div className="grid gap-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Logo da Arena</Label>
-                  <div className="flex items-center gap-4">
-                    <div className="h-20 w-20 rounded-2xl bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
-                      {logoUrl ? (
-                        <img src={logoUrl} alt="Logo" className="h-full w-full object-contain" />
-                      ) : (
-                        <MapPin className="h-7 w-7 text-gray-300" />
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-2 flex-1">
-                      <input
-                        ref={logoInputRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                          const f = e.target.files?.[0];
-                          if (f) handleLogoUpload(f);
-                        }}
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => logoInputRef.current?.click()}
-                          disabled={uploadingLogo}
-                          className="rounded-xl font-bold border-gray-200"
-                        >
-                          <Upload className="h-4 w-4 mr-2" />
-                          {uploadingLogo ? "Enviando..." : logoUrl ? "Trocar" : "Enviar logo"}
-                        </Button>
-                        {logoUrl && (
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => setLogoUrl(null)}
-                            className="rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50"
-                          >
-                            <X className="h-4 w-4 mr-1" /> Remover
+                <>
+                  {/* Abas internas do formulário de edição */}
+                  <div className="flex gap-1 border-b border-gray-200 mb-5 -mx-1 overflow-x-auto">
+                    {[
+                      { key: "geral", label: "📋 Geral" },
+                      { key: "sponsors", label: "🏷️ Patrocinadores" },
+                      { key: "integrations", label: "🔗 Integrações" },
+                      { key: "qrcode", label: "📱 QR Code" },
+                    ].map((tab) => (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => setEditTab(tab.key)}
+                        className={`whitespace-nowrap px-4 py-2.5 text-xs font-black uppercase tracking-widest border-b-2 transition ${
+                          editTab === tab.key
+                            ? "border-brand-orange text-brand-orange"
+                            : "border-transparent text-gray-400 hover:text-gray-600"
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Aba: Geral */}
+                  {editTab === "geral" && (
+                    <div className="grid gap-5 py-6">
+                      {/* Logo upload */}
+                      <div className="grid gap-2">
+                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Logo da Arena</Label>
+                        <div className="flex items-center gap-4">
+                          <div className="h-20 w-20 rounded-2xl bg-gray-50 border border-dashed border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
+                            {logoUrl ? (
+                              <img src={logoUrl} alt="Logo" className="h-full w-full object-contain" />
+                            ) : (
+                              <MapPin className="h-7 w-7 text-gray-300" />
+                            )}
+                          </div>
+                          <div className="flex flex-col gap-2 flex-1">
+                            <input ref={logoInputRef} type="file" accept="image/*" className="hidden"
+                              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleLogoUpload(f); }} />
+                            <div className="flex gap-2">
+                              <Button type="button" variant="outline" size="sm"
+                                onClick={() => logoInputRef.current?.click()} disabled={uploadingLogo}
+                                className="rounded-xl font-bold border-gray-200">
+                                <Upload className="h-4 w-4 mr-2" />
+                                {uploadingLogo ? "Enviando..." : logoUrl ? "Trocar" : "Enviar logo"}
+                              </Button>
+                              {logoUrl && (
+                                <Button type="button" variant="ghost" size="sm"
+                                  onClick={() => setLogoUrl(null)}
+                                  className="rounded-xl text-red-500 hover:text-red-600 hover:bg-red-50">
+                                  <X className="h-4 w-4 mr-1" /> Remover
+                                </Button>
+                              )}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground">PNG, JPG ou WebP — até 5MB.</p>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Cliente + Edge */}
+                      <div className="grid gap-5 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cliente</Label>
+                          <Select value={clientId} onValueChange={(v) => { setClientId(v); setEdgeId(""); }}>
+                            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+                              <SelectValue placeholder="Selecione o cliente" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {clients.map((c) => (<SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Edge Device</Label>
+                          <Select value={edgeId} onValueChange={setEdgeId} disabled={!clientId}>
+                            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+                              <SelectValue placeholder={clientId ? (filteredEdges.length ? "Selecione o edge" : "Sem edges") : "Selecione o cliente"} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {filteredEdges.map((e) => (<SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
+
+                      {/* Nome */}
+                      <div className="grid gap-2">
+                        <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
+                        <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120}
+                          placeholder="Ex: Arena Guga Kuerten"
+                          className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                      </div>
+
+                      {/* Estado + Cidade + CEP */}
+                      <div className="grid gap-5 sm:grid-cols-[120px_1fr_160px]">
+                        <div className="grid gap-2">
+                          <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Estado (UF)</Label>
+                          <Select value={estado || undefined} onValueChange={setEstado}>
+                            <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
+                              <SelectValue placeholder="UF" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {BR_STATES.map((uf) => (<SelectItem key={uf} value={uf}>{uf}</SelectItem>))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="cidade" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cidade</Label>
+                          <Input id="cidade" value={cidade} onChange={(e) => setCidade(e.target.value)} maxLength={80}
+                            placeholder={estado ? `Cidades em ${estado}` : "Selecione a UF"} list="arena-cidades"
+                            className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                          <datalist id="arena-cidades">
+                            {formCitySuggestions.map((c) => (<option key={c} value={c} />))}
+                          </datalist>
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="cep" className="text-xs font-black uppercase tracking-widest text-muted-foreground">CEP</Label>
+                          <Input id="cep" value={cep} onChange={(e) => setCep(e.target.value)} maxLength={12} placeholder="00000-000"
+                            className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                        </div>
+                      </div>
+
+                      {/* Endereço + Telefone */}
+                      <div className="grid gap-5 sm:grid-cols-[1fr_240px]">
+                        <div className="grid gap-2">
+                          <Label htmlFor="endereco" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Endereço</Label>
+                          <Input id="endereco" value={endereco} onChange={(e) => setEndereco(e.target.value)} maxLength={255}
+                            placeholder="Rua, número, bairro"
+                            className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
+                        </div>
+                        <div className="grid gap-2">
+                          <Label htmlFor="telefone" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Telefone</Label>
+                          <div className="relative">
+                            <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                            <Input id="telefone" value={telefone} onChange={(e) => setTelefone(e.target.value)} maxLength={40}
+                              placeholder="(00) 00000-0000"
+                              className="rounded-xl border-gray-100 bg-gray-50 h-12 pl-10 focus:border-brand-orange focus:ring-brand-orange" />
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Localização no mapa */}
+                      <div className="grid gap-2">
+                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Localização no Mapa</Label>
+                        <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
+                          <div className="h-14 w-14 rounded-xl bg-brand-orange/10 flex items-center justify-center text-brand-orange shrink-0">
+                            <MapPin className="h-6 w-6" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            {latitude && longitude ? (
+                              <>
+                                <p className="text-xs font-black uppercase tracking-widest text-gray-500">Pin salvo</p>
+                                <p className="font-mono text-sm text-gray-800 truncate">
+                                  {parseFloat(latitude).toFixed(6)}, {parseFloat(longitude).toFixed(6)}
+                                </p>
+                                <a href={`https://www.google.com/maps?q=${latitude},${longitude}`} target="_blank" rel="noreferrer"
+                                  className="text-[11px] text-brand-orange font-bold hover:underline inline-flex items-center gap-1">Ver no Google Maps</a>
+                              </>
+                            ) : (
+                              <>
+                                <p className="text-sm font-bold text-gray-700">Nenhuma localização definida</p>
+                                <p className="text-[11px] text-muted-foreground">Abra o mapa e dê dois cliques no local exato da arena.</p>
+                              </>
+                            )}
+                          </div>
+                          <Button type="button" onClick={() => setMapPickerOpen(true)}
+                            className="rounded-xl brand-gradient text-white font-black uppercase tracking-widest px-5 h-11 text-xs shrink-0">
+                            <MapPin className="h-4 w-4 mr-2" />
+                            {latitude && longitude ? "Alterar no mapa" : "Selecionar no mapa"}
                           </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Aba: Patrocinadores */}
+                  {editTab === "sponsors" && (
+                    <div className="grid gap-5 py-6">
+                      <div className="grid gap-3">
+                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Patrocinadores (até 6 logos)</Label>
+                        <p className="text-[11px] text-zinc-400 -mt-1">
+                          Logos .png transparentes — aparecem nas faixas superior/inferior do replay 9:16.
+                        </p>
+                        <div className="grid grid-cols-3 gap-3">
+                          {[1, 2, 3, 4, 5, 6].map((pos) => {
+                            const sp = sponsors.find((s) => s.position_index === pos);
+                            return (
+                              <div key={pos} className="relative rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 p-3 flex flex-col items-center gap-2 min-h-[140px]">
+                                {sp ? (
+                                  <div className="relative w-full flex-1 flex items-center justify-center">
+                                    <img src={sp.logo_url} alt={`Patrocinador ${pos}`} className="max-h-20 max-w-full object-contain" />
+                                    <button type="button" onClick={() => removeSponsor(pos)}
+                                      className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500/80 text-white grid place-items-center hover:bg-red-600 transition">
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex-1 flex items-center justify-center">
+                                    <Image className="h-8 w-8 text-zinc-600" />
+                                  </div>
+                                )}
+                                <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{pos === 1 ? "Ímpar (Topo)" : pos === 2 ? "Par (Base)" : pos % 2 ? "Ímpar" : "Par"}</span>
+                                <input ref={(el) => { sponsorInputsRef.current[pos] = el; }} type="file" accept="image/png,image/webp"
+                                  className="hidden"
+                                  onChange={(e) => { const f = e.target.files?.[0]; if (f) handleSponsorUpload(f, pos); }} />
+                                <Button type="button" variant="outline" size="sm"
+                                  onClick={() => sponsorInputsRef.current[pos]?.click()} disabled={uploadingSponsor === pos}
+                                  className="rounded-lg text-[10px] font-bold uppercase tracking-widest h-8 border-zinc-600 text-zinc-300 hover:bg-zinc-700 w-full">
+                                  {uploadingSponsor === pos ? "..." : sp ? "Trocar" : "Upload"}
+                                </Button>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Aba: Integrações */}
+                  {editTab === "integrations" && (
+                    <div className="grid gap-5 py-6">
+                      <div className="space-y-3">
+                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Integração YouTube</Label>
+                        <div className="rounded-xl border border-zinc-700 bg-zinc-800/50 p-4 flex items-center justify-between gap-4">
+                          <div className="flex items-center gap-3 min-w-0">
+                            {youtubeConnected ? (
+                              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-green-900/50"><span className="text-lg">✅</span></div>
+                            ) : (
+                              <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-zinc-700"><span className="text-lg">🔗</span></div>
+                            )}
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-zinc-100">{youtubeConnected ? "Canal Conectado" : "YouTube não conectado"}</p>
+                              <p className="text-xs text-zinc-400 truncate">
+                                {youtubeConnected ? "Transmissões ao vivo serão enviadas para este canal." : "Conecte para transmitir jogos ao vivo no YouTube."}
+                              </p>
+                            </div>
+                          </div>
+                          {youtubeConnected ? (
+                            <button onClick={async () => {
+                              const { data: sessionData } = await supabase.auth.getSession();
+                              const token = sessionData.session?.access_token;
+                              if (!token) { toast.error("Sessão expirada."); return; }
+                              try {
+                                const res = await fetch("/api/public/live/youtube-disconnect", {
+                                  method: "POST",
+                                  headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                                  body: JSON.stringify({ arena_id: editing!.id }),
+                                });
+                                if (!res.ok) { toast.error("Erro ao desconectar"); return; }
+                                setYoutubeConnected(false);
+                                toast.success("Canal YouTube desconectado.");
+                              } catch { toast.error("Erro de conexão"); }
+                            }}
+                              className="shrink-0 rounded-full border border-red-700 px-3 py-1.5 text-xs font-bold text-red-400 transition hover:bg-red-900/30">Desconectar</button>
+                          ) : (
+                            <button onClick={async () => {
+                              setYoutubeConnecting(true);
+                              const { data: sessionData } = await supabase.auth.getSession();
+                              const token = sessionData.session?.access_token;
+                              if (!token) { toast.error("Sessão expirada."); setYoutubeConnecting(false); return; }
+                              try {
+                                const res = await fetch("/api/public/live/youtube-connect?arena_id=" + editing!.id,
+                                  { headers: { Authorization: "Bearer " + token } });
+                                const json = await res.json();
+                                if (!res.ok) { toast.error(json.error || "Erro"); setYoutubeConnecting(false); return; }
+                                window.location.href = json.url;
+                              } catch { toast.error("Erro de conexão"); setYoutubeConnecting(false); }
+                            }}
+                              disabled={youtubeConnecting}
+                              className="shrink-0 rounded-full bg-brand-orange px-3 py-1.5 text-xs font-bold text-black transition hover:brightness-110 disabled:opacity-50">
+                              {youtubeConnecting ? "Conectando..." : "Conectar Canal do YouTube"}
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Aba: QR Code */}
+                  {editTab === "qrcode" && (
+                    <div className="grid gap-5 py-6">
+                      <div className="space-y-3">
+                        <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">QR Code — Cadastro na Arena</Label>
+                        {qrCodeDataUrl ? (
+                          <div className="rounded-xl border border-zinc-700 bg-zinc-800/50 p-4 flex flex-col items-center gap-3">
+                            <img src={qrCodeDataUrl} alt="QR Code" className="h-48 w-48" />
+                            <p className="text-xs text-zinc-400 text-center max-w-xs">
+                              Escaneie para acessar a página de cadastro da arena.
+                            </p>
+                            <div className="flex gap-2">
+                              <Button type="button" onClick={() => {
+                                const link = document.createElement("a");
+                                link.download = `qr-${editing!.nome}.png`;
+                                link.href = qrCodeDataUrl;
+                                link.click();
+                              }} className="rounded-xl bg-gray-900 text-white font-bold px-5 h-10 text-xs">
+                                <Download className="h-4 w-4 mr-2" /> Baixar PNG
+                              </Button>
+                              <Button type="button" variant="outline" onClick={() => {
+                                const w = window.open("", "_blank");
+                                if (w) {
+                                  w.document.write(`<html><body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff">`);
+                                  w.document.write(`<img src="${qrCodeDataUrl}" style="max-width:90vw;max-height:90vh" /></body></html>`);
+                                  w.document.close();
+                                }
+                              }} className="rounded-xl border-zinc-600 text-zinc-300 font-bold h-10 text-xs">
+                                Abrir para impressão
+                              </Button>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="rounded-xl border border-zinc-700 bg-zinc-800/50 p-8 text-center text-zinc-500 text-sm">
+                            Salve a arena para gerar o QR Code.
+                          </div>
                         )}
                       </div>
-                      <p className="text-[11px] text-muted-foreground">PNG, JPG ou WebP — até 5MB.</p>
                     </div>
-                  </div>
-                </div>
-
-                {/* Cliente + Edge */}
-                <div className="grid gap-5 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cliente</Label>
-                    <Select value={clientId} onValueChange={(v) => { setClientId(v); setEdgeId(""); }}>
-                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
-                        <SelectValue placeholder="Selecione o cliente" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {clients.map((c) => (
-                          <SelectItem key={c.id} value={c.id}>{c.nome}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Edge Device</Label>
-                    <Select value={edgeId} onValueChange={setEdgeId} disabled={!clientId}>
-                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
-                        <SelectValue placeholder={clientId ? (filteredEdges.length ? "Selecione o edge" : "Sem edges") : "Selecione o cliente"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredEdges.map((e) => (
-                          <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {/* Nome */}
-                <div className="grid gap-2">
-                  <Label htmlFor="name" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Nome da Arena</Label>
-                  <Input id="name" value={name} onChange={(e) => setName(e.target.value)} maxLength={120} placeholder="Ex: Arena Guga Kuerten" className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange" />
-                </div>
-
-                {/* Estado + Cidade + CEP */}
-                <div className="grid gap-5 sm:grid-cols-[120px_1fr_160px]">
-                  <div className="grid gap-2">
-                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Estado (UF)</Label>
-                    <Select
-                      value={estado || undefined}
-                      onValueChange={(v) => {
-                        setEstado(v);
-                        // se a cidade atual não pertence ao novo estado (na lista sugerida), mantém mas usuário pode ajustar
-                      }}
-                    >
-                      <SelectTrigger className="rounded-xl border-gray-100 bg-gray-50 h-12">
-                        <SelectValue placeholder="UF" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {BR_STATES.map((uf) => (
-                          <SelectItem key={uf} value={uf}>{uf}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="cidade" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Cidade</Label>
-                    <Input
-                      id="cidade"
-                      value={cidade}
-                      onChange={(e) => setCidade(e.target.value)}
-                      maxLength={80}
-                      placeholder={estado ? `Cidades em ${estado}` : "Selecione a UF"}
-                      list="arena-cidades"
-                      className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange"
-                    />
-                    <datalist id="arena-cidades">
-                      {formCitySuggestions.map((c) => <option key={c} value={c} />)}
-                    </datalist>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="cep" className="text-xs font-black uppercase tracking-widest text-muted-foreground">CEP</Label>
-                    <Input
-                      id="cep"
-                      value={cep}
-                      onChange={(e) => setCep(e.target.value)}
-                      maxLength={12}
-                      placeholder="00000-000"
-                      className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange"
-                    />
-                  </div>
-                </div>
-
-                {/* Endereço + Telefone */}
-                <div className="grid gap-5 sm:grid-cols-[1fr_240px]">
-                  <div className="grid gap-2">
-                    <Label htmlFor="endereco" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Endereço</Label>
-                    <Input
-                      id="endereco"
-                      value={endereco}
-                      onChange={(e) => setEndereco(e.target.value)}
-                      maxLength={255}
-                      placeholder="Rua, número, bairro"
-                      className="rounded-xl border-gray-100 bg-gray-50 h-12 focus:border-brand-orange focus:ring-brand-orange"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="telefone" className="text-xs font-black uppercase tracking-widest text-muted-foreground">Telefone</Label>
-                    <div className="relative">
-                      <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="telefone"
-                        value={telefone}
-                        onChange={(e) => setTelefone(e.target.value)}
-                        maxLength={40}
-                        placeholder="(00) 00000-0000"
-                        className="rounded-xl border-gray-100 bg-gray-50 h-12 pl-10 focus:border-brand-orange focus:ring-brand-orange"
-                      />
-                    </div>
-                  </div>
-                </div>
-
-
-
-                {/* Localização no mapa */}
-                <div className="grid gap-2">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Localização no Mapa</Label>
-                  <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 flex flex-col sm:flex-row sm:items-center gap-4">
-                    <div className="h-14 w-14 rounded-xl bg-brand-orange/10 flex items-center justify-center text-brand-orange shrink-0">
-                      <MapPin className="h-6 w-6" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      {latitude && longitude ? (
-                        <>
-                          <p className="text-xs font-black uppercase tracking-widest text-gray-500">Pin salvo</p>
-                          <p className="font-mono text-sm text-gray-800 truncate">
-                            {parseFloat(latitude).toFixed(6)}, {parseFloat(longitude).toFixed(6)}
-                          </p>
-                          <a
-                            href={`https://www.google.com/maps?q=${latitude},${longitude}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="text-[11px] text-brand-orange font-bold hover:underline inline-flex items-center gap-1"
-                          >
-                            Ver no Google Maps
-                          </a>
-                        </>
-                      ) : (
-                        <>
-                          <p className="text-sm font-bold text-gray-700">Nenhuma localização definida</p>
-                          <p className="text-[11px] text-muted-foreground">
-                            Abra o mapa e dê dois cliques no local exato da arena.
-                          </p>
-                        </>
-                      )}
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={() => setMapPickerOpen(true)}
-                      className="rounded-xl brand-gradient text-white font-black uppercase tracking-widest px-5 h-11 text-xs shrink-0"
-                    >
-                      <MapPin className="h-4 w-4 mr-2" />
-                      {latitude && longitude ? "Alterar no mapa" : "Selecionar no mapa"}
-                    </Button>
-                  </div>
-                </div>
-
-                {/* Sponsor Grid */}
-                <div className="grid gap-3">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">Patrocinadores (até 6 logos)</Label>
-                  <p className="text-[11px] text-zinc-400 -mt-1">
-                    Logos .png transparentes — aparecem nas faixas superior/inferior do replay 9:16.
-                  </p>
-                  <div className="grid grid-cols-3 gap-3">
-                    {[1, 2, 3, 4, 5, 6].map((pos) => {
-                      const sp = sponsors.find((s) => s.position_index === pos);
-                      return (
-                        <div key={pos} className="relative rounded-xl border border-dashed border-zinc-700 bg-zinc-800/50 p-3 flex flex-col items-center gap-2 min-h-[140px]">
-                          {sp ? (
-                            <div className="relative w-full flex-1 flex items-center justify-center">
-                              <img src={sp.logo_url} alt={`Patrocinador ${pos}`} className="max-h-20 max-w-full object-contain" />
-                              <button
-                                type="button"
-                                onClick={() => removeSponsor(pos)}
-                                className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500/80 text-white grid place-items-center hover:bg-red-600 transition"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </div>
-                          ) : (
-                            <div className="flex-1 flex items-center justify-center">
-                              <Image className="h-8 w-8 text-zinc-600" />
-                            </div>
-                          )}
-                          <span className="text-[10px] font-black uppercase tracking-widest text-zinc-500">{pos === 1 ? "Ímpar (Topo)" : pos === 2 ? "Par (Base)" : pos % 2 ? "Ímpar" : "Par"}</span>
-                          <input
-                            ref={(el) => { sponsorInputsRef.current[pos] = el; }}
-                            type="file"
-                            accept="image/png,image/webp"
-                            className="hidden"
-                            onChange={(e) => {
-                              const f = e.target.files?.[0];
-                              if (f) handleSponsorUpload(f, pos);
-                            }}
-                          />
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={() => sponsorInputsRef.current[pos]?.click()}
-                            disabled={uploadingSponsor === pos}
-                            className="rounded-lg text-[10px] font-bold uppercase tracking-widest h-8 border-zinc-600 text-zinc-300 hover:bg-zinc-700 w-full"
-                          >
-                            {uploadingSponsor === pos ? "..." : sp ? "Trocar" : "Upload"}
-                          </Button>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                {/* YouTube Integration — editável */}
-                <div className="space-y-3">
-                  <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
-                    Integração YouTube
-                  </Label>
-                  <div className="rounded-xl border border-zinc-700 bg-zinc-800/50 p-4 flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3 min-w-0">
-                      {youtubeConnected ? (
-                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-green-900/50">
-                          <span className="text-lg">✅</span>
-                        </div>
-                      ) : (
-                        <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-zinc-700">
-                          <span className="text-lg">🔗</span>
-                        </div>
-                      )}
-                      <div className="min-w-0">
-                        <p className="text-sm font-bold text-zinc-100">
-                          {youtubeConnected ? "Canal Conectado" : "YouTube não conectado"}
-                        </p>
-                        <p className="text-xs text-zinc-400 truncate">
-                          {youtubeConnected
-                            ? "Transmissões ao vivo serão enviadas para este canal."
-                            : "Conecte para transmitir jogos ao vivo no YouTube."}
-                        </p>
-                      </div>
-                    </div>
-                    {youtubeConnected ? (
-                      <button
-                        onClick={async () => {
-                          const { data: sessionData } = await supabase.auth.getSession();
-                          const token = sessionData.session?.access_token;
-                          if (!token) { toast.error("Sessão expirada."); return; }
-                          try {
-                            const res = await fetch("/api/public/live/youtube-disconnect", {
-                              method: "POST",
-                              headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                              body: JSON.stringify({ arena_id: editing!.id }),
-                            });
-                            if (!res.ok) { toast.error("Erro ao desconectar"); return; }
-                            setYoutubeConnected(false);
-                            toast.success("Canal YouTube desconectado.");
-                          } catch { toast.error("Erro de conexão"); }
-                        }}
-                        className="shrink-0 rounded-full border border-red-700 px-3 py-1.5 text-xs font-bold text-red-400 transition hover:bg-red-900/30"
-                      >
-                        Desconectar
-                      </button>
-                    ) : (
-                      <button
-                        onClick={async () => {
-                          setYoutubeConnecting(true);
-                          const { data: sessionData } = await supabase.auth.getSession();
-                          const token = sessionData.session?.access_token;
-                          if (!token) { toast.error("Sessão expirada."); setYoutubeConnecting(false); return; }
-                          try {
-                            const res = await fetch(
-                              "/api/public/live/youtube-connect?arena_id=" + editing!.id,
-                              { headers: { Authorization: "Bearer " + token } },
-                            );
-                            const json = await res.json();
-                            if (!res.ok) { toast.error(json.error || "Erro"); setYoutubeConnecting(false); return; }
-                            window.location.href = json.url;
-                          } catch { toast.error("Erro de conexão"); setYoutubeConnecting(false); }
-                        }}
-                        disabled={youtubeConnecting}
-                        className="shrink-0 rounded-full bg-brand-orange px-3 py-1.5 text-xs font-bold text-black transition hover:brightness-110 disabled:opacity-50"
-                      >
-                        {youtubeConnecting ? "Conectando..." : "Conectar Canal do YouTube"}
-                      </button>
-                    )}
-                  </div>
-                </div>
-
-              </div>
+                  )}
+                </>
               )}
               <DialogFooter>
                 {viewMode && editing ? (
@@ -952,7 +926,7 @@ function Arenas() {
             <MapPin className="h-5 w-5" />
           </div>
           <div className="min-w-0">
-            <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Filtrar arenas</p>
+            <p className="text-[10px] font-black uppercase tracking-widest text-gray-500">Filtrar arenas</p>
             <p className="text-sm font-bold text-gray-800 truncate">
               {filterEstado && cityFilter
                 ? `Mostrando arenas em ${cityFilter} / ${filterEstado}`
@@ -1078,8 +1052,8 @@ function Arenas() {
         </ul>
 
         {/* Desktop table */}
-        <div className="hidden md:block rounded-2xl border border-zinc-800/60 bg-zinc-900 overflow-hidden">
-          <Table>
+        <div className="hidden md:block rounded-2xl border border-zinc-800/60 bg-zinc-900 overflow-x-auto">
+          <Table className="w-full min-w-[640px]">
             <TableHeader className="bg-zinc-950/40 border-b border-zinc-800/60">
               <TableRow className="hover:bg-transparent border-zinc-800/60">
                 <TableHead className="text-[10px] font-black uppercase tracking-widest text-zinc-400 py-4 px-6">Arena</TableHead>
