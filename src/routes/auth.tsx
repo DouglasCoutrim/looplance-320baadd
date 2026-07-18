@@ -1,13 +1,16 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, useSearch } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { lovable } from "@/integrations/lovable/index";
 import logoUrl from "@/assets/looplance-logo.png";
-import { LogIn, UserPlus, Loader2, X } from "lucide-react";
+import { LogIn, UserPlus, Loader2, X, MapPin, ArrowLeft, Mail } from "lucide-react";
 
 export const Route = createFileRoute("/auth")({
   component: AuthPage,
+  validateSearch: (search: Record<string, string>) => ({
+    arena: search.arena || undefined,
+  }),
   head: () => ({
     meta: [
       { title: "Entrar — Looplance" },
@@ -41,10 +44,26 @@ function isValidCpf(cpf: string) {
 
 function AuthPage() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"login" | "signup">("login");
+  const { arena: arenaId } = useSearch({ from: "/auth" });
+  const [tab, setTab] = useState<"login" | "signup">(arenaId ? "signup" : "login");
   const [loading, setLoading] = useState(false);
   const [showTerms, setShowTerms] = useState(false);
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [arenaNome, setArenaNome] = useState("");
 
+  // Fetch arena name if arena param is present
+  useEffect(() => {
+    if (arenaId) {
+      supabase.from("arenas").select("nome").eq("id", arenaId).single().then(({ data }) => {
+        if (data) setArenaNome(data.nome);
+      });
+    }
+  }, [arenaId]);
+
+  // If arena present, auto-switch to signup tab
+  useEffect(() => {
+    if (arenaId) setTab("signup");
+  }, [arenaId]);
 
   // Redirect if already logged in
   useEffect(() => {
@@ -63,6 +82,10 @@ function AuthPage() {
   const [sEmail, setSEmail] = useState("");
   const [sPass, setSPass] = useState("");
   const [sConsent, setSConsent] = useState(false);
+
+  // Forgot password
+  const [fpEmail, setFpEmail] = useState("");
+  const [fpSent, setFpSent] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,22 +112,25 @@ function AuthPage() {
     if (!sConsent) return toast.error("É preciso aceitar os termos");
 
     setLoading(true);
+    const metadata: Record<string, string | boolean> = {
+      full_name: sFullName.trim(),
+      cpf: sCpf.replace(/\D/g, ""),
+      consent_accepted: true,
+      consent_timestamp: new Date().toISOString(),
+    };
+    if (arenaId) metadata.arena_id = arenaId;
+
     const { error } = await supabase.auth.signUp({
       email: sEmail.trim(),
       password: sPass,
       options: {
         emailRedirectTo: `${window.location.origin}/`,
-        data: {
-          full_name: sFullName.trim(),
-          cpf: sCpf.replace(/\D/g, ""),
-          consent_accepted: true,
-          consent_timestamp: new Date().toISOString(),
-        },
+        data: metadata,
       },
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Conta criada! Você já pode entrar.");
+    toast.success("Conta criada! Agora faça login.");
     setTab("login");
     setLoginEmail(sEmail.trim());
   };
@@ -119,11 +145,23 @@ function AuthPage() {
       toast.error(result.error.message || "Falha ao autenticar");
       return;
     }
-    if (result.redirected) return; // browser navigating to provider
-    // popup flow completed
+    if (result.redirected) return;
     navigate({ to: "/" });
   };
 
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fpEmail.trim()) return toast.error("Informe seu email");
+
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(fpEmail.trim(), {
+      redirectTo: `${window.location.origin}/auth`,
+    });
+    setLoading(false);
+    if (error) return toast.error(error.message);
+    setFpSent(true);
+    toast.success("Email de recuperação enviado! Verifique sua caixa de entrada.");
+  };
 
   return (
     <div className="min-h-screen bg-background flex flex-col items-center px-4 py-10">
@@ -132,128 +170,188 @@ function AuthPage() {
         <img src={logoUrl} alt="Looplance" className="w-full h-auto" />
       </div>
 
-
       <div className="-mt-10 w-full max-w-sm rounded-3xl bg-white shadow-lg border border-gray-200 p-6">
-        <div className="grid grid-cols-2 rounded-full bg-gray-100 p-1 text-sm font-bold mb-6">
-          <button
-            onClick={() => setTab("login")}
-            className={`rounded-full py-2 transition ${tab === "login" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
-          >
-            Entrar
-          </button>
-          <button
-            onClick={() => setTab("signup")}
-            className={`rounded-full py-2 transition ${tab === "signup" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
-          >
-            Cadastrar
-          </button>
-        </div>
-
-        <div className="mb-5 flex items-center justify-center gap-3">
-          <button
-            type="button"
-            onClick={() => handleOAuth("google")}
-            disabled={loading}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white transition hover:bg-gray-50 disabled:opacity-60"
-            aria-label="Continuar com Google"
-            title="Continuar com Google"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
-              <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.68 4.1-5.5 4.1a6.2 6.2 0 1 1 0-12.4c1.94 0 3.24.83 3.98 1.53l2.72-2.62A9.9 9.9 0 0 0 12 2a10 10 0 1 0 0 20c5.77 0 9.6-4.06 9.6-9.77 0-.66-.07-1.16-.16-1.66H12Z"/>
-              <path fill="#34A853" d="M3.06 7.35 6.3 9.74C7.2 7.62 9.42 6.1 12 6.1c1.94 0 3.24.83 3.98 1.53l2.72-2.62A9.9 9.9 0 0 0 12 2a10 10 0 0 0-8.94 5.35Z"/>
-              <path fill="#4A90E2" d="M12 22c2.7 0 4.97-.9 6.63-2.44l-3.15-2.58c-.86.6-2.02 1.03-3.48 1.03-2.83 0-5.23-1.9-6.08-4.48L2.7 15.9A10 10 0 0 0 12 22Z"/>
-              <path fill="#FBBC05" d="M5.92 13.53a6.2 6.2 0 0 1 0-3.06L2.7 8.1a10 10 0 0 0 0 7.8l3.22-2.37Z"/>
-            </svg>
-          </button>
-          <button
-            type="button"
-            onClick={() => handleOAuth("apple")}
-            disabled={loading}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-black transition hover:bg-gray-50 disabled:opacity-60"
-            aria-label="Continuar com Apple"
-            title="Continuar com Apple"
-          >
-            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-              <path d="M16.36 12.71c.02 2.3 2.02 3.06 2.04 3.07-.02.06-.32 1.09-1.05 2.15-.64.94-1.3 1.87-2.34 1.89-1.02.02-1.35-.6-2.51-.6-1.17 0-1.53.58-2.5.62-1 .04-1.77-1.01-2.41-1.94-1.32-1.9-2.33-5.38-.97-7.73.67-1.17 1.87-1.91 3.17-1.93.99-.02 1.92.67 2.52.67.6 0 1.74-.83 2.93-.71.5.02 1.9.2 2.8 1.52-.07.05-1.67.98-1.65 2.99Zm-1.94-5.83c.54-.65.9-1.55.8-2.44-.77.03-1.7.51-2.25 1.15-.5.57-.94 1.5-.82 2.37.86.07 1.74-.44 2.27-1.08Z"/>
-            </svg>
-          </button>
-        </div>
-
-
-
-
-        {tab === "login" ? (
-          <form onSubmit={handleLogin} className="space-y-4">
-            <Field label="Email">
-              <input
-                type="email" required autoComplete="email"
-                value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
-                className="input" placeholder="voce@email.com"
-              />
-            </Field>
-            <Field label="Senha">
-              <input
-                type="password" required autoComplete="current-password"
-                value={loginPass} onChange={(e) => setLoginPass(e.target.value)}
-                className="input" placeholder="••••••••"
-              />
-            </Field>
-            <button type="submit" disabled={loading} className="btn-primary">
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><LogIn className="h-5 w-5" /> Entrar</>}
+        {showForgotPassword ? (
+          <>
+            <button
+              onClick={() => { setShowForgotPassword(false); setFpSent(false); }}
+              className="flex items-center gap-1 text-sm text-gray-500 mb-4 hover:text-gray-700"
+            >
+              <ArrowLeft className="h-4 w-4" /> Voltar
             </button>
-          </form>
-        ) : (
-          <form onSubmit={handleSignup} className="space-y-4">
-            <Field label="Nome completo">
-              <input
-                type="text" required autoComplete="name"
-                value={sFullName} onChange={(e) => setSFullName(e.target.value)}
-                className="input" placeholder="Seu nome completo"
-              />
-            </Field>
-            <Field label="CPF">
-              <input
-                type="text" required inputMode="numeric"
-                value={sCpf} onChange={(e) => setSCpf(formatCpf(e.target.value))}
-                className="input" placeholder="000.000.000-00" maxLength={14}
-              />
-            </Field>
-            <Field label="Email">
-              <input
-                type="email" required autoComplete="email"
-                value={sEmail} onChange={(e) => setSEmail(e.target.value)}
-                className="input" placeholder="voce@email.com"
-              />
-            </Field>
-            <Field label="Senha">
-              <input
-                type="password" required autoComplete="new-password" minLength={6}
-                value={sPass} onChange={(e) => setSPass(e.target.value)}
-                className="input" placeholder="Mínimo 6 caracteres"
-              />
-            </Field>
-            <label className="flex items-start gap-2 text-xs text-gray-600">
-              <input
-                type="checkbox" checked={sConsent} onChange={(e) => setSConsent(e.target.checked)}
-                className="mt-0.5"
-              />
-              <span>
-                Li e aceito os{" "}
+            <h2 className="text-lg font-black text-gray-900 mb-1">Recuperar senha</h2>
+            <p className="text-sm text-muted-foreground mb-6">
+              Digite seu email e enviaremos um link para redefinir sua senha.
+            </p>
+            {fpSent ? (
+              <div className="text-center space-y-4 py-4">
+                <div className="mx-auto h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
+                  <Mail className="h-6 w-6 text-green-600" />
+                </div>
+                <p className="text-sm text-gray-700">
+                  Email enviado! Siga as instruções no email para redefinir sua senha.
+                </p>
                 <button
-                  type="button"
-                  onClick={() => setShowTerms(true)}
-                  className="font-bold text-orange-600 underline underline-offset-2 hover:text-orange-700"
+                  onClick={() => { setShowForgotPassword(false); setFpSent(false); }}
+                  className="text-brand-orange font-bold text-sm hover:underline"
                 >
-                  Termos de Uso e Política de Privacidade
-                </button>{" "}
-                da Looplance, e me responsabilizo integralmente pelos meus atos na plataforma.
-              </span>
-            </label>
+                  Voltar para o login
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <Field label="Email">
+                  <input
+                    type="email" required autoComplete="email"
+                    value={fpEmail} onChange={(e) => setFpEmail(e.target.value)}
+                    className="input" placeholder="voce@email.com"
+                  />
+                </Field>
+                <button type="submit" disabled={loading} className="btn-primary">
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : "Enviar link de recuperação"}
+                </button>
+              </form>
+            )}
+          </>
+        ) : (
+          <>
+            <div className="grid grid-cols-2 rounded-full bg-gray-100 p-1 text-sm font-bold mb-6">
+              <button
+                onClick={() => setTab("login")}
+                className={`rounded-full py-2 transition ${tab === "login" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
+              >
+                Entrar
+              </button>
+              <button
+                onClick={() => setTab("signup")}
+                className={`rounded-full py-2 transition ${tab === "signup" ? "bg-white shadow text-gray-900" : "text-gray-500"}`}
+              >
+                Cadastrar
+              </button>
+            </div>
 
-            <button type="submit" disabled={loading} className="btn-primary">
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><UserPlus className="h-5 w-5" /> Criar conta</>}
-            </button>
-          </form>
+            {arenaId && arenaNome && (
+              <div className="flex items-center gap-2 mb-5 px-3 py-2 rounded-xl bg-brand-orange/5 border border-brand-orange/10">
+                <MapPin className="h-4 w-4 text-brand-orange shrink-0" />
+                <span className="text-sm font-bold text-gray-700 truncate">
+                  Vinculando à {arenaNome}
+                </span>
+              </div>
+            )}
+
+            <div className="mb-5 flex items-center justify-center gap-3">
+              <button
+                type="button"
+                onClick={() => handleOAuth("google")}
+                disabled={loading}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white transition hover:bg-gray-50 disabled:opacity-60"
+                aria-label="Continuar com Google"
+                title="Continuar com Google"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" aria-hidden="true">
+                  <path fill="#EA4335" d="M12 10.2v3.9h5.5c-.24 1.4-1.68 4.1-5.5 4.1a6.2 6.2 0 1 1 0-12.4c1.94 0 3.24.83 3.98 1.53l2.72-2.62A9.9 9.9 0 0 0 12 2a10 10 0 1 0 0 20c5.77 0 9.6-4.06 9.6-9.77 0-.66-.07-1.16-.16-1.66H12Z"/>
+                  <path fill="#34A853" d="M3.06 7.35 6.3 9.74C7.2 7.62 9.42 6.1 12 6.1c1.94 0 3.24.83 3.98 1.53l2.72-2.62A9.9 9.9 0 0 0 12 2a10 10 0 0 0-8.94 5.35Z"/>
+                  <path fill="#4A90E2" d="M12 22c2.7 0 4.97-.9 6.63-2.44l-3.15-2.58c-.86.6-2.02 1.03-3.48 1.03-2.83 0-5.23-1.9-6.08-4.48L2.7 15.9A10 10 0 0 0 12 22Z"/>
+                  <path fill="#FBBC05" d="M5.92 13.53a6.2 6.2 0 0 1 0-3.06L2.7 8.1a10 10 0 0 0 0 7.8l3.22-2.37Z"/>
+                </svg>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleOAuth("apple")}
+                disabled={loading}
+                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-black transition hover:bg-gray-50 disabled:opacity-60"
+                aria-label="Continuar com Apple"
+                title="Continuar com Apple"
+              >
+                <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M16.36 12.71c.02 2.3 2.02 3.06 2.04 3.07-.02.06-.32 1.09-1.05 2.15-.64.94-1.3 1.87-2.34 1.89-1.02.02-1.35-.6-2.51-.6-1.17 0-1.53.58-2.5.62-1 .04-1.77-1.01-2.41-1.94-1.32-1.9-2.33-5.38-.97-7.73.67-1.17 1.87-1.91 3.17-1.93.99-.02 1.92.67 2.52.67.6 0 1.74-.83 2.93-.71.5.02 1.9.2 2.8 1.52-.07.05-1.67.98-1.65 2.99Zm-1.94-5.83c.54-.65.9-1.55.8-2.44-.77.03-1.7.51-2.25 1.15-.5.57-.94 1.5-.82 2.37.86.07 1.74-.44 2.27-1.08Z"/>
+                </svg>
+              </button>
+            </div>
+
+            {tab === "login" ? (
+              <form onSubmit={handleLogin} className="space-y-4">
+                <Field label="Email">
+                  <input
+                    type="email" required autoComplete="email"
+                    value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)}
+                    className="input" placeholder="voce@email.com"
+                  />
+                </Field>
+                <Field label="Senha">
+                  <input
+                    type="password" required autoComplete="current-password"
+                    value={loginPass} onChange={(e) => setLoginPass(e.target.value)}
+                    className="input" placeholder="••••••••"
+                  />
+                </Field>
+                <div className="flex justify-end -mt-2">
+                  <button
+                    type="button"
+                    onClick={() => setShowForgotPassword(true)}
+                    className="text-xs text-brand-orange font-bold hover:underline"
+                  >
+                    Esqueci minha senha
+                  </button>
+                </div>
+                <button type="submit" disabled={loading} className="btn-primary">
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><LogIn className="h-5 w-5" /> Entrar</>}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handleSignup} className="space-y-4">
+                <Field label="Nome completo">
+                  <input
+                    type="text" required autoComplete="name"
+                    value={sFullName} onChange={(e) => setSFullName(e.target.value)}
+                    className="input" placeholder="Seu nome completo"
+                  />
+                </Field>
+                <Field label="CPF">
+                  <input
+                    type="text" required inputMode="numeric"
+                    value={sCpf} onChange={(e) => setSCpf(formatCpf(e.target.value))}
+                    className="input" placeholder="000.000.000-00" maxLength={14}
+                  />
+                </Field>
+                <Field label="Email">
+                  <input
+                    type="email" required autoComplete="email"
+                    value={sEmail} onChange={(e) => setSEmail(e.target.value)}
+                    className="input" placeholder="voce@email.com"
+                  />
+                </Field>
+                <Field label="Senha">
+                  <input
+                    type="password" required autoComplete="new-password" minLength={6}
+                    value={sPass} onChange={(e) => setSPass(e.target.value)}
+                    className="input" placeholder="Mínimo 6 caracteres"
+                  />
+                </Field>
+                <label className="flex items-start gap-2 text-xs text-gray-600">
+                  <input
+                    type="checkbox" checked={sConsent} onChange={(e) => setSConsent(e.target.checked)}
+                    className="mt-0.5"
+                  />
+                  <span>
+                    Li e aceito os{" "}
+                    <button
+                      type="button"
+                      onClick={() => setShowTerms(true)}
+                      className="font-bold text-orange-600 underline underline-offset-2 hover:text-orange-700"
+                    >
+                      Termos de Uso e Política de Privacidade
+                    </button>{" "}
+                    da Looplance, e me responsabilizo integralmente pelos meus atos na plataforma.
+                  </span>
+                </label>
+
+                <button type="submit" disabled={loading} className="btn-primary">
+                  {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <><UserPlus className="h-5 w-5" /> Criar conta</>}
+                </button>
+              </form>
+            )}
+          </>
         )}
       </div>
 
@@ -332,7 +430,6 @@ function AuthPage() {
           </div>
         </div>
       )}
-
 
       <style>{`
         .input {

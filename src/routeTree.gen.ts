@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as ReplaysRouteImport } from './routes/replays'
+import { Route as RegisterRouteImport } from './routes/register'
 import { Route as MessagesRouteImport } from './routes/messages'
 import { Route as InstallRouteImport } from './routes/install'
 import { Route as ExploreRouteImport } from './routes/explore'
@@ -49,6 +50,11 @@ import { Route as ApiPublicCronCleanupReplaysRouteImport } from './routes/api/pu
 const ReplaysRoute = ReplaysRouteImport.update({
   id: '/replays',
   path: '/replays',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
   getParentRoute: () => rootRouteImport,
 } as any)
 const MessagesRoute = MessagesRouteImport.update({
@@ -242,6 +248,7 @@ export interface FileRoutesByFullPath {
   '/explore': typeof ExploreRoute
   '/install': typeof InstallRoute
   '/messages': typeof MessagesRoute
+  '/register': typeof RegisterRoute
   '/replays': typeof ReplaysRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
@@ -279,6 +286,7 @@ export interface FileRoutesByTo {
   '/explore': typeof ExploreRoute
   '/install': typeof InstallRoute
   '/messages': typeof MessagesRoute
+  '/register': typeof RegisterRoute
   '/replays': typeof ReplaysRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
@@ -318,6 +326,7 @@ export interface FileRoutesById {
   '/explore': typeof ExploreRoute
   '/install': typeof InstallRoute
   '/messages': typeof MessagesRoute
+  '/register': typeof RegisterRoute
   '/replays': typeof ReplaysRoute
   '/admin/arenas': typeof AdminArenasRoute
   '/admin/cameras': typeof AdminCamerasRoute
@@ -358,6 +367,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/install'
     | '/messages'
+    | '/register'
     | '/replays'
     | '/admin/arenas'
     | '/admin/cameras'
@@ -395,6 +405,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/install'
     | '/messages'
+    | '/register'
     | '/replays'
     | '/admin/arenas'
     | '/admin/cameras'
@@ -433,6 +444,7 @@ export interface FileRouteTypes {
     | '/explore'
     | '/install'
     | '/messages'
+    | '/register'
     | '/replays'
     | '/admin/arenas'
     | '/admin/cameras'
@@ -472,6 +484,7 @@ export interface RootRouteChildren {
   ExploreRoute: typeof ExploreRoute
   InstallRoute: typeof InstallRoute
   MessagesRoute: typeof MessagesRoute
+  RegisterRoute: typeof RegisterRoute
   ReplaysRoute: typeof ReplaysRoute
   ArenaIdRoute: typeof ArenaIdRoute
   ProfileIdRoute: typeof ProfileIdRoute
@@ -498,6 +511,13 @@ declare module '@tanstack/react-router' {
       path: '/replays'
       fullPath: '/replays'
       preLoaderRoute: typeof ReplaysRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/messages': {
@@ -788,6 +808,7 @@ const rootRouteChildren: RootRouteChildren = {
   ExploreRoute: ExploreRoute,
   InstallRoute: InstallRoute,
   MessagesRoute: MessagesRoute,
+  RegisterRoute: RegisterRoute,
   ReplaysRoute: ReplaysRoute,
   ArenaIdRoute: ArenaIdRoute,
   ProfileIdRoute: ProfileIdRoute,
