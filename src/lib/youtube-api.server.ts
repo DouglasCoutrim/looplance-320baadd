@@ -240,3 +240,71 @@ export async function getYouTubeClientForArenaWithName(
 
   return { client, arenaName };
 }
+
+// ── OAuth 2.0 helpers (YouTube Connect flow) ──────────────────────────
+
+const SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"];
+
+function encodeOAuthState(arenaId: string, userId: string): string {
+  return Buffer.from(JSON.stringify({ arenaId, userId })).toString("base64url");
+}
+
+export function decodeOAuthState(state: string): { arenaId: string; userId: string } | null {
+  try {
+    const raw = Buffer.from(state, "base64url").toString("utf8");
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function generateYouTubeOAuthUrl(
+  redirectUri: string,
+  arenaId: string,
+  userId: string,
+): string {
+  const clientId = process.env.YOUTUBE_CLIENT_ID;
+  if (!clientId) {
+    throw new YouTubeApiError("YOUTUBE_CLIENT_ID não configurado", 500);
+  }
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    response_type: "code",
+    scope: SCOPES.join(" "),
+    access_type: "offline",
+    prompt: "consent",
+    state: encodeOAuthState(arenaId, userId),
+  });
+  return `https://accounts.google.com/o/oauth2/v2/auth?${params}`;
+}
+
+export async function exchangeCodeForTokens(
+  code: string,
+  redirectUri: string,
+): Promise<{ access_token: string; refresh_token: string; expires_in: number }> {
+  const clientId = process.env.YOUTUBE_CLIENT_ID;
+  const clientSecret = process.env.YOUTUBE_CLIENT_SECRET;
+  if (!clientId || !clientSecret) {
+    throw new YouTubeApiError("YOUTUBE_CLIENT_ID e YOUTUBE_CLIENT_SECRET não configurados", 500);
+  }
+
+  const resp = await fetch("https://oauth2.googleapis.com/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      code,
+      client_id: clientId,
+      client_secret: clientSecret,
+      redirect_uri: redirectUri,
+      grant_type: "authorization_code",
+    }),
+  });
+
+  if (!resp.ok) {
+    const err = await resp.text();
+    throw new YouTubeApiError(`Falha ao trocar code por tokens: ${err}`, resp.status);
+  }
+
+  return resp.json() as Promise<{ access_token: string; refresh_token: string; expires_in: number }>;
+}

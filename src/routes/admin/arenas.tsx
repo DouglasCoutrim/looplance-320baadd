@@ -112,6 +112,10 @@ function Arenas() {
 
   useEffect(() => { fetchAll(); }, []);
 
+  // YouTube integration
+  const [youtubeConnected, setYoutubeConnected] = useState(false);
+  const [youtubeConnecting, setYoutubeConnecting] = useState(false);
+
   // Gera QR code para cadastro via scan
   const [qrCodeDataUrl, setQrCodeDataUrl] = useState<string | null>(null);
 
@@ -136,6 +140,31 @@ function Arenas() {
       .order("position_index")
       .then(({ data }) => setSponsors(data ?? []));
   }, [editing]);
+
+  // Carrega status da integração YouTube
+  useEffect(() => {
+    if (!editing) { setYoutubeConnected(false); return; }
+    supabase
+      .from("arena_youtube_credentials")
+      .select("id")
+      .eq("arena_id", editing.id)
+      .maybeSingle()
+      .then(({ data }) => setYoutubeConnected(!!data));
+  }, [editing]);
+
+  // Toast do retorno OAuth (youtube-callback redireciona com ?youtube=ok)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const status = params.get("youtube");
+    if (status === "ok") toast.success("Canal do YouTube conectado com sucesso!");
+    else if (status === "error") toast.error("Erro ao conectar YouTube. Tente novamente.");
+    else if (status === "forbidden") toast.error("Sem permissão para conectar esta arena.");
+    else if (status === "save_error") toast.error("Erro ao salvar credenciais. Contate o suporte.");
+    if (status) {
+      window.history.replaceState({}, "", window.location.pathname);
+      fetchAll();
+    }
+  }, []);
 
   const filteredEdges = useMemo(
     () => (clientId ? edges.filter((e) => e.client_id === clientId) : []),
@@ -508,6 +537,80 @@ function Arenas() {
                           </div>
                         );
                       })}
+                    </div>
+                  </div>
+
+                  {/* YouTube Integration */}
+                  <div className="space-y-3">
+                    <Label className="text-xs font-black uppercase tracking-widest text-muted-foreground">
+                      Integração YouTube
+                    </Label>
+                    <div className="rounded-xl border border-gray-100 bg-gray-50 p-4 flex items-center justify-between gap-4">
+                      <div className="flex items-center gap-3 min-w-0">
+                        {youtubeConnected ? (
+                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-green-100">
+                            <span className="text-lg">✅</span>
+                          </div>
+                        ) : (
+                          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gray-200">
+                            <span className="text-lg">🔗</span>
+                          </div>
+                        )}
+                        <div className="min-w-0">
+                          <p className="text-sm font-bold text-gray-900">
+                            {youtubeConnected ? "Canal Conectado" : "YouTube não conectado"}
+                          </p>
+                          <p className="text-xs text-gray-500 truncate">
+                            {youtubeConnected
+                              ? "Transmissões ao vivo serão enviadas para este canal."
+                              : "Conecte para transmitir jogos ao vivo no YouTube."}
+                          </p>
+                        </div>
+                      </div>
+                      {youtubeConnected ? (
+                        <button
+                          onClick={async () => {
+                            const { data: sessionData } = await supabase.auth.getSession();
+                            const token = sessionData.session?.access_token;
+                            if (!token) { toast.error("Sessão expirada."); return; }
+                            try {
+                              const res = await fetch("/api/public/live/youtube-disconnect", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                                body: JSON.stringify({ arena_id: editing!.id }),
+                              });
+                              if (!res.ok) { toast.error("Erro ao desconectar"); return; }
+                              setYoutubeConnected(false);
+                              toast.success("Canal YouTube desconectado.");
+                            } catch { toast.error("Erro de conexão"); }
+                          }}
+                          className="shrink-0 rounded-full border border-red-200 px-3 py-1.5 text-xs font-bold text-red-600 transition hover:bg-red-50"
+                        >
+                          Desconectar
+                        </button>
+                      ) : (
+                        <button
+                          onClick={async () => {
+                            setYoutubeConnecting(true);
+                            const { data: sessionData } = await supabase.auth.getSession();
+                            const token = sessionData.session?.access_token;
+                            if (!token) { toast.error("Sessão expirada."); setYoutubeConnecting(false); return; }
+                            try {
+                              const res = await fetch(
+                                "/api/public/live/youtube-connect?arena_id=" + editing!.id,
+                                { headers: { Authorization: "Bearer " + token } },
+                              );
+                              const json = await res.json();
+                              if (!res.ok) { toast.error(json.error || "Erro"); setYoutubeConnecting(false); return; }
+                              window.location.href = json.url;
+                            } catch { toast.error("Erro de conexão"); setYoutubeConnecting(false); }
+                          }}
+                          disabled={youtubeConnecting}
+                          className="shrink-0 rounded-full bg-gray-900 px-3 py-1.5 text-xs font-bold text-white transition hover:bg-gray-800 disabled:opacity-50"
+                        >
+                          {youtubeConnecting ? "Conectando..." : "Conectar Canal do YouTube"}
+                        </button>
+                      )}
                     </div>
                   </div>
 
