@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Toaster, toast } from "sonner";
 import {
-  Search, Sparkles, Plus, Play, Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Radio,
+  Search, Sparkles, Play, Heart, MessageCircle, Share2, Bookmark, MoreHorizontal, Radio, Download,
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { SocialShell } from "@/components/SocialShell";
@@ -192,16 +192,8 @@ function Home() {
             />
           </div>
 
-          {/* Stories row (com "seu story" no início) */}
+          {/* Avatar row — perfil logado + comunidade */}
           <div className="flex gap-3.5 overflow-x-auto pb-1 -mx-1 px-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <div className="flex flex-col items-center gap-1.5 shrink-0 cursor-pointer group">
-              <div className="p-[2.5px] rounded-full bg-secondary">
-                <div className="w-14 h-14 rounded-full overflow-hidden bg-card border-2 border-background flex items-center justify-center">
-                  <Plus className="w-5 h-5 text-muted-foreground" />
-                </div>
-              </div>
-              <span className="text-[11px] text-muted-foreground text-center w-16 truncate">Seu Story</span>
-            </div>
             {stories.map((s) => (
               <Link
                 key={s.id}
@@ -209,16 +201,8 @@ function Home() {
                 params={{ id: s.id }}
                 className="flex flex-col items-center gap-1.5 shrink-0 group"
               >
-                <div className="p-[2.5px] rounded-full brand-gradient transition-transform group-hover:scale-105">
-                  <div className="w-14 h-14 rounded-full overflow-hidden bg-card border-2 border-background">
-                    {s.avatar_url ? (
-                      <img src={s.avatar_url} alt={s.full_name || ""} className="w-full h-full object-cover" />
-                    ) : (
-                      <div className="w-full h-full grid place-items-center text-xs font-bold text-muted-foreground">
-                        {(s.full_name || "?").slice(0, 1).toUpperCase()}
-                      </div>
-                    )}
-                  </div>
+                <div className="w-14 h-14 rounded-full overflow-hidden bg-card border-2 border-zinc-700 transition-transform group-hover:scale-105">
+                  <img src={s.avatar_url!} alt={s.full_name || ""} className="w-full h-full object-cover" />
                 </div>
                 <span className="text-[11px] text-muted-foreground text-center w-16 truncate">
                   {(s.full_name || "Atleta").split(" ")[0]}
@@ -227,17 +211,21 @@ function Home() {
             ))}
           </div>
 
-          {/* Live now strip */}
+          {/* Live now — 0: oculto, 1: card único, multi: carrossel */}
           {liveList.length > 0 && (
-            <div className="-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              <div className="flex gap-3 w-max">
-                {liveList.map((l) => (
+            <div className={liveList.length > 1 ? "-mx-4 overflow-x-auto px-4 pb-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden" : ""}>
+              <div className={liveList.length > 1 ? "flex gap-3 w-max snap-x" : ""}>
+                {(liveList.length > 1 ? liveList : [liveList[0]]).map((l) => (
                   <Link
                     key={l.quadra_id}
                     to="/arena/$id"
                     params={{ id: l.arena_id }}
                     search={{ live: l.quadra_id }}
-                    className="group relative flex min-w-[220px] aspect-video flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-3 transition hover:border-primary/60"
+                    className={`group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-border bg-card p-3 transition hover:border-primary/60 ${
+                      liveList.length > 1
+                        ? "min-w-[220px] aspect-video snap-start"
+                        : "w-full aspect-video"
+                    }`}
                   >
                     <div className="absolute inset-0 opacity-70" style={{ background: "var(--gradient-brand-soft)" }} />
                     <div className="relative flex items-center justify-between">
@@ -369,6 +357,26 @@ function Home() {
                         className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition"
                       >
                         <Share2 className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={async () => {
+                          try {
+                            const res = await fetch(post.video_url);
+                            const blob = await res.blob();
+                            const url = URL.createObjectURL(blob);
+                            const a = document.createElement("a");
+                            a.href = url;
+                            a.download = `looplance-${post.id}.mp4`;
+                            a.click();
+                            URL.revokeObjectURL(url);
+                            toast.success("Download iniciado!");
+                          } catch {
+                            window.open(post.video_url, "_blank");
+                          }
+                        }}
+                        className="flex items-center gap-1.5 text-sm font-semibold px-3 py-1.5 rounded-md bg-orange-500 hover:bg-orange-600 text-white transition"
+                      >
+                        <Download className="w-4 h-4" /> Baixar
                       </button>
                       <button
                         onClick={() => toggleSave(post.id)}
